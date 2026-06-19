@@ -4,12 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-<<<<<<< HEAD
-=======
-import pytest
-
-
->>>>>>> 114193b63005b3546586b52d910c26ff0f54767a
 # ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
@@ -300,10 +294,6 @@ def test_dashboard_scaffold_renders_catalog_and_schema(tmp_path: Path):
 
 def test_dashboard_scaffold_renders_valid_json(tmp_path: Path):
     import json
-<<<<<<< HEAD
-
-=======
->>>>>>> 114193b63005b3546586b52d910c26ff0f54767a
     from dia.accelerators import get_accelerator
 
     acc = get_accelerator("dashboard")()
