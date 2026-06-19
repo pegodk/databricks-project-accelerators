@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -61,10 +62,9 @@ def render_tree(
     target: Path,
     context: dict[str, Any],
     force: bool,
-    path_transform: "Callable[[Path], Path] | None" = None,
+    path_transform: Callable[[Path], Path] | None = None,
 ) -> None:
     """Walk *template_root* and render / copy each file into *target*."""
-    from collections.abc import Callable
     from jinja2 import Environment, FileSystemLoader
 
     env = Environment(
