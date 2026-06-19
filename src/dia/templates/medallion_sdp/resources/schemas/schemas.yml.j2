@@ -1,0 +1,26 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  schemas:
+    {{ slug }}_bronze:
+      catalog_name: ${var.bronze_catalog}
+      name: {{ cfg.bronze_schema }}
+      grants:
+        - principal: ${workspace.current_user.userName}
+          privileges:
+            - ALL_PRIVILEGES
+
+    {{ slug }}_silver:
+      catalog_name: ${var.silver_catalog}
+      name: {{ cfg.silver_schema }}
+      grants:
+        - principal: ${workspace.current_user.userName}
+          privileges:
+            - ALL_PRIVILEGES
+
+    {{ slug }}_gold:
+      catalog_name: ${var.gold_catalog}
+      name: {{ cfg.gold_schema }}
+      grants:
+        - principal: ${workspace.current_user.userName}
+          privileges:
+            - ALL_PRIVILEGES

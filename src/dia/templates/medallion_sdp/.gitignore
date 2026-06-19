@@ -1,0 +1,12 @@
+.databricks/
+.venv/
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.env
+.env.*
+scratch/
