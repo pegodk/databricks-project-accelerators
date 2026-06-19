@@ -175,6 +175,7 @@ def test_app_streamlit_list_files():
 
     assert "databricks.yml" in files
     assert "resources/apps/app.yml" in files
+    assert "resources/warehouses/warehouse.yml" in files
     assert "app/app.py" in files
     assert "app/app.yaml" in files
     assert "app/requirements.txt" in files
@@ -189,6 +190,7 @@ def test_app_streamlit_scaffold(tmp_path: Path):
 
     assert (project_dir / "databricks.yml").exists()
     assert (project_dir / "resources" / "apps" / "app.yml").exists()
+    assert (project_dir / "resources" / "warehouses" / "warehouse.yml").exists()
     assert (project_dir / "app" / "app.py").exists()
     assert (project_dir / "app" / "app.yaml").exists()
     assert (project_dir / "app" / "requirements.txt").exists()
@@ -207,6 +209,7 @@ def test_app_streamlit_scaffold_renders_app_name(tmp_path: Path):
     app_resource = (project_dir / "resources" / "apps" / "app.yml").read_text()
     assert "tpch_analytics" in app_resource
     assert "DATABRICKS_HTTP_PATH" in app_resource
+    assert "resources.sql_warehouses.starter_warehouse.id" in app_resource
 
 
 def test_app_streamlit_scaffold_renders_tpch_queries(tmp_path: Path):
@@ -256,6 +259,7 @@ def test_dashboard_list_files():
     assert "databricks.yml" in files
     assert "resources/jobs/setup_views_job.yml" in files
     assert "resources/dashboards/dashboard.yml" in files
+    assert "resources/warehouses/warehouse.yml" in files
     assert "src/sql/metric_views.sql" in files
     assert "dashboard/tpch_overview.lvdash.json" in files
 
@@ -270,6 +274,7 @@ def test_dashboard_scaffold(tmp_path: Path):
     assert (project_dir / "databricks.yml").exists()
     assert (project_dir / "resources" / "jobs" / "setup_views_job.yml").exists()
     assert (project_dir / "resources" / "dashboards" / "dashboard.yml").exists()
+    assert (project_dir / "resources" / "warehouses" / "warehouse.yml").exists()
     assert (project_dir / "src" / "sql" / "metric_views.sql").exists()
     assert (project_dir / "dashboard" / "tpch_overview.lvdash.json").exists()
 
