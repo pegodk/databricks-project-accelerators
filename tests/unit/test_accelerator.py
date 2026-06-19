@@ -25,6 +25,14 @@ def test_get_unknown_accelerator():
     assert get_accelerator("unicorn-engine") is None
 
 
+def test_registry_contains_all_accelerators():
+    from dia.accelerators import ACCELERATOR_REGISTRY
+
+    assert "medallion-sdp" in ACCELERATOR_REGISTRY
+    assert "app-streamlit" in ACCELERATOR_REGISTRY
+    assert "dashboard" in ACCELERATOR_REGISTRY
+
+
 # ---------------------------------------------------------------------------
 # File list
 # ---------------------------------------------------------------------------
@@ -148,3 +156,168 @@ def test_scaffold_no_overwrite_without_force(tmp_path: Path):
 
     acc.scaffold(target=project_dir, force=True)
     assert (project_dir / "databricks.yml").read_text() == original
+
+
+# ---------------------------------------------------------------------------
+# app-streamlit
+# ---------------------------------------------------------------------------
+
+def test_get_app_streamlit_accelerator():
+    from dia.accelerators import get_accelerator
+
+    cls = get_accelerator("app-streamlit")
+    assert cls is not None
+    assert cls.name == "app-streamlit"
+
+
+def test_app_streamlit_list_files():
+    from dia.accelerators import get_accelerator
+
+    acc = get_accelerator("app-streamlit")()
+    files = [str(f).replace("\\", "/") for f in acc.list_files()]
+
+    assert "databricks.yml" in files
+    assert "resources/apps/app.yml" in files
+    assert "app/app.py" in files
+    assert "app/app.yaml" in files
+    assert "app/requirements.txt" in files
+
+
+def test_app_streamlit_scaffold(tmp_path: Path):
+    from dia.accelerators import get_accelerator
+
+    acc = get_accelerator("app-streamlit")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    assert (project_dir / "databricks.yml").exists()
+    assert (project_dir / "resources" / "apps" / "app.yml").exists()
+    assert (project_dir / "app" / "app.py").exists()
+    assert (project_dir / "app" / "app.yaml").exists()
+    assert (project_dir / "app" / "requirements.txt").exists()
+
+
+def test_app_streamlit_scaffold_renders_app_name(tmp_path: Path):
+    from dia.accelerators import get_accelerator
+
+    acc = get_accelerator("app-streamlit")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    bundle = (project_dir / "databricks.yml").read_text()
+    assert "tpch-analytics" in bundle
+
+    app_resource = (project_dir / "resources" / "apps" / "app.yml").read_text()
+    assert "tpch_analytics" in app_resource
+    assert "DATABRICKS_HTTP_PATH" in app_resource
+
+
+def test_app_streamlit_scaffold_renders_tpch_queries(tmp_path: Path):
+    from dia.accelerators import get_accelerator
+
+    acc = get_accelerator("app-streamlit")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    app_py = (project_dir / "app" / "app.py").read_text()
+    assert "samples.tpch" in app_py
+    assert "streamlit" in app_py
+    assert "plotly" in app_py
+
+
+def test_app_streamlit_requirements(tmp_path: Path):
+    from dia.accelerators import get_accelerator
+
+    acc = get_accelerator("app-streamlit")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    reqs = (project_dir / "app" / "requirements.txt").read_text()
+    assert "streamlit" in reqs
+    assert "databricks-sql-connector" in reqs
+    assert "plotly" in reqs
+
+
+# ---------------------------------------------------------------------------
+# dashboard
+# ---------------------------------------------------------------------------
+
+def test_get_dashboard_accelerator():
+    from dia.accelerators import get_accelerator
+
+    cls = get_accelerator("dashboard")
+    assert cls is not None
+    assert cls.name == "dashboard"
+
+
+def test_dashboard_list_files():
+    from dia.accelerators import get_accelerator
+
+    acc = get_accelerator("dashboard")()
+    files = [str(f).replace("\\", "/") for f in acc.list_files()]
+
+    assert "databricks.yml" in files
+    assert "resources/jobs/setup_views_job.yml" in files
+    assert "resources/dashboards/dashboard.yml" in files
+    assert "src/sql/metric_views.sql" in files
+    assert "dashboard/tpch_overview.lvdash.json" in files
+
+
+def test_dashboard_scaffold(tmp_path: Path):
+    from dia.accelerators import get_accelerator
+
+    acc = get_accelerator("dashboard")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    assert (project_dir / "databricks.yml").exists()
+    assert (project_dir / "resources" / "jobs" / "setup_views_job.yml").exists()
+    assert (project_dir / "resources" / "dashboards" / "dashboard.yml").exists()
+    assert (project_dir / "src" / "sql" / "metric_views.sql").exists()
+    assert (project_dir / "dashboard" / "tpch_overview.lvdash.json").exists()
+
+
+def test_dashboard_scaffold_renders_catalog_and_schema(tmp_path: Path):
+    from dia.accelerators import get_accelerator
+
+    acc = get_accelerator("dashboard")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    bundle = (project_dir / "databricks.yml").read_text()
+    assert "main" in bundle
+    assert "tpch_metrics" in bundle
+
+    sql = (project_dir / "src" / "sql" / "metric_views.sql").read_text()
+    assert "samples.tpch" in sql
+    assert "v_kpis" in sql
+    assert "v_revenue_by_month" in sql
+    assert "v_top_customers" in sql
+
+
+def test_dashboard_scaffold_renders_valid_json(tmp_path: Path):
+    import json
+    from dia.accelerators import get_accelerator
+
+    acc = get_accelerator("dashboard")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    lvdash = (project_dir / "dashboard" / "tpch_overview.lvdash.json").read_text()
+    parsed = json.loads(lvdash)
+    assert "displayName" in parsed
+    assert "datasets" in parsed
+    assert "pages" in parsed
+    assert len(parsed["datasets"]) > 0
+    assert len(parsed["pages"]) > 0
+
+
+def test_dashboard_scaffold_renders_dashboard_name(tmp_path: Path):
+    from dia.accelerators import get_accelerator
+
+    acc = get_accelerator("dashboard")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    dashboard_yml = (project_dir / "resources" / "dashboards" / "dashboard.yml").read_text()
+    assert "TPCH Sales Overview" in dashboard_yml
