@@ -1,4 +1,4 @@
-"""CLI entrypoint for dia."""
+"""CLI entrypoint for dpa."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.table import Table
 
 app = typer.Typer(
-    name="dia",
+    name="dpa",
     help="Databricks Project Accelerators — scaffold Databricks solutions in seconds.",
     add_completion=False,
 )
@@ -29,7 +29,7 @@ def init(
     accelerator_cls = get_accelerator(accelerator)
     if accelerator_cls is None:
         console.print(
-            f"[red]Unknown accelerator: {accelerator!r}. Run 'dia list' to see available accelerators.[/red]"
+            f"[red]Unknown accelerator: {accelerator!r}. Run 'dpa list' to see available accelerators.[/red]"
         )
         raise typer.Exit(code=1)
 
@@ -80,7 +80,7 @@ def deploy(
 
     if not (project_dir / "databricks.yml").exists():
         console.print(
-            f"[red]No databricks.yml found in {project_dir}. Run 'dia init' first.[/red]"
+            f"[red]No databricks.yml found in {project_dir}. Run 'dpa init' first.[/red]"
         )
         raise typer.Exit(code=1)
 

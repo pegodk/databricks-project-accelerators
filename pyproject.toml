@@ -31,7 +31,7 @@ docs = [
 ]
 
 [project.scripts]
-dia = "dia.cli:app"
+dpa = "dia.cli:app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/dia"]
