@@ -1,0 +1,59 @@
+name: finance
+display_name: Finance
+description: "Financial services — transactions, accounts, and customers"
+
+# Names used for the generated pipeline/job resources and directory
+pipeline_name: finance
+
+# Unity Catalog schema names (catalogs are injected as DAB variables at deploy time)
+bronze_schema: finance
+silver_schema: finance
+gold_schema: financial_model
+
+# The PySpark DataSource class name generated in data_sources/fake_data_source.py
+fake_source_class: FinanceFakeDataSource
+
+# ------------------------------------------------------------------
+# Bronze layer: one entry per table to ingest from the fake source
+# ------------------------------------------------------------------
+bronze_tables:
+  - name: transactions
+    primary_keys: [transaction_id]
+    description: "Raw financial transactions"
+
+  - name: accounts
+    primary_keys: [account_id]
+    description: "Financial accounts"
+
+  - name: customers
+    primary_keys: [customer_id]
+    description: "Customer records"
+
+# ------------------------------------------------------------------
+# Silver layer: data quality expectations per table
+# Keys: fail_update | drop_row | warn  (maps to DLT expect_all variants)
+# ------------------------------------------------------------------
+silver_expectations:
+  transactions:
+    fail_update:
+      transaction_id_not_null: "transaction_id IS NOT NULL"
+      account_id_not_null: "account_id IS NOT NULL"
+      customer_id_not_null: "customer_id IS NOT NULL"
+    drop_row:
+      status_valid: "status IN ('completed', 'pending', 'failed', 'reversed')"
+    warn:
+      amount_nonzero: "amount != 0"
+
+  accounts:
+    fail_update:
+      account_id_not_null: "account_id IS NOT NULL"
+      customer_id_not_null: "customer_id IS NOT NULL"
+    drop_row:
+      account_type_valid: "account_type IN ('checking', 'savings', 'investment', 'credit')"
+      status_valid: "status IN ('active', 'inactive', 'frozen', 'closed')"
+
+  customers:
+    fail_update:
+      customer_id_not_null: "customer_id IS NOT NULL"
+    drop_row:
+      segment_valid: "customer_segment IN ('retail', 'private', 'corporate', 'institutional')"
