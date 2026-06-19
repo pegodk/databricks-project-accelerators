@@ -9,7 +9,9 @@ from pathlib import Path
 
 import pytest
 
-ACCELERATORS = ["medallion-sdp"]
+from dia.accelerators import ACCELERATOR_REGISTRY
+
+ACCELERATORS = list(ACCELERATOR_REGISTRY.keys())
 
 
 @pytest.mark.parametrize("accelerator_name", ACCELERATORS)
