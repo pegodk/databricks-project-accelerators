@@ -18,15 +18,32 @@ class MedallionSdpAccelerator(BaseAccelerator):
     def template_root(self) -> Path:
         return _TEMPLATE_ROOT
 
+    def _pipeline_remap(self, pipeline_name: str):
+        """Return a path transform that renames src/pipelines/main → src/pipelines/<pipeline_name>."""
+        def _transform(rel: Path) -> Path:
+            parts = list(rel.parts)
+            if len(parts) >= 3 and parts[0] == "src" and parts[1] == "pipelines" and parts[2] == "main":
+                parts[2] = pipeline_name
+            return Path(*parts)
+        return _transform
+
     def scaffold(self, target: Path, force: bool = False) -> None:
-        # 1. Render common templates (databricks.yml, resources/, framework, bronze/silver)
-        super().scaffold(target=target, force=force)
-        # 2. Render industry-specific templates (fake data source, gold layer)
+        pipeline_name: str = self.industry_config.get("pipeline_name", "main")
+        from dia.accelerators.base import render_tree
+        render_tree(
+            template_root=self.template_root,
+            target=target,
+            context=self._build_context(),
+            force=force,
+            skip_subdirs=("industries",),
+            path_transform=self._pipeline_remap(pipeline_name),
+        )
         self._render_industry_templates(target=target, force=force)
 
     def list_files(self) -> list[Path]:
-        files = super().list_files()
         pipeline_name: str = self.industry_config.get("pipeline_name", "main")
+        remap = self._pipeline_remap(pipeline_name)
+        files = [remap(p) for p in super().list_files()]
         industry_root = _TEMPLATE_ROOT / "industries" / self.industry
         if industry_root.exists():
             for src in sorted(industry_root.rglob("*")):

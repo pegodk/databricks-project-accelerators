@@ -72,8 +72,10 @@ def render_tree(
     context: dict[str, Any],
     force: bool,
     skip_subdirs: tuple[str, ...] = (),
+    path_transform: "Callable[[Path], Path] | None" = None,
 ) -> None:
     """Walk *template_root* and render / copy each file into *target*."""
+    from collections.abc import Callable
     from jinja2 import Environment, FileSystemLoader
 
     env = Environment(
@@ -90,7 +92,8 @@ def render_tree(
         if rel.parts and rel.parts[0] in skip_subdirs:
             continue
 
-        dest = target / strip_j2(rel)
+        rel_out = path_transform(strip_j2(rel)) if path_transform else strip_j2(rel)
+        dest = target / rel_out
         dest.parent.mkdir(parents=True, exist_ok=True)
         if dest.exists() and not force:
             continue

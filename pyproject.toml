@@ -48,3 +48,6 @@ select = ["E", "F", "I"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 env_files = [".env"]
+markers = [
+    "integration: marks tests that require a live Databricks workspace (run with -m integration)",
+]
