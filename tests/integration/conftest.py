@@ -10,6 +10,8 @@ from typing import Generator
 
 import pytest
 
+_CATALOG = "main"
+
 
 def _require_env(name: str) -> str:
     val = os.getenv(name, "").strip()
@@ -23,6 +25,16 @@ def _require_databricks_cli() -> str:
     if path is None:
         pytest.skip("Databricks CLI not found on PATH — skipping integration tests")
     return path
+
+
+def _bundle_vars(accelerator_name: str) -> list[str]:
+    if accelerator_name == "medallion-sdp":
+        return [
+            "--var", f"bronze_catalog={_CATALOG}",
+            "--var", f"silver_catalog={_CATALOG}",
+            "--var", f"gold_catalog={_CATALOG}",
+        ]
+    return []
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -43,7 +55,7 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     accelerator_name = request.param
     cli = _require_databricks_cli()
 
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc_cls = get_accelerator(accelerator_name)
     if acc_cls is None:
@@ -53,8 +65,10 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
+    vars_ = _bundle_vars(accelerator_name)
+
     subprocess.run(
-        [cli, "bundle", "deploy", "--target", "dev"],
+        [cli, "bundle", "deploy", "--target", "dev"] + vars_,
         cwd=project_dir,
         check=True,
     )
@@ -62,7 +76,7 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     yield project_dir
 
     subprocess.run(
-        [cli, "bundle", "destroy", "--target", "dev", "--auto-approve"],
+        [cli, "bundle", "destroy", "--target", "dev", "--auto-approve"] + vars_,
         cwd=project_dir,
-        check=False,  # best-effort; don't fail the test if destroy errors
+        check=False,
     )

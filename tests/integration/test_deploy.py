@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from dia.accelerators import ACCELERATOR_REGISTRY
+from dpa.accelerators import ACCELERATOR_REGISTRY
 
 ACCELERATORS = list(ACCELERATOR_REGISTRY.keys())
 
@@ -20,7 +20,7 @@ def test_bundle_validates(accelerator_name: str, tmp_path: Path) -> None:
     cli = shutil.which("databricks")
     assert cli is not None
 
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator(accelerator_name)()
     project_dir = tmp_path / acc.project_slug
@@ -58,7 +58,7 @@ def test_bundle_deploys(deployed_project: Path) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("deployed_project", ACCELERATORS, indirect=True)
+@pytest.mark.parametrize("deployed_project", ["medallion-sdp"], indirect=True)
 def test_pipeline_exists_in_workspace(deployed_project: Path) -> None:
     """Confirm the DLT pipeline is registered in the workspace after deploy."""
     import yaml
@@ -70,7 +70,7 @@ def test_pipeline_exists_in_workspace(deployed_project: Path) -> None:
     bundle_name = bundle_yml["bundle"]["name"]
 
     result = subprocess.run(
-        [cli, "pipelines", "list", "--output", "json"],
+        [cli, "pipelines", "list-pipelines", "--output", "json"],
         capture_output=True,
         text=True,
     )

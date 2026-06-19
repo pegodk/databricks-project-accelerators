@@ -22,7 +22,6 @@ dependencies = [
 spark = ["pyspark>=3.5", "faker>=25"]
 dev = [
     "pytest>=8",
-    "pytest-dotenv>=0.5",
     "ruff>=0.9",
     "faker>=25",
 ]
@@ -32,10 +31,10 @@ docs = [
 ]
 
 [project.scripts]
-dpa = "dia.cli:app"
+dpa = "dpa.cli:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/dia"]
+packages = ["src/dpa"]
 
 [tool.hatch.build.targets.wheel.sources]
 "src" = ""
@@ -48,7 +47,6 @@ select = ["E", "F", "I"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-env_files = [".env"]
 markers = [
     "integration: marks tests that require a live Databricks workspace (run with -m integration)",
 ]

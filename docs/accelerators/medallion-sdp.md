@@ -5,7 +5,7 @@ The **Medallion SDP** (Streaming Delta Pipeline) accelerator scaffolds a full me
 ## What gets generated
 
 ```
-finance-medallion-sdp/
+medallion-sdp/
 ├── databricks.yml                          # Asset Bundle root config
 ├── pyproject.toml
 ├── resources/
@@ -19,9 +19,9 @@ finance-medallion-sdp/
     │   ├── metadata.py                     # Table metadata loader
     │   └── utils.py
     └── pipelines/
-        └── finance/
+        └── main/
             ├── data_sources/
-            │   └── fake_data_source.py     # Synthetic data generator
+            │   └── synthetic_data_source.py
             ├── metadata/
             │   ├── bronze/tables.yml       # Bronze table specs
             │   └── silver/tables.yml       # Silver expectations
@@ -29,20 +29,14 @@ finance-medallion-sdp/
                 ├── bronze/ingest_tables.py
                 ├── silver/clean_tables.py
                 └── gold/
-                    ├── dim_customer.py
-                    ├── dim_account.py
-                    ├── dim_calendar.py
-                    └── fact_transactions.py
+                    ├── dim_entity.py
+                    └── fact_events.py
 ```
-
-## Supported industries
-
-| Industry | Status |
-|----------|--------|
-| Finance | ✓ |
 
 ## Usage
 
 ```bash
-dia init medallion-sdp --industry finance
+dpa init medallion-sdp
+cd medallion-sdp
+databricks bundle deploy --target dev
 ```

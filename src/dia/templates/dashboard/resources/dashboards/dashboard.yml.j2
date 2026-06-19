@@ -1,8 +1,0 @@
-{% set slug = project_slug | replace('-', '_') %}
-resources:
-  dashboards:
-    {{ slug }}_dashboard:
-      display_name: "{{ cfg.dashboard_name }}"
-      file_path: ../../dashboard/tpch_overview.lvdash.json
-      embed_credentials: false
-      warehouse_id: ${var.sql_warehouse_id}
