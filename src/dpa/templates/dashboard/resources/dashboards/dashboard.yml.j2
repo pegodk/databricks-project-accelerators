@@ -5,4 +5,4 @@ resources:
       display_name: "{{ cfg.dashboard_name }}"
       file_path: ../../dashboard/tpch_overview.lvdash.json
       embed_credentials: false
-      warehouse_id: ${var.sql_warehouse_id}
+      warehouse_id: ${resources.sql_warehouses.starter_warehouse.id}

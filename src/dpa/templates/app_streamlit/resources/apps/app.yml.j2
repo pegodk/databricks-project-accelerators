@@ -8,4 +8,4 @@ resources:
       config:
         env:
           - name: DATABRICKS_HTTP_PATH
-            value: ${var.sql_warehouse_http_path}
+            value: /sql/1.0/warehouses/${resources.sql_warehouses.starter_warehouse.id}
