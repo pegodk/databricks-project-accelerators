@@ -11,16 +11,18 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from dia.accelerators.base import BaseAccelerator
 
+from dia.accelerators.app_streamlit import AppStreamlitAccelerator
+from dia.accelerators.dashboard import DashboardAccelerator
 from dia.accelerators.medallion_sdp import MedallionSdpAccelerator
 
 ACCELERATOR_REGISTRY: dict[str, type[BaseAccelerator]] = {
     "medallion-sdp": MedallionSdpAccelerator,
+    "app-streamlit": AppStreamlitAccelerator,
+    "dashboard": DashboardAccelerator,
     # Future:
     # "medallion-notebooks": MedallionNotebooksAccelerator,
-    # "dashboard": DashboardAccelerator,
     # "genie-space": GenieSpaceAccelerator,
     # "mlflow-project": MlflowProjectAccelerator,
-    # "app": AppAccelerator,
 }
 
 

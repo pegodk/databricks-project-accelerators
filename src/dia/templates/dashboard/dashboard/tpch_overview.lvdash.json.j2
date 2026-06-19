@@ -1,0 +1,460 @@
+{
+  "displayName": "{{ cfg.dashboard_name }}",
+  "datasets": [
+    {
+      "name": "ds_kpis",
+      "displayName": "KPIs",
+      "query": "SELECT total_orders, total_revenue, avg_order_value, unique_customers FROM ${var.catalog}.${var.schema}.v_kpis"
+    },
+    {
+      "name": "ds_revenue_by_month",
+      "displayName": "Revenue by Month",
+      "query": "SELECT order_month, monthly_revenue, order_count FROM ${var.catalog}.${var.schema}.v_revenue_by_month ORDER BY order_month"
+    },
+    {
+      "name": "ds_revenue_by_segment",
+      "displayName": "Revenue by Segment",
+      "query": "SELECT market_segment, total_revenue, order_count FROM ${var.catalog}.${var.schema}.v_revenue_by_segment ORDER BY total_revenue DESC"
+    },
+    {
+      "name": "ds_revenue_by_region",
+      "displayName": "Revenue by Region",
+      "query": "SELECT region, nation, total_revenue, order_count FROM ${var.catalog}.${var.schema}.v_revenue_by_region ORDER BY total_revenue DESC"
+    },
+    {
+      "name": "ds_top_customers",
+      "displayName": "Top Customers",
+      "query": "SELECT customer_name, market_segment, nation, region, total_revenue, total_orders, avg_order_value FROM ${var.catalog}.${var.schema}.v_top_customers ORDER BY total_revenue DESC LIMIT 20"
+    },
+    {
+      "name": "ds_shipmode",
+      "displayName": "Ship Mode Summary",
+      "query": "SELECT ship_mode, gross_revenue, net_revenue, avg_discount, line_count FROM ${var.catalog}.${var.schema}.v_shipmode_summary ORDER BY gross_revenue DESC"
+    },
+    {
+      "name": "ds_order_priority",
+      "displayName": "Order Priority",
+      "query": "SELECT order_priority, order_count, total_revenue FROM ${var.catalog}.${var.schema}.v_order_priority_summary ORDER BY total_revenue DESC"
+    }
+  ],
+  "pages": [
+    {
+      "name": "overview",
+      "displayName": "Overview",
+      "layout": [
+        {
+          "widget": {
+            "name": "w_total_revenue",
+            "queries": [
+              {
+                "name": "q",
+                "query": {
+                  "datasetName": "ds_kpis",
+                  "fields": [
+                    {"name": "total_revenue", "expression": "`total_revenue`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_revenue",
+                  "displayName": "Total Revenue"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total Revenue"
+              }
+            }
+          },
+          "position": {"x": 0, "y": 0, "width": 2, "height": 3}
+        },
+        {
+          "widget": {
+            "name": "w_total_orders",
+            "queries": [
+              {
+                "name": "q",
+                "query": {
+                  "datasetName": "ds_kpis",
+                  "fields": [
+                    {"name": "total_orders", "expression": "`total_orders`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_orders",
+                  "displayName": "Total Orders"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total Orders"
+              }
+            }
+          },
+          "position": {"x": 2, "y": 0, "width": 2, "height": 3}
+        },
+        {
+          "widget": {
+            "name": "w_avg_order_value",
+            "queries": [
+              {
+                "name": "q",
+                "query": {
+                  "datasetName": "ds_kpis",
+                  "fields": [
+                    {"name": "avg_order_value", "expression": "`avg_order_value`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg_order_value",
+                  "displayName": "Avg Order Value"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Avg Order Value"
+              }
+            }
+          },
+          "position": {"x": 4, "y": 0, "width": 2, "height": 3}
+        },
+        {
+          "widget": {
+            "name": "w_revenue_by_month",
+            "queries": [
+              {
+                "name": "q",
+                "query": {
+                  "datasetName": "ds_revenue_by_month",
+                  "fields": [
+                    {"name": "order_month",    "expression": "`order_month`"},
+                    {"name": "monthly_revenue","expression": "`monthly_revenue`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "area",
+              "encodings": {
+                "x": {
+                  "fieldName": "order_month",
+                  "displayName": "Month",
+                  "type": "temporal"
+                },
+                "y": {
+                  "fieldName": "monthly_revenue",
+                  "displayName": "Revenue ($)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Monthly Revenue Trend"
+              }
+            }
+          },
+          "position": {"x": 0, "y": 3, "width": 6, "height": 6}
+        },
+        {
+          "widget": {
+            "name": "w_revenue_by_segment",
+            "queries": [
+              {
+                "name": "q",
+                "query": {
+                  "datasetName": "ds_revenue_by_segment",
+                  "fields": [
+                    {"name": "market_segment", "expression": "`market_segment`"},
+                    {"name": "total_revenue",  "expression": "`total_revenue`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "market_segment",
+                  "displayName": "Market Segment"
+                },
+                "y": {
+                  "fieldName": "total_revenue",
+                  "displayName": "Revenue ($)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Revenue by Market Segment"
+              }
+            }
+          },
+          "position": {"x": 0, "y": 9, "width": 3, "height": 5}
+        },
+        {
+          "widget": {
+            "name": "w_order_priority",
+            "queries": [
+              {
+                "name": "q",
+                "query": {
+                  "datasetName": "ds_order_priority",
+                  "fields": [
+                    {"name": "order_priority", "expression": "`order_priority`"},
+                    {"name": "total_revenue",  "expression": "`total_revenue`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "total_revenue",
+                  "displayName": "Revenue ($)"
+                },
+                "label": {
+                  "fieldName": "order_priority",
+                  "displayName": "Priority"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Revenue by Order Priority"
+              }
+            }
+          },
+          "position": {"x": 3, "y": 9, "width": 3, "height": 5}
+        }
+      ]
+    },
+    {
+      "name": "logistics",
+      "displayName": "Logistics & Geography",
+      "layout": [
+        {
+          "widget": {
+            "name": "w_shipmode_revenue",
+            "queries": [
+              {
+                "name": "q",
+                "query": {
+                  "datasetName": "ds_shipmode",
+                  "fields": [
+                    {"name": "ship_mode",    "expression": "`ship_mode`"},
+                    {"name": "gross_revenue","expression": "`gross_revenue`"},
+                    {"name": "net_revenue",  "expression": "`net_revenue`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "ship_mode",
+                  "displayName": "Ship Mode"
+                },
+                "y": {
+                  "fieldName": "gross_revenue",
+                  "displayName": "Gross Revenue ($)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Revenue by Ship Mode"
+              }
+            }
+          },
+          "position": {"x": 0, "y": 0, "width": 4, "height": 5}
+        },
+        {
+          "widget": {
+            "name": "w_avg_discount",
+            "queries": [
+              {
+                "name": "q",
+                "query": {
+                  "datasetName": "ds_shipmode",
+                  "fields": [
+                    {"name": "ship_mode",   "expression": "`ship_mode`"},
+                    {"name": "avg_discount","expression": "`avg_discount`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "ship_mode",
+                  "displayName": "Ship Mode"
+                },
+                "y": {
+                  "fieldName": "avg_discount",
+                  "displayName": "Avg Discount"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Average Discount by Ship Mode"
+              }
+            }
+          },
+          "position": {"x": 4, "y": 0, "width": 2, "height": 5}
+        },
+        {
+          "widget": {
+            "name": "w_revenue_by_region",
+            "queries": [
+              {
+                "name": "q",
+                "query": {
+                  "datasetName": "ds_revenue_by_region",
+                  "fields": [
+                    {"name": "region",       "expression": "`region`"},
+                    {"name": "nation",       "expression": "`nation`"},
+                    {"name": "total_revenue","expression": "`total_revenue`"},
+                    {"name": "order_count",  "expression": "`order_count`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {"fieldName": "region",       "displayName": "Region"},
+                  {"fieldName": "nation",       "displayName": "Nation"},
+                  {"fieldName": "total_revenue","displayName": "Revenue ($)"},
+                  {"fieldName": "order_count",  "displayName": "Orders"}
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Revenue by Region & Nation"
+              }
+            }
+          },
+          "position": {"x": 0, "y": 5, "width": 6, "height": 8}
+        }
+      ]
+    },
+    {
+      "name": "customers",
+      "displayName": "Top Customers",
+      "layout": [
+        {
+          "widget": {
+            "name": "w_top_customers_table",
+            "queries": [
+              {
+                "name": "q",
+                "query": {
+                  "datasetName": "ds_top_customers",
+                  "fields": [
+                    {"name": "customer_name", "expression": "`customer_name`"},
+                    {"name": "market_segment","expression": "`market_segment`"},
+                    {"name": "nation",        "expression": "`nation`"},
+                    {"name": "region",        "expression": "`region`"},
+                    {"name": "total_revenue", "expression": "`total_revenue`"},
+                    {"name": "total_orders",  "expression": "`total_orders`"},
+                    {"name": "avg_order_value","expression": "`avg_order_value`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {"fieldName": "customer_name", "displayName": "Customer"},
+                  {"fieldName": "market_segment","displayName": "Segment"},
+                  {"fieldName": "nation",        "displayName": "Nation"},
+                  {"fieldName": "region",        "displayName": "Region"},
+                  {"fieldName": "total_revenue", "displayName": "Revenue ($)"},
+                  {"fieldName": "total_orders",  "displayName": "Orders"},
+                  {"fieldName": "avg_order_value","displayName": "Avg Order ($)"}
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Top 20 Customers by Revenue"
+              }
+            }
+          },
+          "position": {"x": 0, "y": 0, "width": 6, "height": 10}
+        },
+        {
+          "widget": {
+            "name": "w_customer_revenue_by_segment",
+            "queries": [
+              {
+                "name": "q",
+                "query": {
+                  "datasetName": "ds_top_customers",
+                  "fields": [
+                    {"name": "market_segment","expression": "`market_segment`"},
+                    {"name": "total_revenue", "expression": "`total_revenue`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "market_segment",
+                  "displayName": "Segment"
+                },
+                "y": {
+                  "fieldName": "total_revenue",
+                  "displayName": "Revenue ($)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Top Customer Revenue by Segment"
+              }
+            }
+          },
+          "position": {"x": 0, "y": 10, "width": 6, "height": 5}
+        }
+      ]
+    }
+  ]
+}
