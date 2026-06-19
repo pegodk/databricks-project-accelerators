@@ -24,7 +24,7 @@ def init(
     dry_run: bool = typer.Option(False, "--dry-run", help="Print what would be generated without writing"),
 ) -> None:
     """Initialize a new accelerator project."""
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     accelerator_cls = get_accelerator(accelerator)
     if accelerator_cls is None:
@@ -60,7 +60,7 @@ def init(
 @app.command("list")
 def list_accelerators() -> None:
     """List available accelerators."""
-    from dia.accelerators import ACCELERATOR_REGISTRY
+    from dpa.accelerators import ACCELERATOR_REGISTRY
 
     table = Table(title="Accelerators", show_header=True, header_style="bold cyan")
     table.add_column("Name", style="bold")
@@ -76,7 +76,7 @@ def deploy(
     project_dir: Path = typer.Option(Path("."), "--dir", "-d", help="Project directory (must contain databricks.yml)"),
 ) -> None:
     """Deploy the project via Databricks Asset Bundle."""
-    from dia.deploy.bundle import deploy as _deploy
+    from dpa.deploy.bundle import deploy as _deploy
 
     if not (project_dir / "databricks.yml").exists():
         console.print(

@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from dia.accelerators.base import BaseAccelerator
+from dpa.accelerators.base import BaseAccelerator
 
 _TEMPLATE_ROOT = Path(__file__).parent.parent.parent / "templates" / "dashboard"
 

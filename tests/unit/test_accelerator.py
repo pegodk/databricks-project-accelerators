@@ -9,7 +9,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 def test_get_accelerator():
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     cls = get_accelerator("medallion-sdp")
     assert cls is not None
@@ -17,13 +17,13 @@ def test_get_accelerator():
 
 
 def test_get_unknown_accelerator():
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     assert get_accelerator("unicorn-engine") is None
 
 
 def test_registry_contains_all_accelerators():
-    from dia.accelerators import ACCELERATOR_REGISTRY
+    from dpa.accelerators import ACCELERATOR_REGISTRY
 
     assert "medallion-sdp" in ACCELERATOR_REGISTRY
     assert "app-streamlit" in ACCELERATOR_REGISTRY
@@ -35,7 +35,7 @@ def test_registry_contains_all_accelerators():
 # ---------------------------------------------------------------------------
 
 def test_list_files():
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("medallion-sdp")()
     files = [str(f).replace("\\", "/") for f in acc.list_files()]
@@ -55,7 +55,7 @@ def test_list_files():
 # ---------------------------------------------------------------------------
 
 def test_scaffold(tmp_path: Path):
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("medallion-sdp")()
     project_dir = tmp_path / acc.project_slug
@@ -82,7 +82,7 @@ def test_scaffold(tmp_path: Path):
 # ---------------------------------------------------------------------------
 
 def test_scaffold_renders_project_slug(tmp_path: Path):
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("medallion-sdp")()
     acc.scaffold(target=tmp_path / acc.project_slug)
@@ -92,7 +92,7 @@ def test_scaffold_renders_project_slug(tmp_path: Path):
 
 
 def test_scaffold_renders_bronze_metadata(tmp_path: Path):
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("medallion-sdp")()
     acc.scaffold(target=tmp_path / acc.project_slug)
@@ -107,7 +107,7 @@ def test_scaffold_renders_bronze_metadata(tmp_path: Path):
 
 
 def test_scaffold_renders_silver_expectations(tmp_path: Path):
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("medallion-sdp")()
     acc.scaffold(target=tmp_path / acc.project_slug)
@@ -120,7 +120,7 @@ def test_scaffold_renders_silver_expectations(tmp_path: Path):
 
 
 def test_scaffold_renders_data_source_class(tmp_path: Path):
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("medallion-sdp")()
     acc.scaffold(target=tmp_path / acc.project_slug)
@@ -139,7 +139,7 @@ def test_scaffold_renders_data_source_class(tmp_path: Path):
 # ---------------------------------------------------------------------------
 
 def test_scaffold_no_overwrite_without_force(tmp_path: Path):
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("medallion-sdp")()
     project_dir = tmp_path / acc.project_slug
@@ -160,7 +160,7 @@ def test_scaffold_no_overwrite_without_force(tmp_path: Path):
 # ---------------------------------------------------------------------------
 
 def test_get_app_streamlit_accelerator():
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     cls = get_accelerator("app-streamlit")
     assert cls is not None
@@ -168,7 +168,7 @@ def test_get_app_streamlit_accelerator():
 
 
 def test_app_streamlit_list_files():
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("app-streamlit")()
     files = [str(f).replace("\\", "/") for f in acc.list_files()]
@@ -181,7 +181,7 @@ def test_app_streamlit_list_files():
 
 
 def test_app_streamlit_scaffold(tmp_path: Path):
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("app-streamlit")()
     project_dir = tmp_path / acc.project_slug
@@ -195,7 +195,7 @@ def test_app_streamlit_scaffold(tmp_path: Path):
 
 
 def test_app_streamlit_scaffold_renders_app_name(tmp_path: Path):
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("app-streamlit")()
     project_dir = tmp_path / acc.project_slug
@@ -210,7 +210,7 @@ def test_app_streamlit_scaffold_renders_app_name(tmp_path: Path):
 
 
 def test_app_streamlit_scaffold_renders_tpch_queries(tmp_path: Path):
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("app-streamlit")()
     project_dir = tmp_path / acc.project_slug
@@ -223,7 +223,7 @@ def test_app_streamlit_scaffold_renders_tpch_queries(tmp_path: Path):
 
 
 def test_app_streamlit_requirements(tmp_path: Path):
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("app-streamlit")()
     project_dir = tmp_path / acc.project_slug
@@ -240,7 +240,7 @@ def test_app_streamlit_requirements(tmp_path: Path):
 # ---------------------------------------------------------------------------
 
 def test_get_dashboard_accelerator():
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     cls = get_accelerator("dashboard")
     assert cls is not None
@@ -248,7 +248,7 @@ def test_get_dashboard_accelerator():
 
 
 def test_dashboard_list_files():
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("dashboard")()
     files = [str(f).replace("\\", "/") for f in acc.list_files()]
@@ -261,7 +261,7 @@ def test_dashboard_list_files():
 
 
 def test_dashboard_scaffold(tmp_path: Path):
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("dashboard")()
     project_dir = tmp_path / acc.project_slug
@@ -275,7 +275,7 @@ def test_dashboard_scaffold(tmp_path: Path):
 
 
 def test_dashboard_scaffold_renders_catalog_and_schema(tmp_path: Path):
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("dashboard")()
     project_dir = tmp_path / acc.project_slug
@@ -295,7 +295,7 @@ def test_dashboard_scaffold_renders_catalog_and_schema(tmp_path: Path):
 def test_dashboard_scaffold_renders_valid_json(tmp_path: Path):
     import json
 
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("dashboard")()
     project_dir = tmp_path / acc.project_slug
@@ -311,7 +311,7 @@ def test_dashboard_scaffold_renders_valid_json(tmp_path: Path):
 
 
 def test_dashboard_scaffold_renders_dashboard_name(tmp_path: Path):
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("dashboard")()
     project_dir = tmp_path / acc.project_slug

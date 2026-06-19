@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from dia.accelerators import ACCELERATOR_REGISTRY
+from dpa.accelerators import ACCELERATOR_REGISTRY
 
 ACCELERATORS = list(ACCELERATOR_REGISTRY.keys())
 
@@ -20,7 +20,7 @@ def test_bundle_validates(accelerator_name: str, tmp_path: Path) -> None:
     cli = shutil.which("databricks")
     assert cli is not None
 
-    from dia.accelerators import get_accelerator
+    from dpa.accelerators import get_accelerator
 
     acc = get_accelerator(accelerator_name)()
     project_dir = tmp_path / acc.project_slug

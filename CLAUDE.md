@@ -3,14 +3,14 @@
 ## Project identity
 
 - **Package:** `databricks-project-accelerators`
-- **CLI command:** `dpa` (not `dia` — that was the old name)
-- **Python import root:** `dia` (the module directory has not been renamed)
+- **CLI command:** `dpa`
+- **Python import root:** `dpa`
 - **Purpose:** CLI tool that scaffolds production-ready Databricks solutions (Streamlit apps, Lakeview dashboards, medallion pipelines, etc.) via Jinja2 templates + Databricks Asset Bundles.
 
 ## Repo layout
 
 ```
-src/dia/
+src/dpa/
 ├── cli.py                        # Typer CLI: dpa init / dpa list / dpa deploy
 ├── accelerators/
 │   ├── __init__.py               # ACCELERATOR_REGISTRY — register new accelerators here
@@ -37,7 +37,7 @@ docs/
 Every new accelerator requires ALL of the following. Do not mark a task done until every item is complete.
 
 ### 1. Template tree
-Create `src/dia/templates/<accelerator-slug>/` with at minimum:
+Create `src/dpa/templates/<accelerator-slug>/` with at minimum:
 - `databricks.yml.j2` — Asset Bundle root config with `bundle.name`, `variables`, and `include: resources/**/*.yml`
 - `.gitignore` — ignore `.databricks/`, `.venv/`, `__pycache__/`, `*.pyc`, `.env`
 - At least one resource YAML under `resources/`
@@ -45,14 +45,14 @@ Create `src/dia/templates/<accelerator-slug>/` with at minimum:
 All files that need Jinja2 rendering must have the `.j2` extension; static files are copied as-is.
 
 ### 2. Accelerator class
-Create `src/dia/accelerators/<slug>/`:
+Create `src/dpa/accelerators/<slug>/`:
 - `__init__.py` — re-export the class
 - `accelerator.py` — subclass `BaseAccelerator`, set `name`, `description`, `default_config`, implement `template_root`
 
 ### 3. Registry
-Add the new accelerator to `ACCELERATOR_REGISTRY` in `src/dia/accelerators/__init__.py`:
+Add the new accelerator to `ACCELERATOR_REGISTRY` in `src/dpa/accelerators/__init__.py`:
 ```python
-from dia.accelerators.<slug> import <ClassName>
+from dpa.accelerators.<slug> import <ClassName>
 ACCELERATOR_REGISTRY = {
     ...
     "<accelerator-slug>": <ClassName>,
@@ -103,7 +103,7 @@ Add the page to the `nav` in `mkdocs.yml` under the Accelerators section.
 - Provide `dev` (default, development mode) and `prod` (production mode) targets at minimum.
 
 **CLI command**
-The installed command is `dpa`, not `dia`. Any user-facing strings in `cli.py` must say `dpa`. The Python module path remains `dia.` (import unchanged).
+The installed command is `dpa`. The Python module path is `dpa.`
 
 ## Running tests
 

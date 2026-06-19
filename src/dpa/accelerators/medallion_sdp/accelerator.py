@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from dia.accelerators.base import BaseAccelerator, render_tree
+from dpa.accelerators.base import BaseAccelerator, render_tree
 
 _TEMPLATE_ROOT = Path(__file__).parent.parent.parent / "templates" / "medallion_sdp"
 

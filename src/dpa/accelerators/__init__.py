@@ -9,11 +9,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from dia.accelerators.base import BaseAccelerator
+    from dpa.accelerators.base import BaseAccelerator
 
-from dia.accelerators.app_streamlit import AppStreamlitAccelerator
-from dia.accelerators.dashboard import DashboardAccelerator
-from dia.accelerators.medallion_sdp import MedallionSdpAccelerator
+from dpa.accelerators.app_streamlit import AppStreamlitAccelerator
+from dpa.accelerators.dashboard import DashboardAccelerator
+from dpa.accelerators.medallion_sdp import MedallionSdpAccelerator
 
 ACCELERATOR_REGISTRY: dict[str, type[BaseAccelerator]] = {
     "medallion-sdp": MedallionSdpAccelerator,
