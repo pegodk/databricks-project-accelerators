@@ -2,14 +2,9 @@
 
 bundle:
   name: {{ project_slug }}
-
-variables:
-  catalog:
-    description: Unity Catalog in which to create the metric view schema
-    default: {{ cfg.catalog }}
-  schema:
-    description: Schema in which to create the metric views
-    default: {{ cfg.schema }}
+  deployment:
+    lock:
+      enabled: false
 
 include:
   - resources/**/*.yml
@@ -18,8 +13,6 @@ targets:
   dev:
     mode: development
     default: true
-    variables:
-      schema: {{ cfg.schema }}_dev
 
   prod:
     mode: production

@@ -286,11 +286,8 @@ def test_dashboard_scaffold_renders_catalog_and_schema(tmp_path: Path):
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
-    bundle = (project_dir / "databricks.yml").read_text()
-    assert "main" in bundle
-    assert "tpch_metrics" in bundle
-
     sql = (project_dir / "src" / "sql" / "metric_views.sql").read_text()
+    assert "main.tpch_metrics" in sql
     assert "samples.tpch" in sql
     assert "v_kpis" in sql
     assert "v_revenue_by_month" in sql

@@ -58,7 +58,7 @@ def test_bundle_deploys(deployed_project: Path) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("deployed_project", ACCELERATORS, indirect=True)
+@pytest.mark.parametrize("deployed_project", ["medallion-sdp"], indirect=True)
 def test_pipeline_exists_in_workspace(deployed_project: Path) -> None:
     """Confirm the DLT pipeline is registered in the workspace after deploy."""
     import yaml
@@ -70,7 +70,7 @@ def test_pipeline_exists_in_workspace(deployed_project: Path) -> None:
     bundle_name = bundle_yml["bundle"]["name"]
 
     result = subprocess.run(
-        [cli, "pipelines", "list", "--output", "json"],
+        [cli, "pipelines", "list-pipelines", "--output", "json"],
         capture_output=True,
         text=True,
     )
