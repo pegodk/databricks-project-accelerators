@@ -27,12 +27,14 @@ def _require_databricks_cli() -> str:
     return path
 
 
-def _bundle_vars() -> list[str]:
-    return [
-        "--var", f"bronze_catalog={_CATALOG}",
-        "--var", f"silver_catalog={_CATALOG}",
-        "--var", f"gold_catalog={_CATALOG}",
-    ]
+def _bundle_vars(accelerator_name: str) -> list[str]:
+    if accelerator_name == "medallion-sdp":
+        return [
+            "--var", f"bronze_catalog={_CATALOG}",
+            "--var", f"silver_catalog={_CATALOG}",
+            "--var", f"gold_catalog={_CATALOG}",
+        ]
+    return []
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -63,7 +65,7 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
-    vars_ = _bundle_vars()
+    vars_ = _bundle_vars(accelerator_name)
 
     subprocess.run(
         [cli, "bundle", "deploy", "--target", "dev"] + vars_,

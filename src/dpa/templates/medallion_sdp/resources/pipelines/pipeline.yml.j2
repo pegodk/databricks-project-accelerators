@@ -8,9 +8,9 @@ resources:
       serverless: true
       libraries:
         - glob:
-            pattern: src/pipelines/{{ cfg.pipeline_name }}/data_sources/**/*.py
+            path: src/pipelines/{{ cfg.pipeline_name }}/data_sources/**/*.py
         - glob:
-            pattern: src/pipelines/{{ cfg.pipeline_name }}/transformations/**/*.py
+            path: src/pipelines/{{ cfg.pipeline_name }}/transformations/**/*.py
       configuration:
         bronze_catalog: ${var.bronze_catalog}
         bronze_schema: ${resources.schemas.{{ slug }}_bronze.name}
@@ -18,7 +18,3 @@ resources:
         silver_schema: ${resources.schemas.{{ slug }}_silver.name}
         gold_catalog: ${var.gold_catalog}
         gold_schema: ${resources.schemas.{{ slug }}_gold.name}
-      environments:
-        - environment_key: default
-          dependencies:
-            - /Workspace/${workspace.file_path}

@@ -21,8 +21,6 @@ targets:
   dev:
     mode: development
     default: true
-    workspace:
-      host: ${workspace.host}
     variables:
       bronze_catalog: bronze_dev
       silver_catalog: silver_dev
@@ -30,8 +28,6 @@ targets:
 
   prod:
     mode: production
-    workspace:
-      host: ${workspace.host}
     variables:
       bronze_catalog: bronze_prd
       silver_catalog: silver_prd

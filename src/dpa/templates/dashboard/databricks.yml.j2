@@ -18,15 +18,11 @@ targets:
   dev:
     mode: development
     default: true
-    workspace:
-      host: ${workspace.host}
     variables:
       schema: {{ cfg.schema }}_dev
 
   prod:
     mode: production
-    workspace:
-      host: ${workspace.host}
     permissions:
       - level: CAN_VIEW
         group_name: users

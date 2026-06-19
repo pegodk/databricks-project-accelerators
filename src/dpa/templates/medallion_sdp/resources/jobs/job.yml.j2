@@ -12,7 +12,3 @@ resources:
         - task_key: refresh_pipeline
           pipeline_task:
             pipeline_id: ${resources.pipelines.{{ slug }}_pipeline.id}
-      environments:
-        - environment_key: default
-          dependencies:
-            - /Workspace/${workspace.file_path}
