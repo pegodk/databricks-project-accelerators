@@ -21,40 +21,41 @@ uv pip install databricks-project-accelerators
 ## Scaffold a project
 
 ```bash
-dia init medallion-sdp --industry finance --output ./projects
+dpa init medallion-sdp
 ```
 
-This generates a complete project under `./projects/finance-medallion-sdp/`.
+This generates a complete project in `./medallion-sdp/`.
 
 ### Options
 
 | Flag | Description |
 |------|-------------|
-| `--industry` | Industry variant (e.g. `finance`) |
-| `--output` | Parent directory for the generated project (default: `.`) |
+| `--output`, `-o` | Parent directory for the generated project (default: `.`) |
 | `--force` | Overwrite existing files |
 | `--dry-run` | Print what would be generated without writing anything |
 
 ## Deploy
 
 ```bash
-cd projects/finance-medallion-sdp
+cd medallion-sdp
 databricks bundle deploy --target dev
+```
+
+Or use the built-in deploy command:
+
+```bash
+dpa deploy --env dev --dir medallion-sdp
 ```
 
 ## List available accelerators
 
 ```bash
-dia list
+dpa list
 ```
 
 ## Environment variables
 
-Copy `.env.example` to `.env` and fill in your credentials:
-
-```bash
-cp .env.example .env
-```
+Set the following so the Databricks CLI can reach your workspace:
 
 | Variable | Description |
 |----------|-------------|
