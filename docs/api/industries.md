@@ -1,0 +1,3 @@
+# Industries API
+
+::: dia.industries

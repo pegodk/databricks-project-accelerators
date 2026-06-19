@@ -1,0 +1,24 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  pipelines:
+    {{ slug }}_pipeline:
+      name: "[${bundle.target}] {{ project_slug }} pipeline"
+      catalog: ${var.gold_catalog}
+      schema: ${resources.schemas.{{ slug }}_gold.name}
+      serverless: true
+      libraries:
+        - glob:
+            pattern: src/pipelines/{{ cfg.pipeline_name }}/data_sources/**/*.py
+        - glob:
+            pattern: src/pipelines/{{ cfg.pipeline_name }}/transformations/**/*.py
+      configuration:
+        bronze_catalog: ${var.bronze_catalog}
+        bronze_schema: ${resources.schemas.{{ slug }}_bronze.name}
+        silver_catalog: ${var.silver_catalog}
+        silver_schema: ${resources.schemas.{{ slug }}_silver.name}
+        gold_catalog: ${var.gold_catalog}
+        gold_schema: ${resources.schemas.{{ slug }}_gold.name}
+      environments:
+        - environment_key: default
+          dependencies:
+            - /Workspace/${workspace.file_path}
