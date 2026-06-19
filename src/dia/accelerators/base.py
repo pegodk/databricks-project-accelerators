@@ -10,21 +10,17 @@ from typing import Any
 class BaseAccelerator(ABC):
     """Renders a Jinja2 template tree into a target directory.
 
-    Subclasses declare ``name``, ``description``, and a ``template_root``,
-    then override ``scaffold()`` if they need industry-specific rendering on
-    top of the common template tree.
+    Subclasses declare ``name``, ``description``, ``default_config``, and a
+    ``template_root``, then override ``scaffold()`` for custom rendering.
     """
 
     description: str = ""
     name: str = ""
-
-    def __init__(self, industry: str, industry_config: dict[str, Any]) -> None:
-        self.industry = industry
-        self.industry_config = industry_config
+    default_config: dict[str, Any] = {}
 
     @property
     def project_slug(self) -> str:
-        return f"{self.industry}-{self.name}"
+        return self.name
 
     @property
     @abstractmethod
@@ -32,33 +28,27 @@ class BaseAccelerator(ABC):
         """Path to the Jinja2 template directory for this accelerator."""
 
     def scaffold(self, target: Path, force: bool = False) -> None:
-        """Render the common template tree into *target*."""
+        """Render the template tree into *target*."""
         render_tree(
             template_root=self.template_root,
             target=target,
             context=self._build_context(),
             force=force,
-            skip_subdirs=("industries",),
         )
 
     def list_files(self) -> list[Path]:
         """Return relative output paths of all files that would be generated."""
-        files: list[Path] = []
-        for src in sorted(self.template_root.rglob("*")):
-            if not src.is_file():
-                continue
-            rel = src.relative_to(self.template_root)
-            if rel.parts[0] == "industries":
-                continue
-            files.append(strip_j2(rel))
-        return files
+        return [
+            strip_j2(src.relative_to(self.template_root))
+            for src in sorted(self.template_root.rglob("*"))
+            if src.is_file()
+        ]
 
     def _build_context(self) -> dict[str, Any]:
         return {
             "accelerator": self.name,
-            "industry": self.industry,
             "project_slug": self.project_slug,
-            "cfg": self.industry_config,
+            "cfg": self.default_config,
         }
 
 
@@ -71,7 +61,6 @@ def render_tree(
     target: Path,
     context: dict[str, Any],
     force: bool,
-    skip_subdirs: tuple[str, ...] = (),
     path_transform: "Callable[[Path], Path] | None" = None,
 ) -> None:
     """Walk *template_root* and render / copy each file into *target*."""
@@ -89,9 +78,6 @@ def render_tree(
         if not src.is_file():
             continue
         rel = src.relative_to(template_root)
-        if rel.parts and rel.parts[0] in skip_subdirs:
-            continue
-
         rel_out = path_transform(strip_j2(rel)) if path_transform else strip_j2(rel)
         dest = target / rel_out
         dest.parent.mkdir(parents=True, exist_ok=True)

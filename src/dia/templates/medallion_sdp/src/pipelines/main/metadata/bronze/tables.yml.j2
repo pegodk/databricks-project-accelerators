@@ -3,7 +3,7 @@
 # Edit to swap in a real source (source_type: table, source: catalog.schema.table_name)
 {% for table in cfg.bronze_tables %}
 - source_type: fake
-  source_class: {{ cfg.fake_source_class }}
+  source_class: {{ cfg.source_class }}
   destination: {{ table.name }}
   primary_keys:
 {% for key in table.primary_keys %}

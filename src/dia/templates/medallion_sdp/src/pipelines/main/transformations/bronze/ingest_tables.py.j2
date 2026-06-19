@@ -18,10 +18,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../../.."))
 from framework.dlt import create_dlt_table
 from framework.metadata import load_table_configs
 from framework.utils import add_ingest_timestamp
-from data_sources.fake_data_source import {{ cfg.fake_source_class }}
+from data_sources.synthetic_data_source import {{ cfg.source_class }}
 
 spark = SparkSession.builder.getOrCreate()
-spark.dataSource.register({{ cfg.fake_source_class }})
+spark.dataSource.register({{ cfg.source_class }})
 
 _METADATA_DIR = os.path.join(os.path.dirname(__file__), "../../metadata/bronze")
 

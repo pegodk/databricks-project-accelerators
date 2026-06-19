@@ -37,24 +37,19 @@ def _workspace_env() -> None:
 def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generator[Path, None, None]:
     """Scaffold, deploy, yield project dir, then destroy.
 
-    Parametrize indirectly with (accelerator_name, industry):
-        @pytest.mark.parametrize("deployed_project", [("medallion-sdp", "finance")], indirect=True)
+    Parametrize indirectly with an accelerator name:
+        @pytest.mark.parametrize("deployed_project", ["medallion-sdp"], indirect=True)
     """
-    accelerator_name, industry = request.param
+    accelerator_name = request.param
     cli = _require_databricks_cli()
 
     from dia.accelerators import get_accelerator
-    from dia.industries import get_industry_config
-
-    cfg = get_industry_config(accelerator_name, industry)
-    if cfg is None:
-        pytest.skip(f"No config for {accelerator_name!r} × {industry!r}")
 
     acc_cls = get_accelerator(accelerator_name)
     if acc_cls is None:
         pytest.skip(f"Unknown accelerator {accelerator_name!r}")
 
-    acc = acc_cls(industry=industry, industry_config=cfg)
+    acc = acc_cls()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 

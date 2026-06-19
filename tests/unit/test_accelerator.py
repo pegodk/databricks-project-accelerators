@@ -1,4 +1,4 @@
-"""Unit tests for the medallion-sdp accelerator scaffold."""
+"""Unit tests for the accelerator scaffold."""
 
 from __future__ import annotations
 
@@ -8,41 +8,7 @@ import pytest
 
 
 # ---------------------------------------------------------------------------
-# Industry config loading
-# ---------------------------------------------------------------------------
-
-def test_finance_config_loads():
-    from dia.industries import get_industry_config
-
-    cfg = get_industry_config("medallion-sdp", "finance")
-    assert cfg is not None
-    assert cfg["name"] == "finance"
-    assert "bronze_tables" in cfg
-    assert len(cfg["bronze_tables"]) == 3  # transactions, accounts, customers
-
-
-def test_unknown_industry_returns_none():
-    from dia.industries import get_industry_config
-
-    assert get_industry_config("medallion-sdp", "fantasy_sports") is None
-
-
-def test_unknown_accelerator_returns_none():
-    from dia.industries import get_industry_config
-
-    assert get_industry_config("nonexistent-acc", "finance") is None
-
-
-def test_list_industry_support():
-    from dia.industries import list_industry_support
-
-    support = list_industry_support()
-    assert "finance" in support
-    assert support["finance"]["medallion-sdp"] is True
-
-
-# ---------------------------------------------------------------------------
-# Accelerator registry
+# Registry
 # ---------------------------------------------------------------------------
 
 def test_get_accelerator():
@@ -60,39 +26,33 @@ def test_get_unknown_accelerator():
 
 
 # ---------------------------------------------------------------------------
-# Scaffold: generated file list
+# File list
 # ---------------------------------------------------------------------------
 
-def test_list_files_finance():
+def test_list_files():
     from dia.accelerators import get_accelerator
-    from dia.industries import get_industry_config
 
-    cfg = get_industry_config("medallion-sdp", "finance")
-    acc = get_accelerator("medallion-sdp")(industry="finance", industry_config=cfg)
-    files = acc.list_files()
+    acc = get_accelerator("medallion-sdp")()
+    files = [str(f).replace("\\", "/") for f in acc.list_files()]
 
-    str_files = [str(f).replace("\\", "/") for f in files]
-
-    assert "databricks.yml" in str_files
-    assert "pyproject.toml" in str_files
-    assert "resources/pipelines/pipeline.yml" in str_files
-    assert "resources/jobs/job.yml" in str_files
-    assert "resources/schemas/schemas.yml" in str_files
-    assert any("dim_customer" in f for f in str_files)
-    assert any("fact_transactions" in f for f in str_files)
-    assert any("fake_data_source" in f for f in str_files)
+    assert "databricks.yml" in files
+    assert "pyproject.toml" in files
+    assert "resources/pipelines/pipeline.yml" in files
+    assert "resources/jobs/job.yml" in files
+    assert "resources/schemas/schemas.yml" in files
+    assert any("synthetic_data_source" in f for f in files)
+    assert any("dim_entity" in f for f in files)
+    assert any("fact_events" in f for f in files)
 
 
 # ---------------------------------------------------------------------------
-# Scaffold: actual file generation
+# Scaffold: file presence
 # ---------------------------------------------------------------------------
 
-def test_scaffold_finance(tmp_path: Path):
+def test_scaffold(tmp_path: Path):
     from dia.accelerators import get_accelerator
-    from dia.industries import get_industry_config
 
-    cfg = get_industry_config("medallion-sdp", "finance")
-    acc = get_accelerator("medallion-sdp")(industry="finance", industry_config=cfg)
+    acc = get_accelerator("medallion-sdp")()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
@@ -103,79 +63,88 @@ def test_scaffold_finance(tmp_path: Path):
     assert (project_dir / "resources" / "schemas" / "schemas.yml").exists()
     assert (project_dir / "src" / "framework" / "config.py").exists()
     assert (project_dir / "src" / "framework" / "dlt.py").exists()
-    assert (project_dir / "src" / "pipelines" / "finance" / "metadata" / "bronze" / "tables.yml").exists()
-    assert (project_dir / "src" / "pipelines" / "finance" / "metadata" / "silver" / "tables.yml").exists()
-    assert (project_dir / "src" / "pipelines" / "finance" / "transformations" / "bronze" / "ingest_tables.py").exists()
-    assert (project_dir / "src" / "pipelines" / "finance" / "transformations" / "silver" / "clean_tables.py").exists()
-    assert (project_dir / "src" / "pipelines" / "finance" / "data_sources" / "fake_data_source.py").exists()
-    assert (project_dir / "src" / "pipelines" / "finance" / "transformations" / "gold" / "dim_customer.py").exists()
-    assert (project_dir / "src" / "pipelines" / "finance" / "transformations" / "gold" / "fact_transactions.py").exists()
+    assert (project_dir / "src" / "pipelines" / "main" / "data_sources" / "synthetic_data_source.py").exists()
+    assert (project_dir / "src" / "pipelines" / "main" / "metadata" / "bronze" / "tables.yml").exists()
+    assert (project_dir / "src" / "pipelines" / "main" / "metadata" / "silver" / "tables.yml").exists()
+    assert (project_dir / "src" / "pipelines" / "main" / "transformations" / "bronze" / "ingest_tables.py").exists()
+    assert (project_dir / "src" / "pipelines" / "main" / "transformations" / "silver" / "clean_tables.py").exists()
+    assert (project_dir / "src" / "pipelines" / "main" / "transformations" / "gold" / "dim_entity.py").exists()
+    assert (project_dir / "src" / "pipelines" / "main" / "transformations" / "gold" / "fact_events.py").exists()
 
 
-def test_scaffold_renders_industry_name(tmp_path: Path):
+# ---------------------------------------------------------------------------
+# Scaffold: rendered content
+# ---------------------------------------------------------------------------
+
+def test_scaffold_renders_project_slug(tmp_path: Path):
     from dia.accelerators import get_accelerator
-    from dia.industries import get_industry_config
 
-    cfg = get_industry_config("medallion-sdp", "finance")
-    acc = get_accelerator("medallion-sdp")(industry="finance", industry_config=cfg)
+    acc = get_accelerator("medallion-sdp")()
     acc.scaffold(target=tmp_path / acc.project_slug)
 
-    databricks_yml = (tmp_path / acc.project_slug / "databricks.yml").read_text()
-    assert "finance-medallion-sdp" in databricks_yml
-
-    pipeline_yml = (tmp_path / acc.project_slug / "resources" / "pipelines" / "pipeline.yml").read_text()
-    assert "FinanceFakeDataSource" not in pipeline_yml  # pipeline.yml has no class name
-    assert "finance_medallion_sdp_pipeline" in pipeline_yml
+    content = (tmp_path / acc.project_slug / "databricks.yml").read_text()
+    assert "medallion-sdp" in content
 
 
 def test_scaffold_renders_bronze_metadata(tmp_path: Path):
     from dia.accelerators import get_accelerator
-    from dia.industries import get_industry_config
 
-    cfg = get_industry_config("medallion-sdp", "finance")
-    acc = get_accelerator("medallion-sdp")(industry="finance", industry_config=cfg)
+    acc = get_accelerator("medallion-sdp")()
     acc.scaffold(target=tmp_path / acc.project_slug)
 
     bronze_yml = (
-        tmp_path / acc.project_slug / "src" / "pipelines" / "finance" / "metadata" / "bronze" / "tables.yml"
+        tmp_path / acc.project_slug / "src" / "pipelines" / "main" / "metadata" / "bronze" / "tables.yml"
     ).read_text()
-    assert "transactions" in bronze_yml
-    assert "accounts" in bronze_yml
-    assert "customers" in bronze_yml
-    assert "FinanceFakeDataSource" in bronze_yml
+    assert "events" in bronze_yml
+    assert "entities" in bronze_yml
+    assert "records" in bronze_yml
+    assert "SyntheticDataSource" in bronze_yml
 
 
 def test_scaffold_renders_silver_expectations(tmp_path: Path):
     from dia.accelerators import get_accelerator
-    from dia.industries import get_industry_config
 
-    cfg = get_industry_config("medallion-sdp", "finance")
-    acc = get_accelerator("medallion-sdp")(industry="finance", industry_config=cfg)
+    acc = get_accelerator("medallion-sdp")()
     acc.scaffold(target=tmp_path / acc.project_slug)
 
     silver_yml = (
-        tmp_path / acc.project_slug / "src" / "pipelines" / "finance" / "metadata" / "silver" / "tables.yml"
+        tmp_path / acc.project_slug / "src" / "pipelines" / "main" / "metadata" / "silver" / "tables.yml"
     ).read_text()
-    assert "transaction_id_not_null" in silver_yml
-    assert "status_valid" in silver_yml
+    assert "event_id_not_null" in silver_yml
+    assert "entity_id_not_null" in silver_yml
 
+
+def test_scaffold_renders_data_source_class(tmp_path: Path):
+    from dia.accelerators import get_accelerator
+
+    acc = get_accelerator("medallion-sdp")()
+    acc.scaffold(target=tmp_path / acc.project_slug)
+
+    source = (
+        tmp_path / acc.project_slug / "src" / "pipelines" / "main" / "data_sources" / "synthetic_data_source.py"
+    ).read_text()
+    assert "class SyntheticDataSource(DataSource)" in source
+    assert "events" in source
+    assert "entities" in source
+    assert "records" in source
+
+
+# ---------------------------------------------------------------------------
+# Scaffold: overwrite behaviour
+# ---------------------------------------------------------------------------
 
 def test_scaffold_no_overwrite_without_force(tmp_path: Path):
     from dia.accelerators import get_accelerator
-    from dia.industries import get_industry_config
 
-    cfg = get_industry_config("medallion-sdp", "finance")
-    acc = get_accelerator("medallion-sdp")(industry="finance", industry_config=cfg)
+    acc = get_accelerator("medallion-sdp")()
     project_dir = tmp_path / acc.project_slug
 
     acc.scaffold(target=project_dir)
     original = (project_dir / "databricks.yml").read_text()
 
-    # Modify file then re-scaffold without force — should not overwrite
     (project_dir / "databricks.yml").write_text("# modified")
     acc.scaffold(target=project_dir, force=False)
     assert (project_dir / "databricks.yml").read_text() == "# modified"
 
-    # With force=True it should overwrite
     acc.scaffold(target=project_dir, force=True)
     assert (project_dir / "databricks.yml").read_text() == original
