@@ -10,7 +10,7 @@ from typing import Generator
 
 import pytest
 
-_CATALOG = "main_dpa"
+_CATALOG = "main"
 
 
 def _require_env(name: str) -> str:
