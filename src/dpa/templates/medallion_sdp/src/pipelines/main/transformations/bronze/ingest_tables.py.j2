@@ -1,7 +1,7 @@
 """Bronze layer: ingest raw data from the fake data source into DLT tables.
 
-Each table is defined in metadata/bronze/tables.yml.
-Swap ``source_type: fake`` for ``source_type: table`` to ingest from a real catalog.
+Each table is defined in metadata/bronze/tables.py.
+Swap source_class to point at a real data source.
 """
 
 from __future__ import annotations
@@ -12,18 +12,18 @@ import sys
 import dlt
 from pyspark.sql import SparkSession
 
-# Allow the framework package to be resolved when DLT loads this file
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../../.."))
+# framework is under src/ — 4 levels up from transformations/bronze/
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../.."))
+# metadata package is under src/pipelines/main/ — 2 levels up
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 from framework.dlt import create_dlt_table
-from framework.metadata import load_table_configs
 from framework.utils import add_ingest_timestamp
+from metadata.bronze.tables import TABLE_CONFIGS
 from data_sources.synthetic_data_source import {{ cfg.source_class }}
 
 spark = SparkSession.builder.getOrCreate()
 spark.dataSource.register({{ cfg.source_class }})
-
-_METADATA_DIR = os.path.join(os.path.dirname(__file__), "../../metadata/bronze")
 
 
 def _make_bronze_table(source_class: str, table_name: str, primary_keys: list, description: str) -> None:
@@ -39,7 +39,7 @@ def _make_bronze_table(source_class: str, table_name: str, primary_keys: list, d
         )
 
 
-for _meta in load_table_configs(_METADATA_DIR):
+for _meta in TABLE_CONFIGS:
     _make_bronze_table(
         source_class=_meta["source_class"],
         table_name=_meta["destination"],

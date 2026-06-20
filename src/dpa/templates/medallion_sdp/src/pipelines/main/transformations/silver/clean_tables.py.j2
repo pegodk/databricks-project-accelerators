@@ -1,6 +1,6 @@
 """Silver layer: read from bronze DLT tables and apply data quality expectations.
 
-Expectations are declared in metadata/silver/tables.yml.
+Expectations are declared in metadata/silver/tables.py.
 DLT will enforce them according to their type (fail_update / drop_row / warn).
 """
 
@@ -11,12 +11,11 @@ import sys
 
 import dlt
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../../.."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../.."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 from framework.dlt import create_dlt_table
-from framework.metadata import load_table_configs
-
-_METADATA_DIR = os.path.join(os.path.dirname(__file__), "../../metadata/silver")
+from metadata.silver.tables import TABLE_CONFIGS
 
 
 def _make_silver_table(
@@ -40,7 +39,7 @@ def _make_silver_table(
         return dlt.read(src)
 
 
-for _meta in load_table_configs(_METADATA_DIR):
+for _meta in TABLE_CONFIGS:
     _make_silver_table(
         source=_meta["source"],
         destination=_meta["destination"],

@@ -23,9 +23,12 @@ def test_medallion_sdp_list_files():
     assert "pyproject.toml" in files
     assert "resources/pipelines/pipeline.yml" in files
     assert "resources/schemas/schemas.yml" in files
+    assert "resources/jobs/trigger_job.yml" in files
     assert any("synthetic_data_source" in f for f in files)
     assert any("dim_entity" in f for f in files)
     assert any("fact_events" in f for f in files)
+    assert "src/pipelines/main/metadata/bronze/tables.py" in files
+    assert "src/pipelines/main/metadata/silver/tables.py" in files
 
 
 def test_medallion_sdp_scaffold(tmp_path: Path):
@@ -39,11 +42,12 @@ def test_medallion_sdp_scaffold(tmp_path: Path):
     assert (project_dir / "pyproject.toml").exists()
     assert (project_dir / "resources" / "pipelines" / "pipeline.yml").exists()
     assert (project_dir / "resources" / "schemas" / "schemas.yml").exists()
+    assert (project_dir / "resources" / "jobs" / "trigger_job.yml").exists()
     assert (project_dir / "src" / "framework" / "config.py").exists()
     assert (project_dir / "src" / "framework" / "dlt.py").exists()
+    assert (project_dir / "src" / "pipelines" / "main" / "metadata" / "bronze" / "tables.py").exists()
+    assert (project_dir / "src" / "pipelines" / "main" / "metadata" / "silver" / "tables.py").exists()
     assert (project_dir / "src" / "pipelines" / "main" / "data_sources" / "synthetic_data_source.py").exists()
-    assert (project_dir / "src" / "pipelines" / "main" / "metadata" / "bronze" / "tables.yml").exists()
-    assert (project_dir / "src" / "pipelines" / "main" / "metadata" / "silver" / "tables.yml").exists()
     assert (project_dir / "src" / "pipelines" / "main" / "transformations" / "bronze" / "ingest_tables.py").exists()
     assert (project_dir / "src" / "pipelines" / "main" / "transformations" / "silver" / "clean_tables.py").exists()
     assert (project_dir / "src" / "pipelines" / "main" / "transformations" / "gold" / "dim_entity.py").exists()
@@ -66,13 +70,13 @@ def test_medallion_sdp_scaffold_renders_bronze_metadata(tmp_path: Path):
     acc = get_accelerator("medallion-sdp")()
     acc.scaffold(target=tmp_path / acc.project_slug)
 
-    bronze_yml = (
-        tmp_path / acc.project_slug / "src" / "pipelines" / "main" / "metadata" / "bronze" / "tables.yml"
+    bronze_py = (
+        tmp_path / acc.project_slug / "src" / "pipelines" / "main" / "metadata" / "bronze" / "tables.py"
     ).read_text()
-    assert "events" in bronze_yml
-    assert "entities" in bronze_yml
-    assert "records" in bronze_yml
-    assert "SyntheticDataSource" in bronze_yml
+    assert "events" in bronze_py
+    assert "entities" in bronze_py
+    assert "records" in bronze_py
+    assert "SyntheticDataSource" in bronze_py
 
 
 def test_medallion_sdp_scaffold_renders_silver_expectations(tmp_path: Path):
@@ -81,11 +85,11 @@ def test_medallion_sdp_scaffold_renders_silver_expectations(tmp_path: Path):
     acc = get_accelerator("medallion-sdp")()
     acc.scaffold(target=tmp_path / acc.project_slug)
 
-    silver_yml = (
-        tmp_path / acc.project_slug / "src" / "pipelines" / "main" / "metadata" / "silver" / "tables.yml"
+    silver_py = (
+        tmp_path / acc.project_slug / "src" / "pipelines" / "main" / "metadata" / "silver" / "tables.py"
     ).read_text()
-    assert "event_id_not_null" in silver_yml
-    assert "entity_id_not_null" in silver_yml
+    assert "event_id_not_null" in silver_py
+    assert "entity_id_not_null" in silver_py
 
 
 def test_medallion_sdp_scaffold_renders_data_source_class(tmp_path: Path):

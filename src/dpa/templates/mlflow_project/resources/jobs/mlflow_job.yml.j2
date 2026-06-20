@@ -6,6 +6,10 @@ resources:
       queue:
         enabled: true
       performance_target: STANDARD
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?"
+        timezone_id: UTC
+        pause_status: UNPAUSED
       environments:
         - environment_key: Default
           spec:

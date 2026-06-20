@@ -1,0 +1,16 @@
+"""Bronze layer table configuration.
+
+Edit source_type and source_class to point at a real data source.
+"""
+
+TABLE_CONFIGS = [
+{% for table in cfg.bronze_tables %}
+    {
+        "source_type": "fake",
+        "source_class": "{{ cfg.source_class }}",
+        "destination": "{{ table.name }}",
+        "primary_keys": {{ table.primary_keys | tojson }},
+        "description": "{{ table.description }}",
+    },
+{% endfor %}
+]
