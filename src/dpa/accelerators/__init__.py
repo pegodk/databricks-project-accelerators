@@ -14,14 +14,13 @@ if TYPE_CHECKING:
 from dpa.accelerators.ai_bi import AiBiAccelerator
 from dpa.accelerators.app_streamlit import AppStreamlitAccelerator
 from dpa.accelerators.medallion_sdp import MedallionSdpAccelerator
+from dpa.accelerators.medallion_spark import MedallionSparkAccelerator
 
 ACCELERATOR_REGISTRY: dict[str, type[BaseAccelerator]] = {
     "medallion-sdp": MedallionSdpAccelerator,
+    "medallion-spark": MedallionSparkAccelerator,
     "app-streamlit": AppStreamlitAccelerator,
     "ai-bi": AiBiAccelerator,
-    # Future:
-    # "medallion-notebooks": MedallionNotebooksAccelerator,
-    # "mlflow-project": MlflowProjectAccelerator,
 }
 
 

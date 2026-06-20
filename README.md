@@ -36,7 +36,8 @@ databricks bundle deploy --target dev
 
 | Name | Description |
 |------|-------------|
-| `medallion-sdp` | Streaming Delta Pipeline with bronze/silver/gold layers and a DAB job |
+| `medallion-sdp` | Streaming Delta Pipeline (DLT) with bronze/silver/gold layers and a DAB job |
+| `medallion-spark` | Medallion architecture using Spark Structured Streaming notebooks |
 | `app-streamlit` | Databricks-hosted Streamlit app wired to a SQL warehouse |
 | `ai-bi` | Lakeview dashboard + Genie Space with metric views over the TPCH sample dataset |
 
