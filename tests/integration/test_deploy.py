@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -25,6 +26,14 @@ def test_bundle_validates(accelerator_name: str, tmp_path: Path) -> None:
     acc = get_accelerator(accelerator_name)()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
+
+    host = os.getenv("DATABRICKS_HOST", "").strip()
+    if host:
+        dab_yml = project_dir / "databricks.yml"
+        content = dab_yml.read_text()
+        content = content.replace("https://<your-dev-workspace-url>", host)
+        content = content.replace("https://<your-prod-workspace-url>", host)
+        dab_yml.write_text(content)
 
     result = subprocess.run(
         [cli, "bundle", "validate", "--target", "dev"],

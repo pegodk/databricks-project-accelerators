@@ -1,0 +1,32 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  jobs:
+    {{ slug }}_job:
+      name: "[${bundle.target}] {{ project_slug }}"
+      job_clusters:
+        - job_cluster_key: dbt_cluster
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            node_type_id: ${var.node_type_id}
+            num_workers: 1
+            data_security_mode: SINGLE_USER
+      tasks:
+        - task_key: dbt_run
+          job_cluster_key: dbt_cluster
+          libraries:
+            - pypi:
+                package: "dbt-databricks>=1.8.0,<2.0.0"
+          dbt_task:
+            project_directory: "${workspace.file_path}"
+            source: WORKSPACE
+            commands:
+              - "dbt deps"
+              - "dbt run"
+              - "dbt test"
+            warehouse_id: ${var.warehouse_id}
+            catalog: ${var.catalog}
+            schema: ${var.schema}
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?"
+        timezone_id: UTC
+        pause_status: PAUSED
