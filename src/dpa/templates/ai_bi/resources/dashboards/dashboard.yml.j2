@@ -3,6 +3,6 @@ resources:
   dashboards:
     {{ slug }}_dashboard:
       display_name: "{{ cfg.dashboard_name }}"
-      file_path: ../../dashboard/tpch_overview.lvdash.json
+      file_path: resources/dashboards/tpch_overview.lvdash.json
       embed_credentials: false
       warehouse_id: ${resources.sql_warehouses.starter_warehouse.id}
