@@ -74,6 +74,36 @@ def _bundle_vars(accelerator_name: str) -> list[str]:
     return []
 
 
+def _cleanup_stale_apps(cli: str, accelerator_name: str) -> None:
+    """Delete a Databricks App stranded from a previous deploy.
+
+    `bundle destroy` on a fresh tmp_path has no bundle state, so it cannot
+    clean up apps deployed by a prior test run. Delete by name directly.
+    """
+    from dpa.accelerators import get_accelerator
+
+    acc_cls = get_accelerator(accelerator_name)
+    if acc_cls is None:
+        return
+    acc = acc_cls()
+    app_name = f"dpa-{acc.project_slug}"
+
+    # Check whether the app exists before attempting deletion.
+    check = subprocess.run(
+        [cli, "apps", "get", app_name, "--output", "json"],
+        capture_output=True,
+        check=False,
+    )
+    if check.returncode != 0:
+        return
+
+    subprocess.run(
+        [cli, "apps", "delete", app_name],
+        capture_output=True,
+        check=False,
+    )
+
+
 def _cleanup_stale_schemas(cli: str, accelerator_name: str) -> None:
     """Delete schemas stranded by a previous partially-failed bundle deploy.
 
@@ -165,6 +195,10 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     # Drop schemas stranded by a previous partially-failed deploy that bundle
     # destroy won't reach because they were never recorded in the deployment state.
     _cleanup_stale_schemas(cli, accelerator_name)
+
+    # Delete any Databricks App left over from a prior test run that bundle destroy
+    # on a fresh tmp_path cannot reach (no bundle state to reference).
+    _cleanup_stale_apps(cli, accelerator_name)
 
     subprocess.run(
         [cli, "bundle", "deploy", "--target", "dev"] + vars_,

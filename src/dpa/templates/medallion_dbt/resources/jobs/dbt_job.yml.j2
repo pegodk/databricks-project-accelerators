@@ -3,8 +3,14 @@ resources:
   jobs:
     {{ slug }}_job:
       name: "dpa-{{ project_slug }}"
+      environments:
+        - environment_key: default
+          spec:
+            dependencies:
+              - "dbt-databricks>=1.8.0,<2.0.0"
       tasks:
         - task_key: dbt_run
+          environment_key: default
           dbt_task:
             project_directory: "${workspace.file_path}"
             source: WORKSPACE
