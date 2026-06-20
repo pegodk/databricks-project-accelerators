@@ -15,7 +15,10 @@ variables:
     description: Schema for metric views
 
 include:
-  - resources/**/*.yml
+  - resources/dashboards/*.yml
+  - resources/genie_spaces/*.yml
+  - resources/jobs/*.yml
+  - resources/warehouses/*.yml
 
 targets:
   dev:

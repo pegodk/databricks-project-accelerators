@@ -1,5 +1,7 @@
 # Databricks Project Accelerators
 
+![](assets/hero.png)
+
 A CLI tool that scaffolds production-ready Databricks solutions via Jinja2 templates and Databricks Asset Bundles.
 
 ## Features

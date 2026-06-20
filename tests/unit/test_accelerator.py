@@ -262,15 +262,8 @@ def test_ai_bi_list_files():
     assert "resources/warehouses/warehouse.yml" in files
     assert "resources/genie_spaces/tpch_genie.genie_space.yml" in files
     assert "src/sql/setup_metric_views.sql" in files
-    assert "src/metric_views/v_kpis.yml" in files
-    assert "src/metric_views/v_revenue_by_month.yml" in files
-    assert "src/metric_views/v_revenue_by_segment.yml" in files
-    assert "src/metric_views/v_revenue_by_region.yml" in files
-    assert "src/metric_views/v_top_customers.yml" in files
-    assert "src/metric_views/v_shipmode_summary.yml" in files
-    assert "src/metric_views/v_order_priority_summary.yml" in files
-    assert "dashboard/tpch_overview.lvdash.json" in files
-    assert "genie/tpch_genie.geniespace.json" in files
+    assert "resources/dashboards/tpch_overview.lvdash.json" in files
+    assert "resources/genie_spaces/tpch_genie.geniespace.json" in files
 
 
 def test_ai_bi_scaffold(tmp_path: Path):
@@ -286,15 +279,8 @@ def test_ai_bi_scaffold(tmp_path: Path):
     assert (project_dir / "resources" / "warehouses" / "warehouse.yml").exists()
     assert (project_dir / "resources" / "genie_spaces" / "tpch_genie.genie_space.yml").exists()
     assert (project_dir / "src" / "sql" / "setup_metric_views.sql").exists()
-    assert (project_dir / "src" / "metric_views" / "v_kpis.yml").exists()
-    assert (project_dir / "src" / "metric_views" / "v_revenue_by_month.yml").exists()
-    assert (project_dir / "src" / "metric_views" / "v_revenue_by_segment.yml").exists()
-    assert (project_dir / "src" / "metric_views" / "v_revenue_by_region.yml").exists()
-    assert (project_dir / "src" / "metric_views" / "v_top_customers.yml").exists()
-    assert (project_dir / "src" / "metric_views" / "v_shipmode_summary.yml").exists()
-    assert (project_dir / "src" / "metric_views" / "v_order_priority_summary.yml").exists()
-    assert (project_dir / "dashboard" / "tpch_overview.lvdash.json").exists()
-    assert (project_dir / "genie" / "tpch_genie.geniespace.json").exists()
+    assert (project_dir / "resources" / "dashboards" / "tpch_overview.lvdash.json").exists()
+    assert (project_dir / "resources" / "genie_spaces" / "tpch_genie.geniespace.json").exists()
 
 
 def test_ai_bi_scaffold_renders_setup_sql(tmp_path: Path):
@@ -306,34 +292,13 @@ def test_ai_bi_scaffold_renders_setup_sql(tmp_path: Path):
 
     sql = (project_dir / "src" / "sql" / "setup_metric_views.sql").read_text()
     assert "main.tpch_metrics" in sql
-    assert "CREATE OR REPLACE METRIC VIEW" in sql
-    assert "v_kpis" in sql
-    assert "v_revenue_by_month" in sql
-    assert "v_top_customers" in sql
-    # YAML definitions are inlined via Jinja2 include
+    assert "CREATE OR REPLACE VIEW" in sql
+    assert "WITH METRICS" in sql
+    assert "LANGUAGE YAML" in sql
+    assert "v_tpch" in sql
     assert "samples.tpch.orders" in sql
-    assert "samples.tpch.lineitem" in sql
-
-
-def test_ai_bi_scaffold_renders_metric_view_yaml(tmp_path: Path):
-    import yaml
-
-    from dpa.accelerators import get_accelerator
-
-    acc = get_accelerator("ai-bi")()
-    project_dir = tmp_path / acc.project_slug
-    acc.scaffold(target=project_dir)
-
-    for view_name in [
-        "v_kpis", "v_revenue_by_month", "v_revenue_by_segment",
-        "v_revenue_by_region", "v_top_customers", "v_shipmode_summary",
-        "v_order_priority_summary",
-    ]:
-        content = (project_dir / "src" / "metric_views" / f"{view_name}.yml").read_text()
-        parsed = yaml.safe_load(content)
-        assert parsed["version"] == 1.1
-        assert "source" in parsed
-        assert "measures" in parsed
+    assert "t7d_customers" in sql
+    assert "total_revenue" in sql
 
 
 def test_ai_bi_scaffold_renders_valid_dashboard_json(tmp_path: Path):
@@ -345,7 +310,7 @@ def test_ai_bi_scaffold_renders_valid_dashboard_json(tmp_path: Path):
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
-    lvdash = (project_dir / "dashboard" / "tpch_overview.lvdash.json").read_text()
+    lvdash = (project_dir / "resources" / "dashboards" / "tpch_overview.lvdash.json").read_text()
     parsed = json.loads(lvdash)
     assert "displayName" in parsed
     assert "datasets" in parsed
@@ -374,13 +339,14 @@ def test_ai_bi_scaffold_renders_valid_genie_json(tmp_path: Path):
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
-    genie_json = (project_dir / "genie" / "tpch_genie.geniespace.json").read_text()
+    genie_json = (project_dir / "resources" / "genie_spaces" / "tpch_genie.geniespace.json").read_text()
     parsed = json.loads(genie_json)
     assert "display_name" in parsed
     assert "tables" in parsed
     assert "curated_questions" in parsed
     assert "instructions" in parsed
-    assert len(parsed["tables"]) == 7
+    assert len(parsed["tables"]) == 1
+    assert parsed["tables"][0]["name"] == "v_tpch"
     assert len(parsed["curated_questions"]) > 0
 
 
@@ -393,7 +359,7 @@ def test_ai_bi_scaffold_renders_genie_catalog_and_schema(tmp_path: Path):
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
-    parsed = json.loads((project_dir / "genie" / "tpch_genie.geniespace.json").read_text())
+    parsed = json.loads((project_dir / "resources" / "genie_spaces" / "tpch_genie.geniespace.json").read_text())
     table_catalogs = {t["catalog"] for t in parsed["tables"]}
     table_schemas = {t["schema"] for t in parsed["tables"]}
     assert table_catalogs == {"main"}

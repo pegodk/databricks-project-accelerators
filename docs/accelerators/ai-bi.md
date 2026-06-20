@@ -1,61 +1,89 @@
 # AI/BI Accelerator
 
-The **AI/BI** accelerator scaffolds a complete Databricks AI/BI solution over the TPCH sample dataset: metric views as the semantic layer, a Lakeview dashboard for visual analytics, and a Genie Space for natural-language querying — all deployed via a single Databricks Asset Bundle.
+The **AI/BI** accelerator scaffolds a complete Databricks AI/BI solution over the TPCH sample dataset: a metric view as the semantic layer, a Lakeview dashboard for visual analytics, and a Genie Space for natural-language querying — all deployed via a single Databricks Asset Bundle.
 
 ## What gets generated
 
 ```
 ai-bi/
-├── databricks.yml                                    # Asset Bundle root config
+├── databricks.yml                                        # Asset Bundle root config
 ├── .gitignore
-├── src/
-│   └── sql/
-│       └── metric_views.sql                          # 7 metric views over samples.tpch
-├── dashboard/
-│   └── tpch_overview.lvdash.json                     # Lakeview dashboard (3 pages)
-├── genie/
-│   └── tpch_genie.geniespace.json                    # Genie Space definition
-└── resources/
-    ├── warehouses/warehouse.yml                      # Serverless SQL warehouse
-    ├── jobs/setup_views_job.yml                      # One-time job to create metric views
-    ├── dashboards/dashboard.yml                      # Lakeview dashboard resource
-    └── genie_spaces/tpch_genie.genie_space.yml       # Genie Space resource
+├── resources/
+│   ├── dashboards/
+│   │   ├── dashboard.yml                                 # Lakeview dashboard resource
+│   │   └── tpch_overview.lvdash.json                     # Dashboard definition (3 pages)
+│   ├── genie_spaces/
+│   │   ├── tpch_genie.genie_space.yml                    # Genie Space resource
+│   │   └── tpch_genie.geniespace.json                    # Genie Space definition
+│   ├── jobs/
+│   │   └── setup_views_job.yml                           # One-time job to deploy metric view
+│   └── warehouses/
+│       └── warehouse.yml                                 # Serverless SQL warehouse
+└── src/
+    └── sql/
+        └── setup_metric_views.sql                        # CREATE METRIC VIEW statement
 ```
 
-### Metric views (`src/sql/metric_views.sql`)
+## Metric view — `v_tpch`
 
-Seven views are created in your catalog/schema over `samples.tpch`:
+A single metric view sourced from `samples.tpch.orders`, joined to customer and nation:
 
-| View | Description |
-|---|---|
-| `v_kpis` | Single-row summary: total orders, revenue, avg order value, unique customers |
-| `v_revenue_by_month` | Monthly revenue trend |
-| `v_revenue_by_segment` | Revenue by customer market segment |
-| `v_revenue_by_region` | Revenue by geographic region and nation |
-| `v_top_customers` | Top 50 customers by lifetime revenue |
-| `v_shipmode_summary` | Revenue, discount, and quantity by shipping mode |
-| `v_order_priority_summary` | Revenue and order count by priority level |
+```
+orders → customer → nation
+```
 
-### Lakeview dashboard (`dashboard/tpch_overview.lvdash.json`)
+Filter: `o_orderdate >= '1995-01-01'`
 
-Three pages with counters, area charts, bar charts, pie charts, and tables:
+**Fields (dimensions)**
 
-- **Overview** — KPI counters, monthly revenue trend, revenue by segment and order priority
-- **Logistics & Geography** — revenue and discounts by ship mode, region/nation breakdown table
-- **Top Customers** — top 20 customers table, revenue by customer segment
+| Field | Expression | Description |
+|---|---|---|
+| `order_date` | `o_orderdate` | Date the order was placed |
+| `order_month` | `DATE_TRUNC('MONTH', order_date)` | Month grain for trend analysis |
+| `order_year` | `YEAR(order_date)` | Year grain |
+| `order_status` | CASE on `o_orderstatus` | Open / Processing / Fulfilled |
+| `order_priority` | `SPLIT(o_orderpriority, '-')[0]` | Priority number (1–5) |
+| `customer_name` | `customer.c_name` | Customer display name |
+| `market_segment` | `customer.c_mktsegment` | AUTOMOBILE / BUILDING / FURNITURE / HOUSEHOLD / MACHINERY |
+| `customer_nation` | `customer.nation.n_name` | Customer country (synonyms: nation, country) |
 
-### Genie Space (`genie/tpch_genie.geniespace.json`)
+**Measures**
 
-Pre-seeded with 10 curated questions and instructions tuned to the TPCH domain. All seven metric views are bound as tables. Users can ask questions like:
+| Measure | Expression | Format |
+|---|---|---|
+| `order_count` | `COUNT(DISTINCT o_orderkey)` | compact number |
+| `total_revenue` | `SUM(o_totalprice)` | compact USD (synonyms: revenue, sales) |
+| `unique_customers` | `COUNT(DISTINCT o_custkey)` | compact number |
+| `avg_order_value` | `MEASURE(total_revenue) / MEASURE(order_count)` | USD (synonym: AOV) |
+| `revenue_per_customer` | `MEASURE(total_revenue) / MEASURE(unique_customers)` | USD |
+| `open_order_revenue` | `SUM(o_totalprice) FILTER (WHERE o_orderstatus = 'O')` | USD (synonym: backlog) |
+| `fulfilled_order_revenue` | `SUM(o_totalprice) FILTER (WHERE o_orderstatus = 'F')` | USD |
+| `t7d_customers` | `COUNT(DISTINCT o_custkey)` trailing 7-day window | compact number |
 
-- "What is the total revenue across all orders?"
+## Lakeview dashboard
+
+Three pages backed by `MEASURE()` queries against `v_tpch`:
+
+- **Overview** — Total Revenue, Total Orders, Avg Order Value counters; monthly revenue trend (area chart); revenue by market segment (bar) and by priority (pie)
+- **Order Analysis** — Revenue and count by order status (bar + pie); revenue by country (table); unique customers counter
+- **Top Customers** — Top 20 customers by total revenue (table with segment, country, avg order value); revenue by segment for those customers (bar)
+
+## Genie Space
+
+Pre-seeded with 10 curated questions and instructions tuned to the TPCH domain. The `v_tpch` metric view is registered as the table source — Genie uses its `display_name` and `synonyms` metadata for semantic resolution.
+
+Example questions:
+- "What is the total revenue?"
 - "Which market segment generates the most revenue?"
-- "Which shipping mode has the highest average discount?"
+- "What is the revenue split between open, processing, and fulfilled orders?"
+
+## Why the setup job is needed
+
+DAB does not yet support `metric_views` as a native resource type. The setup job runs `src/sql/setup_metric_views.sql` against the warehouse, which executes a `CREATE OR REPLACE METRIC VIEW` statement with the full YAML definition inlined as a SQL heredoc. When Databricks adds native DAB support, the job and SQL file can be removed.
 
 ## Requirements
 
 - Databricks CLI v1.3.0+ (required for Genie Space bundle support)
-- Direct deployment engine enabled (default for new bundles with CLI v1.3.0+)
 - Unity Catalog enabled in your workspace
 - Access to `samples.tpch` (built-in Databricks sample data)
 
@@ -65,10 +93,10 @@ Pre-seeded with 10 curated questions and instructions tuned to the TPCH domain. 
 dpa init ai-bi
 cd ai-bi
 
-# Deploy (dev target by default)
+# Deploy resources (warehouse, dashboard, genie space)
 databricks bundle deploy
 
-# Run the setup job to create metric views before opening the dashboard or Genie Space
+# Create the metric view (run once before opening dashboard or Genie Space)
 databricks bundle run <project_slug>_setup_views
 ```
 
@@ -76,6 +104,7 @@ For production:
 
 ```bash
 databricks bundle deploy --target prod
+databricks bundle run <project_slug>_setup_views --target prod
 ```
 
 ## Variables
@@ -84,8 +113,8 @@ Defined in `databricks.yml` with sensible defaults:
 
 | Variable | Default | Description |
 |---|---|---|
-| `catalog` | `main` | Unity Catalog catalog for metric views |
-| `schema` | `tpch_metrics` | Schema for metric views |
+| `catalog` | `main` | Unity Catalog catalog for the metric view |
+| `schema` | `tpch_metrics` | Schema for the metric view |
 
 Override at deploy time:
 
@@ -95,11 +124,11 @@ databricks bundle deploy --var="catalog=my_catalog" --var="schema=my_schema"
 
 ## Customising the Genie Space
 
-After deploying, you can refine the Genie Space in the Databricks UI (add curated questions, adjust instructions, tune table descriptions). To pull your changes back into the bundle:
+After deploying, you can refine the Genie Space in the Databricks UI. To pull changes back into the bundle:
 
 ```bash
 databricks bundle generate genie-space --resource <project_slug>_genie --force
 ```
 
 !!! warning
-    Redeploying overwrites any existing Genie Space with the same name, including its chat history. Use dev/prod targets to keep environments isolated.
+    Redeploying overwrites any existing Genie Space with the same name, including chat history. Use dev/prod targets to keep environments isolated.
