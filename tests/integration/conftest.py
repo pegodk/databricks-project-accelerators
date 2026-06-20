@@ -2,19 +2,14 @@
 
 from __future__ import annotations
 
-import json
 import os
 import shutil
 import subprocess
-import time
 from pathlib import Path
 from typing import Generator
 
 import pytest
 
-_BRONZE_CATALOG = "dpa_bronze_dev"
-_SILVER_CATALOG = "dpa_silver_dev"
-_GOLD_CATALOG = "dpa_gold_dev"
 _BUNDLE_PREFIX = "dpa"
 
 
@@ -50,136 +45,28 @@ def patch_databricks_yml(project_dir: Path, project_slug: str, host: str) -> Non
 def _bundle_vars(accelerator_name: str) -> list[str]:
     if accelerator_name == "medallion-sdp":
         return [
-            "--var", f"bronze_catalog={_BRONZE_CATALOG}",
-            "--var", f"silver_catalog={_SILVER_CATALOG}",
-            "--var", f"gold_catalog={_GOLD_CATALOG}",
+            "--var", "bronze_catalog=dpa_bronze_dev",
+            "--var", "silver_catalog=dpa_silver_dev",
+            "--var", "gold_catalog=dpa_gold_dev",
         ]
     if accelerator_name == "medallion-spark":
         return [
-            "--var", f"bronze_catalog={_BRONZE_CATALOG}",
-            "--var", f"silver_catalog={_SILVER_CATALOG}",
-            "--var", f"gold_catalog={_GOLD_CATALOG}",
+            "--var", "bronze_catalog=dpa_bronze_dev",
+            "--var", "silver_catalog=dpa_silver_dev",
+            "--var", "gold_catalog=dpa_gold_dev",
             "--var", "bronze_schema=tpch_spark",
             "--var", "silver_schema=tpch_spark",
             "--var", "gold_schema=tpch_model_spark",
         ]
     if accelerator_name == "medallion-dbt":
         return [
-            "--var", f"bronze_catalog={_BRONZE_CATALOG}",
-            "--var", f"silver_catalog={_SILVER_CATALOG}",
-            "--var", f"gold_catalog={_GOLD_CATALOG}",
+            "--var", "bronze_catalog=dpa_bronze_dev",
+            "--var", "silver_catalog=dpa_silver_dev",
+            "--var", "gold_catalog=dpa_gold_dev",
             "--var", "schema=tpch_dbt",
         ]
     return []
 
-
-def _cleanup_stale_apps(cli: str, accelerator_name: str) -> None:
-    """Delete a Databricks App stranded from a previous deploy.
-
-    `bundle destroy` on a fresh tmp_path has no bundle state, so it cannot
-    clean up apps deployed by a prior test run. Delete by name directly.
-    """
-    from dpa.accelerators import get_accelerator
-
-    acc_cls = get_accelerator(accelerator_name)
-    if acc_cls is None:
-        return
-    acc = acc_cls()
-    app_name = f"dpa-{acc.project_slug}"
-
-    # Check whether the app exists (including DELETING state after bundle destroy).
-    check = subprocess.run(
-        [cli, "apps", "get", app_name, "--output", "json"],
-        capture_output=True,
-        check=False,
-    )
-    if check.returncode != 0:
-        return
-
-    # Attempt deletion (idempotent — may already be in DELETING state).
-    subprocess.run(
-        [cli, "apps", "delete", app_name],
-        capture_output=True,
-        check=False,
-    )
-
-    # App deletion is asynchronous. Poll until the app is fully gone so that
-    # the subsequent bundle deploy does not race against a DELETING state.
-    for _ in range(30):
-        check = subprocess.run(
-            [cli, "apps", "get", app_name, "--output", "json"],
-            capture_output=True,
-            check=False,
-        )
-        if check.returncode != 0:
-            return  # App is gone.
-        time.sleep(3)
-
-
-def _catalog_schema_pairs(accelerator_name: str) -> list[tuple[str, str]]:
-    """Return all (catalog, schema_base) pairs that a deploy may create."""
-    from dpa.accelerators import get_accelerator
-
-    acc_cls = get_accelerator(accelerator_name)
-    if acc_cls is None:
-        return []
-    cfg = acc_cls.default_config
-
-    # Medallion-style: separate bronze/silver/gold catalogs.
-    if "bronze_schema" in cfg:
-        bronze_schema = cfg.get("bronze_schema") or cfg.get("schema", "")
-        silver_schema = cfg.get("silver_schema") or cfg.get("schema", "")
-        gold_schema   = cfg.get("gold_schema")   or cfg.get("schema", "")
-        return [
-            (_BRONZE_CATALOG, bronze_schema),
-            (_SILVER_CATALOG, silver_schema),
-            (_GOLD_CATALOG,   gold_schema),
-        ]
-
-    # Single-catalog accelerators.
-    catalog     = cfg.get("catalog", "")
-    schema_base = cfg.get("schema", "")
-    if catalog and schema_base:
-        return [(catalog, schema_base)]
-    return []
-
-
-def _cleanup_stale_schemas(cli: str, accelerator_name: str) -> None:
-    """Delete schemas stranded by a previous partially-failed bundle deploy.
-
-    When bundle deploy fails mid-way, DAB may create Unity Catalog schemas without
-    recording them in the deployment state. Subsequent `bundle destroy` skips them,
-    causing SCHEMA_ALREADY_EXISTS on the next deploy.
-    """
-    for catalog, schema_base in _catalog_schema_pairs(accelerator_name):
-        if not catalog or not schema_base:
-            continue
-
-        result = subprocess.run(
-            [cli, "schemas", "list", "--catalog-name", catalog, "--output", "json"],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if result.returncode != 0:
-            continue
-
-        try:
-            payload = json.loads(result.stdout or "{}")
-            schemas = payload if isinstance(payload, list) else payload.get("schemas", [])
-        except json.JSONDecodeError:
-            continue
-
-        for schema in schemas:
-            name = schema.get("name", "")
-            # Match dev-prefixed orphan: dev_<user>_<base_name>
-            if name.startswith("dev_") and name.endswith(f"_{schema_base}"):
-                full_name = schema.get("full_name", f"{catalog}.{name}")
-                subprocess.run(
-                    [cli, "schemas", "delete", "--full-name", full_name],
-                    capture_output=True,
-                    check=False,
-                )
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -214,21 +101,6 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     patch_databricks_yml(project_dir, acc.project_slug, host)
 
     vars_ = _bundle_vars(accelerator_name)
-
-    # Destroy any leftover deployment from a previous failed run (idempotent).
-    subprocess.run(
-        [cli, "bundle", "destroy", "--target", "dev", "--auto-approve"] + vars_,
-        cwd=project_dir,
-        check=False,
-    )
-
-    # Drop schemas stranded by a previous partially-failed deploy that bundle
-    # destroy won't reach because they were never recorded in the deployment state.
-    _cleanup_stale_schemas(cli, accelerator_name)
-
-    # Delete any Databricks App left over from a prior test run that bundle destroy
-    # on a fresh tmp_path cannot reach (no bundle state to reference).
-    _cleanup_stale_apps(cli, accelerator_name)
 
     subprocess.run(
         [cli, "bundle", "deploy", "--target", "dev"] + vars_,

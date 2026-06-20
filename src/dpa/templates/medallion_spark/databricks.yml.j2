@@ -32,10 +32,6 @@ targets:
     default: true
     workspace:
       host: https://<your-dev-workspace-url>
-    variables:
-      bronze_catalog: {{ cfg.bronze_catalog }}
-      silver_catalog: {{ cfg.silver_catalog }}
-      gold_catalog: {{ cfg.gold_catalog }}
   prod:
     mode: production
     workspace:
