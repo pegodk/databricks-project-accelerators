@@ -66,7 +66,7 @@ def test_python_wheel_scaffold_renders_build_notebook(tmp_path: Path):
     nb = (project_dir / "notebooks" / "build_and_upload.py").read_text()
     assert "# Databricks notebook source" in nb
     assert "pip wheel" in nb
-    assert "dbutils.fs.cp" in nb
+    assert "shutil.copy" in nb
     assert "workspace_file_path" in nb
 
 
