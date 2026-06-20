@@ -21,9 +21,6 @@ models:
     bronze:
       +materialized: view
       +database: "{{ cfg.bronze_catalog }}"
-    silver:
-      +materialized: table
-      +database: "{{ cfg.silver_catalog }}"
     gold:
       +materialized: table
       +database: "{{ cfg.gold_catalog }}"

@@ -16,3 +16,9 @@ sources:
         description: Nation reference data
       - name: region
         description: Region reference data
+      - name: part
+        description: Part catalogue
+      - name: supplier
+        description: Supplier master data
+      - name: partsupp
+        description: Part-supplier cost and availability

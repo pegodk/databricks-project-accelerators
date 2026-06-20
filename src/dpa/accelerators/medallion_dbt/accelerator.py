@@ -13,7 +13,6 @@ class MedallionDbtAccelerator(BaseAccelerator):
     description = "Medallion architecture (bronze/silver/gold) using dbt models over TPCH"
     default_config: dict[str, Any] = {
         "bronze_catalog": "dpa_bronze_dev",
-        "silver_catalog": "dpa_silver_dev",
         "gold_catalog": "dpa_gold_dev",
         "schema": "tpch_dbt",
     }

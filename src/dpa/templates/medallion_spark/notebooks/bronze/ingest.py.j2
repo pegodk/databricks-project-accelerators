@@ -40,7 +40,7 @@ def stream_table(source: str, target: str, checkpoint: str) -> None:
 
 # COMMAND ----------
 
-for table in ["orders", "lineitem", "customer", "nation", "region"]:
+for table in ["orders", "lineitem", "customer", "nation", "region", "part", "supplier", "partsupp"]:
     stream_table(
         source=f"samples.tpch.{table}",
         target=f"{bronze_catalog}.{bronze_schema}.{table}",

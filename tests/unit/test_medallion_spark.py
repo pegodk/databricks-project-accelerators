@@ -22,7 +22,6 @@ def test_medallion_spark_list_files():
     assert "databricks.yml" in files
     assert "resources/jobs/medallion_job.yml" in files
     assert "notebooks/bronze/ingest.py" in files
-    assert "notebooks/silver/transform.py" in files
     assert "notebooks/gold/aggregate.py" in files
 
 
@@ -36,7 +35,6 @@ def test_medallion_spark_scaffold(tmp_path: Path):
     assert (project_dir / "databricks.yml").exists()
     assert (project_dir / "resources" / "jobs" / "medallion_job.yml").exists()
     assert (project_dir / "notebooks" / "bronze" / "ingest.py").exists()
-    assert (project_dir / "notebooks" / "silver" / "transform.py").exists()
     assert (project_dir / "notebooks" / "gold" / "aggregate.py").exists()
 
 
@@ -49,7 +47,6 @@ def test_medallion_spark_scaffold_renders_catalogs(tmp_path: Path):
 
     bundle = (project_dir / "databricks.yml").read_text()
     assert "dpa_bronze_dev" in bundle
-    assert "dpa_silver_dev" in bundle
     assert "dpa_gold_dev" in bundle
 
 
@@ -68,20 +65,6 @@ def test_medallion_spark_scaffold_renders_bronze_notebook(tmp_path: Path):
     assert "readStream" in nb
 
 
-def test_medallion_spark_scaffold_renders_silver_notebook(tmp_path: Path):
-    from dpa.accelerators import get_accelerator
-
-    acc = get_accelerator("medallion-spark")()
-    project_dir = tmp_path / acc.project_slug
-    acc.scaffold(target=project_dir)
-
-    nb = (project_dir / "notebooks" / "silver" / "transform.py").read_text()
-    assert "# Databricks notebook source" in nb
-    assert "orders_enriched" in nb
-    assert "readStream" in nb
-    assert "writeStream" in nb
-
-
 def test_medallion_spark_scaffold_renders_gold_notebook(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
@@ -91,6 +74,9 @@ def test_medallion_spark_scaffold_renders_gold_notebook(tmp_path: Path):
 
     nb = (project_dir / "notebooks" / "gold" / "aggregate.py").read_text()
     assert "# Databricks notebook source" in nb
-    assert "sales_summary" in nb
-    assert "customer_summary" in nb
-    assert "outputMode" in nb
+    assert "dim_customer" in nb
+    assert "dim_part" in nb
+    assert "dim_supplier" in nb
+    assert "fact_order" in nb
+    assert "saveAsTable" in nb
+    assert "datediff" in nb

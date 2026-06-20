@@ -52,16 +52,13 @@ def _bundle_vars(accelerator_name: str) -> list[str]:
     if accelerator_name == "medallion-spark":
         return [
             "--var", "bronze_catalog=dpa_bronze_dev",
-            "--var", "silver_catalog=dpa_silver_dev",
             "--var", "gold_catalog=dpa_gold_dev",
             "--var", "bronze_schema=tpch_spark",
-            "--var", "silver_schema=tpch_spark",
             "--var", "gold_schema=tpch_model_spark",
         ]
     if accelerator_name == "medallion-dbt":
         return [
             "--var", "bronze_catalog=dpa_bronze_dev",
-            "--var", "silver_catalog=dpa_silver_dev",
             "--var", "gold_catalog=dpa_gold_dev",
             "--var", "schema=tpch_dbt",
         ]
