@@ -14,7 +14,7 @@ resources:
         - task_key: build_and_upload
           environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/build_and_upload.py
+            notebook_path: ${workspace.file_path}/notebooks/build_and_upload
             source: WORKSPACE
             base_parameters:
               workspace_file_path: ${workspace.file_path}
@@ -26,7 +26,7 @@ resources:
             - task_key: build_and_upload
           environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/verify_imports.py
+            notebook_path: ${workspace.file_path}/notebooks/verify_imports
             source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}

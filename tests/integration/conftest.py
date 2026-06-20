@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from typing import Generator
 
@@ -88,7 +89,7 @@ def _cleanup_stale_apps(cli: str, accelerator_name: str) -> None:
     acc = acc_cls()
     app_name = f"dpa-{acc.project_slug}"
 
-    # Check whether the app exists before attempting deletion.
+    # Check whether the app exists (including DELETING state after bundle destroy).
     check = subprocess.run(
         [cli, "apps", "get", app_name, "--output", "json"],
         capture_output=True,
@@ -97,11 +98,24 @@ def _cleanup_stale_apps(cli: str, accelerator_name: str) -> None:
     if check.returncode != 0:
         return
 
+    # Attempt deletion (idempotent — may already be in DELETING state).
     subprocess.run(
         [cli, "apps", "delete", app_name],
         capture_output=True,
         check=False,
     )
+
+    # App deletion is asynchronous. Poll until the app is fully gone so that
+    # the subsequent bundle deploy does not race against a DELETING state.
+    for _ in range(30):
+        check = subprocess.run(
+            [cli, "apps", "get", app_name, "--output", "json"],
+            capture_output=True,
+            check=False,
+        )
+        if check.returncode != 0:
+            return  # App is gone.
+        time.sleep(3)
 
 
 def _cleanup_stale_schemas(cli: str, accelerator_name: str) -> None:

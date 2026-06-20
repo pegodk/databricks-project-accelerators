@@ -14,7 +14,7 @@ resources:
         - task_key: bronze_ingest
           environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/bronze/ingest.py
+            notebook_path: ${workspace.file_path}/notebooks/bronze/ingest
             source: WORKSPACE
             base_parameters:
               bronze_catalog: ${var.bronze_catalog}
@@ -25,7 +25,7 @@ resources:
             - task_key: bronze_ingest
           environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/silver/transform.py
+            notebook_path: ${workspace.file_path}/notebooks/silver/transform
             source: WORKSPACE
             base_parameters:
               bronze_catalog: ${var.bronze_catalog}
@@ -38,7 +38,7 @@ resources:
             - task_key: silver_transform
           environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/gold/aggregate.py
+            notebook_path: ${workspace.file_path}/notebooks/gold/aggregate
             source: WORKSPACE
             base_parameters:
               silver_catalog: ${var.silver_catalog}
