@@ -116,52 +116,70 @@ def _cleanup_stale_apps(cli: str, accelerator_name: str) -> None:
         time.sleep(3)
 
 
+def _catalog_schema_pairs(accelerator_name: str) -> list[tuple[str, str]]:
+    """Return all (catalog, schema_base) pairs that a deploy may create."""
+    from dpa.accelerators import get_accelerator
+
+    acc_cls = get_accelerator(accelerator_name)
+    if acc_cls is None:
+        return []
+    cfg = acc_cls.default_config
+
+    # Medallion-style: separate bronze/silver/gold catalogs.
+    if "bronze_schema" in cfg:
+        bronze_schema = cfg.get("bronze_schema") or cfg.get("schema", "")
+        silver_schema = cfg.get("silver_schema") or cfg.get("schema", "")
+        gold_schema   = cfg.get("gold_schema")   or cfg.get("schema", "")
+        return [
+            (_BRONZE_CATALOG, bronze_schema),
+            (_SILVER_CATALOG, silver_schema),
+            (_GOLD_CATALOG,   gold_schema),
+        ]
+
+    # Single-catalog accelerators.
+    catalog     = cfg.get("catalog", "")
+    schema_base = cfg.get("schema", "")
+    if catalog and schema_base:
+        return [(catalog, schema_base)]
+    return []
+
+
 def _cleanup_stale_schemas(cli: str, accelerator_name: str) -> None:
     """Delete schemas stranded by a previous partially-failed bundle deploy.
 
     When bundle deploy fails mid-way, DAB may create Unity Catalog schemas without
     recording them in the deployment state. Subsequent `bundle destroy` skips them,
     causing SCHEMA_ALREADY_EXISTS on the next deploy.
-
-    Instead of computing the DAB dev-mode prefix from the username, list all schemas
-    in the catalog and delete any that match the expected base name with any dev prefix.
     """
-    from dpa.accelerators import get_accelerator
+    for catalog, schema_base in _catalog_schema_pairs(accelerator_name):
+        if not catalog or not schema_base:
+            continue
 
-    acc_cls = get_accelerator(accelerator_name)
-    if acc_cls is None:
-        return
-    cfg = acc_cls.default_config
-    catalog = cfg.get("catalog")
-    schema_base = cfg.get("schema")
-    if not catalog or not schema_base:
-        return
+        result = subprocess.run(
+            [cli, "schemas", "list", "--catalog-name", catalog, "--output", "json"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            continue
 
-    result = subprocess.run(
-        [cli, "schemas", "list", "--catalog-name", catalog, "--output", "json"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        return
+        try:
+            payload = json.loads(result.stdout or "{}")
+            schemas = payload if isinstance(payload, list) else payload.get("schemas", [])
+        except json.JSONDecodeError:
+            continue
 
-    try:
-        payload = json.loads(result.stdout or "{}")
-        schemas = payload if isinstance(payload, list) else payload.get("schemas", [])
-    except json.JSONDecodeError:
-        return
-
-    for schema in schemas:
-        name = schema.get("name", "")
-        # Match dev-prefixed orphan: dev_<user>_<base_name>
-        if name.startswith("dev_") and name.endswith(f"_{schema_base}"):
-            full_name = schema.get("full_name", f"{catalog}.{name}")
-            subprocess.run(
-                [cli, "schemas", "delete", "--full-name", full_name],
-                capture_output=True,
-                check=False,
-            )
+        for schema in schemas:
+            name = schema.get("name", "")
+            # Match dev-prefixed orphan: dev_<user>_<base_name>
+            if name.startswith("dev_") and name.endswith(f"_{schema_base}"):
+                full_name = schema.get("full_name", f"{catalog}.{name}")
+                subprocess.run(
+                    [cli, "schemas", "delete", "--full-name", full_name],
+                    capture_output=True,
+                    check=False,
+                )
 
 
 @pytest.fixture(scope="session", autouse=True)
