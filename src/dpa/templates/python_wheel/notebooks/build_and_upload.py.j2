@@ -22,6 +22,7 @@ volume_path = f"/Volumes/{catalog}/{schema}/wheels"
 
 import glob
 import os
+import shutil
 import subprocess
 
 result = subprocess.run(
@@ -40,5 +41,5 @@ assert wheels, "No wheel produced in /tmp/dist — check that pyproject.toml is 
 
 for wheel in wheels:
     dest = f"{volume_path}/{os.path.basename(wheel)}"
-    dbutils.fs.cp(f"file:{wheel}", dest, recurse=False)
+    shutil.copy(wheel, dest)
     print(f"Uploaded: {dest}")
