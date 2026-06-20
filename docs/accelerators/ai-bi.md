@@ -13,15 +13,13 @@ ai-bi/
 │   │   ├── dashboard.yml                                 # Lakeview dashboard resource
 │   │   └── tpch_overview.lvdash.json                     # Dashboard definition (3 pages)
 │   ├── genie_spaces/
-│   │   ├── tpch_genie.genie_space.yml                    # Genie Space resource
-│   │   └── tpch_genie.geniespace.json                    # Genie Space definition
+│   │   └── tpch_genie.genie_space.yml                    # Genie Space resource + config
 │   ├── jobs/
 │   │   └── setup_views_job.yml                           # One-time job to deploy metric view
 │   └── warehouses/
 │       └── warehouse.yml                                 # Serverless SQL warehouse
-└── src/
-    └── sql/
-        └── setup_metric_views.sql                        # CREATE METRIC VIEW statement
+└── notebooks/
+    └── setup_metric_views.py                             # Creates the metric view at runtime
 ```
 
 ## Metric view — `v_tpch`
@@ -33,6 +31,8 @@ orders → customer → nation
 ```
 
 Filter: `o_orderdate >= '1995-01-01'`
+
+The metric view acts as the semantic layer for both the dashboard and the Genie Space. Fields carry `display_name` and `synonyms` metadata so Genie can resolve natural-language terms like "revenue", "sales", or "AOV" to the correct measure without additional configuration.
 
 **Fields (dimensions)**
 
@@ -70,22 +70,27 @@ Three pages backed by `MEASURE()` queries against `v_tpch`:
 
 ## Genie Space
 
-Pre-seeded with 10 curated questions and instructions tuned to the TPCH domain. The `v_tpch` metric view is registered as the table source — Genie uses its `display_name` and `synonyms` metadata for semantic resolution.
+Pre-seeded with 10 curated sample questions and domain-specific instructions tuned to the TPCH dataset. Genie uses the metric view's `display_name` and `synonyms` fields for semantic resolution, so users can phrase questions naturally:
 
-Example questions:
 - "What is the total revenue?"
 - "Which market segment generates the most revenue?"
 - "What is the revenue split between open, processing, and fulfilled orders?"
 
 ## Why the setup job is needed
 
-DAB does not yet support `metric_views` as a native resource type. The setup job runs `src/sql/setup_metric_views.sql` against the warehouse, which executes a `CREATE OR REPLACE METRIC VIEW` statement with the full YAML definition inlined as a SQL heredoc. When Databricks adds native DAB support, the job and SQL file can be removed.
+DAB does not yet support `metric_views` as a native resource type. The setup job runs `notebooks/setup_metric_views.py` on serverless compute, which executes a `CREATE OR REPLACE METRIC VIEW` statement dynamically using the `catalog` and `schema` variables. This means catalog and schema can be overridden at deploy time without regenerating the project:
+
+```bash
+databricks bundle deploy --target prod --var catalog=prod_catalog --var schema=tpch_metrics
+```
+
+The dashboard and Genie Space depend on `v_tpch` existing — run the setup job once before opening either.
 
 ## Requirements
 
 - Databricks CLI v1.3.0+ (required for Genie Space bundle support)
 - Unity Catalog enabled in your workspace
-- Access to `samples.tpch` (built-in Databricks sample data)
+- Access to `samples.tpch` (built-in Databricks sample data — no setup needed)
 
 ## Usage
 
@@ -96,27 +101,26 @@ cd ai-bi
 # Deploy resources (warehouse, dashboard, genie space)
 databricks bundle deploy
 
-# Create the metric view (run once before opening dashboard or Genie Space)
-databricks bundle run <project_slug>_setup_views
+# Create the metric view (run once before opening the dashboard or Genie Space)
+databricks bundle run ai_bi_setup_views
 ```
 
 For production:
 
 ```bash
 databricks bundle deploy --target prod
-databricks bundle run <project_slug>_setup_views --target prod
+databricks bundle run ai_bi_setup_views --target prod
 ```
 
 ## Variables
 
-Defined in `databricks.yml` with sensible defaults:
-
 | Variable | Default | Description |
 |---|---|---|
-| `catalog` | `main` | Unity Catalog catalog for the metric view |
+| `catalog` | `dpa_gold_dev` | Unity Catalog catalog for the metric view |
 | `schema` | `tpch_metrics` | Schema for the metric view |
+| `warehouse_id` | _(required)_ | SQL Warehouse ID for the setup job and Genie Space |
 
-Override at deploy time:
+Set `warehouse_id` in `databricks.yml` before deploying (find it under **SQL Warehouses → your warehouse → Connection details**). Override other variables at deploy time:
 
 ```bash
 databricks bundle deploy --var="catalog=my_catalog" --var="schema=my_schema"
@@ -124,10 +128,10 @@ databricks bundle deploy --var="catalog=my_catalog" --var="schema=my_schema"
 
 ## Customising the Genie Space
 
-After deploying, you can refine the Genie Space in the Databricks UI. To pull changes back into the bundle:
+After deploying, you can refine the Genie Space in the Databricks UI — add example SQL queries, adjust instructions, or add more sample questions. To pull changes back into the bundle:
 
 ```bash
-databricks bundle generate genie-space --resource <project_slug>_genie --force
+databricks bundle generate genie-space --resource ai_bi_genie --force
 ```
 
 !!! warning

@@ -1,0 +1,12 @@
+# profiles.yml — used for local dbt runs (not needed for Databricks job tasks)
+databricks:
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      catalog: {{ cfg.gold_catalog }}
+      schema: {{ cfg.schema }}
+      host: {% raw %}"{{ env_var('DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"{% endraw %}
+      threads: 4

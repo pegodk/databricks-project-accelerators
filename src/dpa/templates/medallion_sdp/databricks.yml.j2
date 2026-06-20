@@ -3,20 +3,16 @@
 bundle:
   name: {{ project_slug }}
 
-workspace:
-  host: https://<your-workspace-url>  # TODO: replace with your workspace URL
-
 variables:
   bronze_catalog:
     description: Unity Catalog for the bronze (raw) layer
-    default: main
+    default: dpa_bronze_dev
   silver_catalog:
     description: Unity Catalog for the silver (cleaned) layer
-    default: main
+    default: dpa_silver_dev
   gold_catalog:
     description: Unity Catalog for the gold (dimensional model) layer
-    default: main
-
+    default: dpa_gold_dev
 include:
   - resources/**/*.yml
 
@@ -24,9 +20,13 @@ targets:
   dev:
     mode: development
     default: true
+    workspace:
+      host: https://<your-dev-workspace-url>
 
   prod:
     mode: production
+    workspace:
+      host: https://<your-prod-workspace-url>
     permissions:
       - level: CAN_VIEW
         group_name: users

@@ -10,7 +10,7 @@ from typing import Generator
 
 import pytest
 
-_CATALOG = "main"
+_BUNDLE_PREFIX = "dpa"
 
 
 def _require_env(name: str) -> str:
@@ -27,14 +27,43 @@ def _require_databricks_cli() -> str:
     return path
 
 
+def patch_databricks_yml(project_dir: Path, project_slug: str, host: str) -> None:
+    """Replace workspace URL placeholders and prefix the bundle name."""
+    dab_yml = project_dir / "databricks.yml"
+    content = dab_yml.read_text()
+    content = content.replace("https://<your-dev-workspace-url>", host)
+    content = content.replace("https://<your-prod-workspace-url>", host)
+    # Prefix bundle name so test deployments are clearly identifiable in the workspace.
+    content = content.replace(
+        f"name: {project_slug}\n",
+        f"name: {_BUNDLE_PREFIX}-{project_slug}\n",
+        1,
+    )
+    dab_yml.write_text(content)
+
+
 def _bundle_vars(accelerator_name: str) -> list[str]:
     if accelerator_name == "medallion-sdp":
         return [
-            "--var", f"bronze_catalog={_CATALOG}",
-            "--var", f"silver_catalog={_CATALOG}",
-            "--var", f"gold_catalog={_CATALOG}",
+            "--var", "bronze_catalog=dpa_bronze_dev",
+            "--var", "silver_catalog=dpa_silver_dev",
+            "--var", "gold_catalog=dpa_gold_dev",
+        ]
+    if accelerator_name == "medallion-spark":
+        return [
+            "--var", "bronze_catalog=dpa_bronze_dev",
+            "--var", "gold_catalog=dpa_gold_dev",
+            "--var", "bronze_schema=tpch_spark",
+            "--var", "gold_schema=tpch_model_spark",
+        ]
+    if accelerator_name == "medallion-dbt":
+        return [
+            "--var", "bronze_catalog=dpa_bronze_dev",
+            "--var", "gold_catalog=dpa_gold_dev",
+            "--var", "schema=tpch_dbt",
         ]
     return []
+
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -54,6 +83,7 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     """
     accelerator_name = request.param
     cli = _require_databricks_cli()
+    host = _require_env("DATABRICKS_HOST")
 
     from dpa.accelerators import get_accelerator
 
@@ -65,15 +95,20 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
+    patch_databricks_yml(project_dir, acc.project_slug, host)
+
     vars_ = _bundle_vars(accelerator_name)
 
     subprocess.run(
-        [cli, "bundle", "deploy", "--target", "dev"] + vars_,
+        [cli, "bundle", "deploy", "--target", "dev", "--auto-approve"] + vars_,
         cwd=project_dir,
         check=True,
     )
 
     yield project_dir
+
+    if not os.getenv("DPA_DESTROY_DEPLOYED", "").strip():
+        return
 
     subprocess.run(
         [cli, "bundle", "destroy", "--target", "dev", "--auto-approve"] + vars_,

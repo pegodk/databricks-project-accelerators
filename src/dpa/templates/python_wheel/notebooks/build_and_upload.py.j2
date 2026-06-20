@@ -1,12 +1,8 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # Build & Upload Wheel
+# MAGIC # Build & Upload — Python Wheel
 # MAGIC
-# MAGIC Builds the Python wheel from the bundle's workspace files and uploads it to the UC Volume.
-# MAGIC The wheel is built with `pip wheel` directly from the workspace file path passed in as a
-# MAGIC job parameter, so no local clone or checkout is required.
-# MAGIC
-# MAGIC **Output:** `/Volumes/${var.catalog}/${var.schema}/wheels/{{ project_slug | replace('-', '_') }}-*.whl`
+# MAGIC Builds the Python wheel from workspace source files and uploads it to the Unity Catalog Volume.
 
 # COMMAND ----------
 
@@ -17,15 +13,18 @@ dbutils.widgets.text("schema", "{{ cfg.schema }}")
 workspace_file_path = dbutils.widgets.get("workspace_file_path")
 catalog = dbutils.widgets.get("catalog")
 schema = dbutils.widgets.get("schema")
+
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
+spark.sql(f"CREATE VOLUME IF NOT EXISTS {catalog}.{schema}.wheels")
 volume_path = f"/Volumes/{catalog}/{schema}/wheels"
 
 # COMMAND ----------
 
 import glob
 import os
+import shutil
 import subprocess
 
-# Build the wheel from the workspace source tree
 result = subprocess.run(
     ["pip", "wheel", workspace_file_path, "--no-deps", "--wheel-dir", "/tmp/dist"],
     capture_output=True,
@@ -37,11 +36,10 @@ print(result.stdout)
 
 # COMMAND ----------
 
-# Upload each built wheel to the UC Volume
 wheels = glob.glob("/tmp/dist/*.whl")
 assert wheels, "No wheel produced in /tmp/dist — check that pyproject.toml is present."
 
 for wheel in wheels:
     dest = f"{volume_path}/{os.path.basename(wheel)}"
-    dbutils.fs.cp(f"file:{wheel}", dest, recurse=False)
+    shutil.copy(wheel, dest)
     print(f"Uploaded: {dest}")

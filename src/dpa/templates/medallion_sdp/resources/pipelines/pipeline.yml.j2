@@ -2,15 +2,15 @@
 resources:
   pipelines:
     {{ slug }}_pipeline:
-      name: "[${bundle.target}] {{ project_slug }} pipeline"
+      name: "dpa-{{ project_slug }}"
       catalog: ${var.gold_catalog}
       schema: ${resources.schemas.{{ slug }}_gold.name}
       serverless: true
+      edition: ADVANCED
+      channel: CURRENT
       libraries:
         - glob:
-            patterns:
-              - src/pipelines/{{ cfg.pipeline_name }}/data_sources/**/*.py
-              - src/pipelines/{{ cfg.pipeline_name }}/transformations/**/*.py
+            include: ${workspace.file_path}/src/pipelines/**
       configuration:
         bronze_catalog: ${var.bronze_catalog}
         bronze_schema: ${resources.schemas.{{ slug }}_bronze.name}

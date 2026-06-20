@@ -1,0 +1,31 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  jobs:
+    {{ slug }}_job:
+      name: "dpa-{{ project_slug }}"
+      queue:
+        enabled: true
+      performance_target: STANDARD
+      environments:
+        - environment_key: Default
+          spec:
+            environment_version: "5"
+            dependencies:
+              - "dbt-databricks>=1.8.0,<2.0.0"
+      tasks:
+        - task_key: dbt_run
+          environment_key: Default
+          dbt_task:
+            project_directory: "${workspace.file_path}"
+            source: WORKSPACE
+            commands:
+              - "dbt deps"
+              - "dbt run"
+              - "dbt test"
+            warehouse_id: ${var.warehouse_id}
+            catalog: ${var.gold_catalog}
+            schema: ${var.schema}
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?"
+        timezone_id: UTC
+        pause_status: UNPAUSED

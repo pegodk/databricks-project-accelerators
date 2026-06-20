@@ -1,0 +1,35 @@
+bundle:
+  name: {{ project_slug }}
+  deployment:
+    lock:
+      enabled: false
+
+variables:
+  bronze_catalog:
+    default: {{ cfg.bronze_catalog }}
+    description: Unity Catalog for the bronze (raw) layer
+  gold_catalog:
+    default: {{ cfg.gold_catalog }}
+    description: Unity Catalog for the gold (business aggregate) layer
+  schema:
+    default: {{ cfg.schema }}
+    description: Schema name for all dbt models (DAB prefixes with initials in dev mode)
+  warehouse_id:
+    lookup:
+      warehouse: "Serverless Starter Warehouse"
+include:
+  - resources/**/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://<your-dev-workspace-url>
+  prod:
+    mode: production
+    workspace:
+      host: https://<your-prod-workspace-url>
+    permissions:
+      - level: CAN_VIEW
+        group_name: users

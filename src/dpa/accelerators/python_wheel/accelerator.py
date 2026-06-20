@@ -12,9 +12,8 @@ class PythonWheelAccelerator(BaseAccelerator):
     name = "python-wheel"
     description = "Python wheel package scaffolded with a build-and-upload job and an import verification notebook"
     default_config: dict[str, Any] = {
-        "catalog": "main",
+        "catalog": "dpa_gold_dev",
         "schema": "python_wheel",
-        "node_type_id": "Standard_DS3_v2",
     }
 
     @property

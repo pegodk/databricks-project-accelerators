@@ -2,6 +2,56 @@
 resources:
   genie_spaces:
     {{ slug }}_genie:
-      display_name: "[${bundle.target}] {{ cfg.genie_space_name }}"
-      warehouse_id: ${resources.sql_warehouses.starter_warehouse.id}
-      file_path: resources/genie_spaces/tpch_genie.geniespace.json
+      title: "dpa-{{ project_slug }}"
+      description: "Ask natural-language questions about TPCH sales data. Powered by the v_tpch metric view in {{ cfg.catalog }}.{{ cfg.schema }}."
+      warehouse_id: ${var.warehouse_id}
+      serialized_space:
+        version: 2
+        config:
+          sample_questions:
+            - id: "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a101"
+              question: ["What is the total revenue?"]
+            - id: "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a102"
+              question: ["How has monthly revenue trended over time?"]
+            - id: "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a103"
+              question: ["Which market segment generates the most revenue?"]
+            - id: "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a104"
+              question: ["What are the top 10 customers by total revenue?"]
+            - id: "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a105"
+              question: ["Which country has the highest order count?"]
+            - id: "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a106"
+              question: ["What is the average order value by market segment?"]
+            - id: "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a107"
+              question: ["How many unique customers have placed orders?"]
+            - id: "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a108"
+              question: ["What is the revenue split between open, processing, and fulfilled orders?"]
+            - id: "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a109"
+              question: ["What percentage of revenue comes from high-priority orders?"]
+            - id: "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a110"
+              question: ["Which country has the highest revenue per customer?"]
+        instructions:
+          text_instructions:
+            - id: "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b201"
+              content:
+                - "You are a sales analytics assistant for a global trading company.\n"
+                - "The data covers TPC-H orders, customers, and geography (post-1995). All monetary values are in USD.\n"
+                - "The metric view v_tpch exposes dimensions (order_date, order_month, order_year, order_status [Open/Processing/Fulfilled], order_priority, customer_name, market_segment, customer_nation) and measures (order_count, total_revenue, unique_customers, avg_order_value, revenue_per_customer, open_order_revenue, fulfilled_order_revenue, t7d_customers).\n"
+                - "When asked about revenue without qualification, use total_revenue. For trend questions group by order_month. For geographic questions group by customer_nation. Always round monetary amounts to 2 decimal places."
+          example_question_sqls:
+            - id: "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c301"
+              question: ["What is the total revenue by market segment?"]
+              sql:
+                - "SELECT market_segment, MEASURE(total_revenue)\n"
+                - "FROM {{ cfg.catalog }}.{{ cfg.schema }}.v_tpch\n"
+                - "GROUP BY market_segment\n"
+                - "ORDER BY MEASURE(total_revenue) DESC"
+            - id: "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c302"
+              question: ["How has monthly revenue trended over time?"]
+              sql:
+                - "SELECT order_month, MEASURE(total_revenue), MEASURE(order_count)\n"
+                - "FROM {{ cfg.catalog }}.{{ cfg.schema }}.v_tpch\n"
+                - "GROUP BY order_month\n"
+                - "ORDER BY order_month"
+      permissions:
+        - level: CAN_RUN
+          group_name: users

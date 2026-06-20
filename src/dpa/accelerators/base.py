@@ -63,6 +63,7 @@ def render_tree(
     context: dict[str, Any],
     force: bool,
     path_transform: Callable[[Path], Path] | None = None,
+    exclude_dirs: frozenset[str] | None = None,
 ) -> None:
     """Walk *template_root* and render / copy each file into *target*."""
     from jinja2 import Environment, FileSystemLoader
@@ -78,6 +79,8 @@ def render_tree(
         if not src.is_file():
             continue
         rel = src.relative_to(template_root)
+        if exclude_dirs and rel.parts[0] in exclude_dirs:
+            continue
         rel_out = path_transform(strip_j2(rel)) if path_transform else strip_j2(rel)
         dest = target / rel_out
         dest.parent.mkdir(parents=True, exist_ok=True)

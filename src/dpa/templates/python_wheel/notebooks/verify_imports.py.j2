@@ -1,9 +1,9 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # Verify Wheel Imports
+# MAGIC # Verify Imports — Python Wheel
 # MAGIC
-# MAGIC Installs the wheel from the UC Volume, then verifies that all public functions
-# MAGIC import and execute correctly. Fails fast with a clear message if the wheel is missing.
+# MAGIC Installs the wheel from the Unity Catalog Volume and verifies that all public functions
+# MAGIC import and execute correctly.
 
 # COMMAND ----------
 
@@ -12,27 +12,23 @@ dbutils.widgets.text("schema", "{{ cfg.schema }}")
 
 catalog = dbutils.widgets.get("catalog")
 schema = dbutils.widgets.get("schema")
+volume_path = f"/Volumes/{catalog}/{schema}/wheels"
 
 # COMMAND ----------
 
 import glob
 import subprocess
 
-volume_path = f"/Volumes/{catalog}/{schema}/wheels"
 {% set pkg = project_slug | replace('-', '_') %}
 wheels = glob.glob(f"{volume_path}/{{ pkg }}-*.whl")
 assert wheels, f"Wheel not found in {volume_path} — run the build_and_upload task first."
 
 subprocess.check_call(["pip", "install", "--quiet", "--force-reinstall", wheels[0]])
-
-# Restart Python so the freshly installed package is importable in subsequent cells
 dbutils.library.restartPython()
 
 # COMMAND ----------
 
-from {{ pkg }} import add, greet
-
-# COMMAND ----------
+from {{ pkg }} import add, greet  # noqa: E402
 
 result = greet("Databricks")
 assert result == "Hello, Databricks!", f"Unexpected: {result!r}"

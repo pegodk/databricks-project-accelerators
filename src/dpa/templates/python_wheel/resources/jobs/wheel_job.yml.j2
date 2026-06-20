@@ -2,19 +2,24 @@
 resources:
   jobs:
     {{ slug }}_wheel:
-      name: "[${bundle.target}] {{ project_slug }} — Build & Verify Wheel"
-      job_clusters:
-        - job_cluster_key: default_cluster
-          new_cluster:
-            spark_version: "15.4.x-scala2.12"
-            node_type_id: ${var.node_type_id}
-            num_workers: 1
-            data_security_mode: SINGLE_USER
+      name: "dpa-{{ project_slug }}"
+      queue:
+        enabled: true
+      performance_target: STANDARD
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?"
+        timezone_id: UTC
+        pause_status: UNPAUSED
+      environments:
+        - environment_key: Default
+          spec:
+            environment_version: "5"
       tasks:
         - task_key: build_and_upload
-          job_cluster_key: default_cluster
+          environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/build_and_upload.py
+            notebook_path: ${workspace.file_path}/notebooks/build_and_upload
+            source: WORKSPACE
             base_parameters:
               workspace_file_path: ${workspace.file_path}
               catalog: ${var.catalog}
@@ -23,9 +28,10 @@ resources:
         - task_key: verify_imports
           depends_on:
             - task_key: build_and_upload
-          job_cluster_key: default_cluster
+          environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/verify_imports.py
+            notebook_path: ${workspace.file_path}/notebooks/verify_imports
+            source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}

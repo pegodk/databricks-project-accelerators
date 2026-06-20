@@ -2,20 +2,27 @@
 resources:
   jobs:
     {{ slug }}_pipeline:
-      name: "[${bundle.target}] {{ project_slug }} — Train, Register & Score"
-      job_clusters:
-        - job_cluster_key: ml_cluster
-          new_cluster:
-            # Databricks ML Runtime — includes scikit-learn, MLflow, and all ML libraries
-            spark_version: "15.4.x-cpu-ml-scala2.12"
-            node_type_id: ${var.node_type_id}
-            num_workers: 1
-            data_security_mode: SINGLE_USER
+      name: "dpa-{{ project_slug }}"
+      queue:
+        enabled: true
+      performance_target: STANDARD
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?"
+        timezone_id: UTC
+        pause_status: UNPAUSED
+      environments:
+        - environment_key: Default
+          spec:
+            environment_version: "5"
+            dependencies:
+              - scikit-learn
+              - mlflow
       tasks:
         - task_key: train
-          job_cluster_key: ml_cluster
+          environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/train.py
+            notebook_path: ${workspace.file_path}/notebooks/train
+            source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}
@@ -25,9 +32,10 @@ resources:
         - task_key: register
           depends_on:
             - task_key: train
-          job_cluster_key: ml_cluster
+          environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/register.py
+            notebook_path: ${workspace.file_path}/notebooks/register
+            source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}
@@ -37,9 +45,10 @@ resources:
         - task_key: score
           depends_on:
             - task_key: register
-          job_cluster_key: ml_cluster
+          environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/score.py
+            notebook_path: ${workspace.file_path}/notebooks/score
+            source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}
