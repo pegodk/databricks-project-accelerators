@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 from dpa.accelerators import ACCELERATOR_REGISTRY
+from tests.integration.conftest import patch_databricks_yml
 
 ACCELERATORS = list(ACCELERATOR_REGISTRY.keys())
 
@@ -29,11 +30,7 @@ def test_bundle_validates(accelerator_name: str, tmp_path: Path) -> None:
 
     host = os.getenv("DATABRICKS_HOST", "").strip()
     if host:
-        dab_yml = project_dir / "databricks.yml"
-        content = dab_yml.read_text()
-        content = content.replace("https://<your-dev-workspace-url>", host)
-        content = content.replace("https://<your-prod-workspace-url>", host)
-        dab_yml.write_text(content)
+        patch_databricks_yml(project_dir, acc.project_slug, host)
 
     result = subprocess.run(
         [cli, "bundle", "validate", "--target", "dev"],

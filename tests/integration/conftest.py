@@ -11,6 +11,7 @@ from typing import Generator
 import pytest
 
 _CATALOG = "main"
+_BUNDLE_PREFIX = "dpa"
 
 
 def _require_env(name: str) -> str:
@@ -25,6 +26,21 @@ def _require_databricks_cli() -> str:
     if path is None:
         pytest.skip("Databricks CLI not found on PATH — skipping integration tests")
     return path
+
+
+def patch_databricks_yml(project_dir: Path, project_slug: str, host: str) -> None:
+    """Replace workspace URL placeholders and prefix the bundle name."""
+    dab_yml = project_dir / "databricks.yml"
+    content = dab_yml.read_text()
+    content = content.replace("https://<your-dev-workspace-url>", host)
+    content = content.replace("https://<your-prod-workspace-url>", host)
+    # Prefix bundle name so test deployments are clearly identifiable in the workspace.
+    content = content.replace(
+        f"name: {project_slug}\n",
+        f"name: {_BUNDLE_PREFIX}-{project_slug}\n",
+        1,
+    )
+    dab_yml.write_text(content)
 
 
 def _bundle_vars(accelerator_name: str) -> list[str]:
@@ -54,6 +70,7 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     """
     accelerator_name = request.param
     cli = _require_databricks_cli()
+    host = _require_env("DATABRICKS_HOST")
 
     from dpa.accelerators import get_accelerator
 
@@ -61,18 +78,11 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     if acc_cls is None:
         pytest.skip(f"Unknown accelerator {accelerator_name!r}")
 
-    host = _require_env("DATABRICKS_HOST")
-
     acc = acc_cls()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
-    # Replace per-target workspace URL placeholders with the real host from env.
-    dab_yml = project_dir / "databricks.yml"
-    content = dab_yml.read_text()
-    content = content.replace("https://<your-dev-workspace-url>", host)
-    content = content.replace("https://<your-prod-workspace-url>", host)
-    dab_yml.write_text(content)
+    patch_databricks_yml(project_dir, acc.project_slug, host)
 
     vars_ = _bundle_vars(accelerator_name)
 
