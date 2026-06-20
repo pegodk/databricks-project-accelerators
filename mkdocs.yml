@@ -43,8 +43,9 @@ nav:
       - Medallion Spark: accelerators/medallion-spark.md
       - Medallion DBT: accelerators/medallion-dbt.md
       - MLflow Project: accelerators/mlflow-project.md
-      - Python Wheel: accelerators/python-wheel.md
+      - App Streamlit: accelerators/app-streamlit.md
       - AI/BI: accelerators/ai-bi.md
+      - Python Wheel: accelerators/python-wheel.md
   - API Reference:
       - Accelerators: api/accelerators.md
       - Deploy: api/deploy.md
