@@ -29,26 +29,6 @@ resources:
               question: ["What percentage of revenue comes from high-priority orders?"]
             - id: "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a110"
               question: ["Which country has the highest revenue per customer?"]
-        data_sources:
-          tables:
-            - identifier: "{{ cfg.catalog }}.{{ cfg.schema }}.v_tpch"
-              column_configs:
-                - column_name: order_date
-                - column_name: order_month
-                - column_name: order_year
-                - column_name: order_status
-                - column_name: order_priority
-                - column_name: customer_name
-                - column_name: market_segment
-                - column_name: customer_nation
-                - column_name: order_count
-                - column_name: total_revenue
-                - column_name: unique_customers
-                - column_name: avg_order_value
-                - column_name: revenue_per_customer
-                - column_name: open_order_revenue
-                - column_name: fulfilled_order_revenue
-                - column_name: t7d_customers
         instructions:
           text_instructions:
             - id: "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b201"

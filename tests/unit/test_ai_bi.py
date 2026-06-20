@@ -102,6 +102,6 @@ def test_ai_bi_scaffold_renders_genie_space_yml(tmp_path: Path):
     assert "dpa-ai-bi" in genie_yml
     assert "var.warehouse_id" in genie_yml
     assert "serialized_space" in genie_yml
-    assert "dpa_gold_dev.tpch_metrics.v_tpch" in genie_yml
     assert "sample_questions" in genie_yml
     assert "text_instructions" in genie_yml
+    assert "dpa_gold_dev.tpch_metrics.v_tpch" in genie_yml

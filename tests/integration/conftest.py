@@ -174,6 +174,9 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
 
     yield project_dir
 
+    if not os.getenv("DPA_DESTROY_DEPLOYED", "").strip():
+        return
+
     subprocess.run(
         [cli, "bundle", "destroy", "--target", "dev", "--auto-approve"] + vars_,
         cwd=project_dir,
