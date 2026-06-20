@@ -41,6 +41,7 @@ nav:
   - Accelerators:
       - Medallion SDP: accelerators/medallion-sdp.md
       - Medallion Spark: accelerators/medallion-spark.md
+      - MLflow Project: accelerators/mlflow-project.md
       - Python Wheel: accelerators/python-wheel.md
       - AI/BI: accelerators/ai-bi.md
   - API Reference:

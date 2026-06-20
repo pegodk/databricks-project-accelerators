@@ -1,0 +1,93 @@
+# Databricks notebook source
+# MAGIC %md
+# MAGIC # Train — TPCH Order Value Predictor
+# MAGIC
+# MAGIC Trains a `RandomForestRegressor` to predict `o_totalprice` from order and customer features.
+# MAGIC Logs parameters, metrics, and the model artifact to an MLflow experiment.
+# MAGIC
+# MAGIC **Source:** `samples.tpch`
+# MAGIC **Experiment:** `${var.experiment_name}`
+
+# COMMAND ----------
+
+dbutils.widgets.text("catalog", "{{ cfg.catalog }}")
+dbutils.widgets.text("schema", "{{ cfg.schema }}")
+dbutils.widgets.text("experiment_name", "{{ cfg.experiment_name }}")
+dbutils.widgets.text("model_name", "{{ cfg.model_name }}")
+
+catalog = dbutils.widgets.get("catalog")
+schema = dbutils.widgets.get("schema")
+experiment_name = dbutils.widgets.get("experiment_name")
+model_name = dbutils.widgets.get("model_name")
+
+# COMMAND ----------
+
+import mlflow
+import mlflow.sklearn
+import numpy as np
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OrdinalEncoder
+
+mlflow.set_registry_uri("databricks-uc")
+mlflow.set_experiment(experiment_name)
+
+# COMMAND ----------
+
+# Build feature dataset — join orders with customer and nation dimensions
+orders    = spark.table("samples.tpch.orders")
+customers = spark.table("samples.tpch.customer")
+nations   = spark.table("samples.tpch.nation")
+
+df = (
+    orders
+    .join(customers, orders.o_custkey == customers.c_custkey)
+    .join(nations, customers.c_nationkey == nations.n_nationkey)
+    .select("o_totalprice", "o_orderpriority", "o_orderstatus", "c_mktsegment", "n_name")
+    .toPandas()
+)
+
+features = ["o_orderpriority", "o_orderstatus", "c_mktsegment", "n_name"]
+X = df[features]
+y = df["o_totalprice"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# COMMAND ----------
+
+params = {
+    "n_estimators": 100,
+    "max_depth": 8,
+    "min_samples_leaf": 10,
+    "random_state": 42,
+}
+
+pipeline = Pipeline([
+    ("enc", ColumnTransformer([
+        ("cat", OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1), features),
+    ])),
+    ("rf", RandomForestRegressor(**params)),
+])
+
+with mlflow.start_run() as run:
+    mlflow.log_params(params)
+    pipeline.fit(X_train, y_train)
+
+    preds = pipeline.predict(X_test)
+    metrics = {
+        "rmse": float(np.sqrt(mean_squared_error(y_test, preds))),
+        "mae":  float(mean_absolute_error(y_test, preds)),
+        "r2":   float(r2_score(y_test, preds)),
+    }
+    mlflow.log_metrics(metrics)
+
+    signature = mlflow.models.infer_signature(X_train, pipeline.predict(X_train))
+    mlflow.sklearn.log_model(pipeline, "model", signature=signature)
+
+    print(f"Run ID : {run.info.run_id}")
+    print(f"RMSE   : {metrics['rmse']:>12,.0f}")
+    print(f"MAE    : {metrics['mae']:>12,.0f}")
+    print(f"R²     : {metrics['r2']:>12.3f}")

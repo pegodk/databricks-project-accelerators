@@ -52,6 +52,9 @@ def init(
     acc.scaffold(target=project_dir, force=force)
 
     console.print(f"\n[green]✓[/green] Project ready at [cyan]{project_dir}[/cyan]\n")
+    console.print("[yellow]⚠[/yellow]  Set your workspace URL in [bold]databricks.yml[/bold]:")
+    console.print("     workspace:")
+    console.print("       host: https://<your-workspace-url>\n")
     console.print("Next steps:")
     console.print(f"  [bold]cd {project_dir}[/bold]")
     console.print("  [bold]databricks bundle deploy --target dev[/bold]")

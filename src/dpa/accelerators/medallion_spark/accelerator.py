@@ -10,7 +10,7 @@ _TEMPLATE_ROOT = Path(__file__).parent.parent.parent / "templates" / "medallion_
 
 class MedallionSparkAccelerator(BaseAccelerator):
     name = "medallion-spark"
-    description = "Medallion architecture (bronze/silver/gold) using Spark Structured Streaming notebooks over the TPCH sample dataset"
+    description = "Medallion architecture (bronze/silver/gold) using Spark Structured Streaming notebooks over TPCH"
     default_config: dict[str, Any] = {
         "bronze_catalog": "bronze_dev",
         "silver_catalog": "silver_dev",

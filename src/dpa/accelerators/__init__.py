@@ -15,11 +15,13 @@ from dpa.accelerators.ai_bi import AiBiAccelerator
 from dpa.accelerators.app_streamlit import AppStreamlitAccelerator
 from dpa.accelerators.medallion_sdp import MedallionSdpAccelerator
 from dpa.accelerators.medallion_spark import MedallionSparkAccelerator
+from dpa.accelerators.mlflow_project import MlflowProjectAccelerator
 from dpa.accelerators.python_wheel import PythonWheelAccelerator
 
 ACCELERATOR_REGISTRY: dict[str, type[BaseAccelerator]] = {
     "medallion-sdp": MedallionSdpAccelerator,
     "medallion-spark": MedallionSparkAccelerator,
+    "mlflow-project": MlflowProjectAccelerator,
     "app-streamlit": AppStreamlitAccelerator,
     "python-wheel": PythonWheelAccelerator,
     "ai-bi": AiBiAccelerator,
