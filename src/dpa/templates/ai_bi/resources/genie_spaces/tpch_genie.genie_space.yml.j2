@@ -1,0 +1,7 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  genie_spaces:
+    {{ slug }}_genie:
+      display_name: "[${bundle.target}] {{ cfg.genie_space_name }}"
+      warehouse_id: ${resources.sql_warehouses.starter_warehouse.id}
+      file_path: ../../genie/tpch_genie.geniespace.json

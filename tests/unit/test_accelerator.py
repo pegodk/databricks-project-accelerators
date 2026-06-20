@@ -27,7 +27,7 @@ def test_registry_contains_all_accelerators():
 
     assert "medallion-sdp" in ACCELERATOR_REGISTRY
     assert "app-streamlit" in ACCELERATOR_REGISTRY
-    assert "dashboard" in ACCELERATOR_REGISTRY
+    assert "ai-bi" in ACCELERATOR_REGISTRY
 
 
 # ---------------------------------------------------------------------------
@@ -239,35 +239,44 @@ def test_app_streamlit_requirements(tmp_path: Path):
 
 
 # ---------------------------------------------------------------------------
-# dashboard
+# ai-bi
 # ---------------------------------------------------------------------------
 
-def test_get_dashboard_accelerator():
+def test_get_ai_bi_accelerator():
     from dpa.accelerators import get_accelerator
 
-    cls = get_accelerator("dashboard")
+    cls = get_accelerator("ai-bi")
     assert cls is not None
-    assert cls.name == "dashboard"
+    assert cls.name == "ai-bi"
 
 
-def test_dashboard_list_files():
+def test_ai_bi_list_files():
     from dpa.accelerators import get_accelerator
 
-    acc = get_accelerator("dashboard")()
+    acc = get_accelerator("ai-bi")()
     files = [str(f).replace("\\", "/") for f in acc.list_files()]
 
     assert "databricks.yml" in files
     assert "resources/jobs/setup_views_job.yml" in files
     assert "resources/dashboards/dashboard.yml" in files
     assert "resources/warehouses/warehouse.yml" in files
-    assert "src/sql/metric_views.sql" in files
+    assert "resources/genie_spaces/tpch_genie.genie_space.yml" in files
+    assert "src/sql/setup_metric_views.sql" in files
+    assert "src/metric_views/v_kpis.yml" in files
+    assert "src/metric_views/v_revenue_by_month.yml" in files
+    assert "src/metric_views/v_revenue_by_segment.yml" in files
+    assert "src/metric_views/v_revenue_by_region.yml" in files
+    assert "src/metric_views/v_top_customers.yml" in files
+    assert "src/metric_views/v_shipmode_summary.yml" in files
+    assert "src/metric_views/v_order_priority_summary.yml" in files
     assert "dashboard/tpch_overview.lvdash.json" in files
+    assert "genie/tpch_genie.geniespace.json" in files
 
 
-def test_dashboard_scaffold(tmp_path: Path):
+def test_ai_bi_scaffold(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
-    acc = get_accelerator("dashboard")()
+    acc = get_accelerator("ai-bi")()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
@@ -275,31 +284,64 @@ def test_dashboard_scaffold(tmp_path: Path):
     assert (project_dir / "resources" / "jobs" / "setup_views_job.yml").exists()
     assert (project_dir / "resources" / "dashboards" / "dashboard.yml").exists()
     assert (project_dir / "resources" / "warehouses" / "warehouse.yml").exists()
-    assert (project_dir / "src" / "sql" / "metric_views.sql").exists()
+    assert (project_dir / "resources" / "genie_spaces" / "tpch_genie.genie_space.yml").exists()
+    assert (project_dir / "src" / "sql" / "setup_metric_views.sql").exists()
+    assert (project_dir / "src" / "metric_views" / "v_kpis.yml").exists()
+    assert (project_dir / "src" / "metric_views" / "v_revenue_by_month.yml").exists()
+    assert (project_dir / "src" / "metric_views" / "v_revenue_by_segment.yml").exists()
+    assert (project_dir / "src" / "metric_views" / "v_revenue_by_region.yml").exists()
+    assert (project_dir / "src" / "metric_views" / "v_top_customers.yml").exists()
+    assert (project_dir / "src" / "metric_views" / "v_shipmode_summary.yml").exists()
+    assert (project_dir / "src" / "metric_views" / "v_order_priority_summary.yml").exists()
     assert (project_dir / "dashboard" / "tpch_overview.lvdash.json").exists()
+    assert (project_dir / "genie" / "tpch_genie.geniespace.json").exists()
 
 
-def test_dashboard_scaffold_renders_catalog_and_schema(tmp_path: Path):
+def test_ai_bi_scaffold_renders_setup_sql(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
-    acc = get_accelerator("dashboard")()
+    acc = get_accelerator("ai-bi")()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
-    sql = (project_dir / "src" / "sql" / "metric_views.sql").read_text()
+    sql = (project_dir / "src" / "sql" / "setup_metric_views.sql").read_text()
     assert "main.tpch_metrics" in sql
-    assert "samples.tpch" in sql
+    assert "CREATE OR REPLACE METRIC VIEW" in sql
     assert "v_kpis" in sql
     assert "v_revenue_by_month" in sql
     assert "v_top_customers" in sql
+    # YAML definitions are inlined via Jinja2 include
+    assert "samples.tpch.orders" in sql
+    assert "samples.tpch.lineitem" in sql
 
 
-def test_dashboard_scaffold_renders_valid_json(tmp_path: Path):
+def test_ai_bi_scaffold_renders_metric_view_yaml(tmp_path: Path):
+    import yaml
+
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("ai-bi")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    for view_name in [
+        "v_kpis", "v_revenue_by_month", "v_revenue_by_segment",
+        "v_revenue_by_region", "v_top_customers", "v_shipmode_summary",
+        "v_order_priority_summary",
+    ]:
+        content = (project_dir / "src" / "metric_views" / f"{view_name}.yml").read_text()
+        parsed = yaml.safe_load(content)
+        assert parsed["version"] == 1.1
+        assert "source" in parsed
+        assert "measures" in parsed
+
+
+def test_ai_bi_scaffold_renders_valid_dashboard_json(tmp_path: Path):
     import json
 
     from dpa.accelerators import get_accelerator
 
-    acc = get_accelerator("dashboard")()
+    acc = get_accelerator("ai-bi")()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
@@ -312,12 +354,60 @@ def test_dashboard_scaffold_renders_valid_json(tmp_path: Path):
     assert len(parsed["pages"]) > 0
 
 
-def test_dashboard_scaffold_renders_dashboard_name(tmp_path: Path):
+def test_ai_bi_scaffold_renders_dashboard_name(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
-    acc = get_accelerator("dashboard")()
+    acc = get_accelerator("ai-bi")()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
     dashboard_yml = (project_dir / "resources" / "dashboards" / "dashboard.yml").read_text()
     assert "TPCH Sales Overview" in dashboard_yml
+
+
+def test_ai_bi_scaffold_renders_valid_genie_json(tmp_path: Path):
+    import json
+
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("ai-bi")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    genie_json = (project_dir / "genie" / "tpch_genie.geniespace.json").read_text()
+    parsed = json.loads(genie_json)
+    assert "display_name" in parsed
+    assert "tables" in parsed
+    assert "curated_questions" in parsed
+    assert "instructions" in parsed
+    assert len(parsed["tables"]) == 7
+    assert len(parsed["curated_questions"]) > 0
+
+
+def test_ai_bi_scaffold_renders_genie_catalog_and_schema(tmp_path: Path):
+    import json
+
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("ai-bi")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    parsed = json.loads((project_dir / "genie" / "tpch_genie.geniespace.json").read_text())
+    table_catalogs = {t["catalog"] for t in parsed["tables"]}
+    table_schemas = {t["schema"] for t in parsed["tables"]}
+    assert table_catalogs == {"main"}
+    assert table_schemas == {"tpch_metrics"}
+
+
+def test_ai_bi_scaffold_renders_genie_space_yml(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("ai-bi")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    genie_yml = (project_dir / "resources" / "genie_spaces" / "tpch_genie.genie_space.yml").read_text()
+    assert "TPCH Sales Genie" in genie_yml
+    assert "starter_warehouse" in genie_yml
+    assert "tpch_genie.geniespace.json" in genie_yml

@@ -1,6 +1,6 @@
 """Accelerator registry.
 
-Add new accelerators here so ``dia list`` and ``dia init`` pick them up
+Add new accelerators here so ``dpa list`` and ``dpa init`` pick them up
 automatically.
 """
 
@@ -11,17 +11,16 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from dpa.accelerators.base import BaseAccelerator
 
+from dpa.accelerators.ai_bi import AiBiAccelerator
 from dpa.accelerators.app_streamlit import AppStreamlitAccelerator
-from dpa.accelerators.dashboard import DashboardAccelerator
 from dpa.accelerators.medallion_sdp import MedallionSdpAccelerator
 
 ACCELERATOR_REGISTRY: dict[str, type[BaseAccelerator]] = {
     "medallion-sdp": MedallionSdpAccelerator,
     "app-streamlit": AppStreamlitAccelerator,
-    "dashboard": DashboardAccelerator,
+    "ai-bi": AiBiAccelerator,
     # Future:
     # "medallion-notebooks": MedallionNotebooksAccelerator,
-    # "genie-space": GenieSpaceAccelerator,
     # "mlflow-project": MlflowProjectAccelerator,
 }
 

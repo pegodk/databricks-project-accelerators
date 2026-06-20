@@ -1,0 +1,17 @@
+version: 1.1
+comment: "Monthly revenue trend"
+source: samples.tpch.orders
+fields:
+  - name: order_month
+    expr: DATE_TRUNC('MONTH', o_orderdate)
+    display_name: "Order Month"
+    synonyms: ["month", "order date month"]
+measures:
+  - name: monthly_revenue
+    expr: SUM(o_totalprice)
+    display_name: "Monthly Revenue"
+    synonyms: ["revenue by month", "monthly sales"]
+  - name: order_count
+    expr: COUNT(*)
+    display_name: "Order Count"
+    synonyms: ["number of orders", "orders"]
