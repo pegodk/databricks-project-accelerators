@@ -5,16 +5,19 @@
 -- Run once via the setup job before opening the dashboard or Genie Space.
 -- Requires Databricks Runtime 13.3 LTS+ and Unity Catalog.
 --
--- NOTE: DAB does not yet support metric_views as a resource type.
+-- NOTE: DAB does not yet support metric views as a resource type.
 -- This job deploys the view definition until native DAB support is available.
 
 CREATE SCHEMA IF NOT EXISTS {{ cfg.catalog }}.{{ cfg.schema }};
 
-CREATE OR REPLACE METRIC VIEW {{ cfg.catalog }}.{{ cfg.schema }}.v_tpch
-AS
-$$
-version: 1.1
+CREATE OR REPLACE VIEW {{ cfg.catalog }}.{{ cfg.schema }}.v_tpch
+WITH METRICS
+LANGUAGE YAML
+AS $$
+  version: 1.1
+
 source: SELECT * FROM samples.tpch.orders
+
 joins:
   - name: customer
     source: samples.tpch.customer
@@ -23,11 +26,15 @@ joins:
       - name: nation
         source: samples.tpch.nation
         'on': c_nationkey = n_nationkey
+
 filter: o_orderdate >= '1995-01-01'
+
 comment: |-
   Sales analytics metric view for order performance analysis.
   Joins orders with customers and geography.
   Owner: Analytics Team
+  Last updated: 2025-01-15
+
 fields:
   - name: order_date
     expr: o_orderdate
@@ -46,7 +53,9 @@ fields:
         WHEN 'F' THEN 'Fulfilled'
       END
     display_name: Order Status
-    synonyms: [status, fulfillment status]
+    synonyms:
+      - status
+      - fulfillment status
   - name: order_priority
     expr: "SPLIT(o_orderpriority, '-')[0]"
     display_name: Priority
@@ -56,43 +65,92 @@ fields:
   - name: market_segment
     expr: customer.c_mktsegment
     display_name: Market Segment
-    synonyms: [segment, industry]
+    synonyms:
+      - segment
+      - industry
   - name: customer_nation
     expr: customer.nation.n_name
     display_name: Country
-    synonyms: [nation, country]
+    synonyms:
+      - nation
+      - country
+
 measures:
   - name: order_count
     expr: COUNT(DISTINCT o_orderkey)
     display_name: Order Count
-    format: {type: number, decimal_places: {type: exact, places: 0}, abbreviation: compact}
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 0
+      abbreviation: compact
   - name: total_revenue
     expr: SUM(o_totalprice)
     display_name: Total Revenue
-    format: {type: currency, currency_code: USD, decimal_places: {type: exact, places: 2}, abbreviation: compact}
-    synonyms: [revenue, sales]
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+    synonyms:
+      - revenue
+      - sales
   - name: unique_customers
     expr: COUNT(DISTINCT o_custkey)
     display_name: Unique Customers
-    format: {type: number, decimal_places: {type: exact, places: 0}, abbreviation: compact}
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 0
+      abbreviation: compact
   - name: avg_order_value
     expr: MEASURE(total_revenue) / MEASURE(order_count)
     display_name: Avg Order Value
-    format: {type: currency, currency_code: USD, decimal_places: {type: exact, places: 2}, abbreviation: compact}
-    synonyms: [AOV]
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+    synonyms:
+      - AOV
   - name: revenue_per_customer
     expr: MEASURE(total_revenue) / MEASURE(unique_customers)
     display_name: Revenue per Customer
-    format: {type: currency, currency_code: USD, decimal_places: {type: exact, places: 2}, abbreviation: compact}
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
   - name: open_order_revenue
     expr: SUM(o_totalprice) FILTER (WHERE o_orderstatus = 'O')
     display_name: Open Order Revenue
-    format: {type: currency, currency_code: USD, decimal_places: {type: exact, places: 2}, abbreviation: compact}
-    synonyms: [backlog]
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+    synonyms:
+      - backlog
   - name: fulfilled_order_revenue
     expr: SUM(o_totalprice) FILTER (WHERE o_orderstatus = 'F')
     display_name: Fulfilled Revenue
-    format: {type: currency, currency_code: USD, decimal_places: {type: exact, places: 2}, abbreviation: compact}
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
   - name: t7d_customers
     expr: COUNT(DISTINCT o_custkey)
     window:
@@ -100,5 +158,9 @@ measures:
         semiadditive: last
         range: trailing 7 day
     display_name: 7-Day Rolling Customers
-    format: {type: number, decimal_places: {type: exact, places: 0}}
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 0
 $$;

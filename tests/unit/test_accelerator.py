@@ -292,7 +292,9 @@ def test_ai_bi_scaffold_renders_setup_sql(tmp_path: Path):
 
     sql = (project_dir / "src" / "sql" / "setup_metric_views.sql").read_text()
     assert "main.tpch_metrics" in sql
-    assert "CREATE OR REPLACE METRIC VIEW" in sql
+    assert "CREATE OR REPLACE VIEW" in sql
+    assert "WITH METRICS" in sql
+    assert "LANGUAGE YAML" in sql
     assert "v_tpch" in sql
     assert "samples.tpch.orders" in sql
     assert "t7d_customers" in sql
