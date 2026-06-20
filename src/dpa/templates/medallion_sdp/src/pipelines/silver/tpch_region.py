@@ -1,5 +1,4 @@
 from pyspark import pipelines as dp
-from pyspark.sql import functions as F
 
 silver_catalog = spark.conf.get("silver_catalog")
 bronze_catalog = spark.conf.get("bronze_catalog")
@@ -14,7 +13,6 @@ def v_region():
         spark.readStream  # type: ignore[name-defined]  # noqa: F821
         .format("delta")
         .table(f"{bronze_catalog}.{bronze_schema}.region")
-        .withColumn("_seq", F.col("_metadata.file_modification_time"))
     )
 
 
@@ -28,6 +26,6 @@ dp.create_auto_cdc_flow(
     target=f"{silver_catalog}.{silver_schema}.region",
     source="v_region",
     keys=["r_regionkey"],
-    sequence_by="_seq",
+    sequence_by="r_regionkey",  # placeholder: tpch is static reference data with no event sequence
     stored_as_scd_type=1,
 )
