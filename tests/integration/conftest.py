@@ -74,27 +74,15 @@ def _bundle_vars(accelerator_name: str) -> list[str]:
     return []
 
 
-def _current_databricks_user(cli: str) -> str:
-    result = subprocess.run(
-        [cli, "current-user", "me", "--output", "json"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        return ""
-    try:
-        return json.loads(result.stdout).get("userName", "")
-    except (json.JSONDecodeError, AttributeError):
-        return ""
-
-
 def _cleanup_stale_schemas(cli: str, accelerator_name: str) -> None:
     """Delete schemas stranded by a previous partially-failed bundle deploy.
 
     When bundle deploy fails mid-way, DAB may create Unity Catalog schemas without
     recording them in the deployment state. Subsequent `bundle destroy` skips them,
     causing SCHEMA_ALREADY_EXISTS on the next deploy.
+
+    Instead of computing the DAB dev-mode prefix from the username, list all schemas
+    in the catalog and delete any that match the expected base name with any dev prefix.
     """
     from dpa.accelerators import get_accelerator
 
@@ -103,21 +91,35 @@ def _cleanup_stale_schemas(cli: str, accelerator_name: str) -> None:
         return
     cfg = acc_cls.default_config
     catalog = cfg.get("catalog")
-    schema = cfg.get("schema")
-    if not catalog or not schema:
+    schema_base = cfg.get("schema")
+    if not catalog or not schema_base:
         return
 
-    username = _current_databricks_user(cli)
-    if not username:
-        return
-
-    # DAB dev mode prefix: "dev_" + local part of email with dots replaced by underscores
-    local = username.split("@")[0].replace(".", "_")
-    subprocess.run(
-        [cli, "schemas", "delete", "--full-name", f"{catalog}.dev_{local}_{schema}"],
+    result = subprocess.run(
+        [cli, "schemas", "list", "--catalog-name", catalog, "--output", "json"],
         capture_output=True,
+        text=True,
         check=False,
     )
+    if result.returncode != 0:
+        return
+
+    try:
+        payload = json.loads(result.stdout or "{}")
+        schemas = payload if isinstance(payload, list) else payload.get("schemas", [])
+    except json.JSONDecodeError:
+        return
+
+    for schema in schemas:
+        name = schema.get("name", "")
+        # Match dev-prefixed orphan: dev_<user>_<base_name>
+        if name.startswith("dev_") and name.endswith(f"_{schema_base}"):
+            full_name = schema.get("full_name", f"{catalog}.{name}")
+            subprocess.run(
+                [cli, "schemas", "delete", "--full-name", full_name],
+                capture_output=True,
+                check=False,
+            )
 
 
 @pytest.fixture(scope="session", autouse=True)
