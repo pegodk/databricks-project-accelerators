@@ -18,9 +18,8 @@ ai-bi/
 │   │   └── setup_views_job.yml                           # One-time job to deploy metric view
 │   └── warehouses/
 │       └── warehouse.yml                                 # Serverless SQL warehouse
-└── src/
-    └── sql/
-        └── setup_metric_views.sql                        # CREATE METRIC VIEW statement
+└── notebooks/
+    └── setup_metric_views.py                             # Creates the metric view at runtime
 ```
 
 ## Metric view — `v_tpch`
@@ -79,7 +78,13 @@ Pre-seeded with 10 curated sample questions and domain-specific instructions tun
 
 ## Why the setup job is needed
 
-DAB does not yet support `metric_views` as a native resource type. The setup job runs `src/sql/setup_metric_views.sql` against the warehouse, which executes a `CREATE OR REPLACE METRIC VIEW` statement with the full view definition inlined as a SQL heredoc. The dashboard and Genie Space depend on `v_tpch` existing — run the setup job once before opening either.
+DAB does not yet support `metric_views` as a native resource type. The setup job runs `notebooks/setup_metric_views.py` on serverless compute, which executes a `CREATE OR REPLACE METRIC VIEW` statement dynamically using the `catalog` and `schema` variables. This means catalog and schema can be overridden at deploy time without regenerating the project:
+
+```bash
+databricks bundle deploy --target prod --var catalog=prod_catalog --var schema=tpch_metrics
+```
+
+The dashboard and Genie Space depend on `v_tpch` existing — run the setup job once before opening either.
 
 ## Requirements
 

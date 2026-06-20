@@ -36,11 +36,11 @@ medallion-dbt/
 
 ## Model layers
 
-| Layer | Materialisation | Output schemas |
-|-------|----------------|----------------|
-| Bronze | view | `{gold_catalog}.{bronze_schema}` |
-| Silver | table | `{gold_catalog}.{silver_schema}` |
-| Gold | table | `{gold_catalog}.{gold_schema}` |
+| Layer | Materialisation | Location |
+|-------|----------------|----------|
+| Bronze | view | `dpa_bronze_dev.{schema}` |
+| Silver | table | `dpa_silver_dev.{schema}` |
+| Gold | table | `dpa_gold_dev.{schema}` |
 
 **Bronze** selects directly from `samples.tpch` source tables with no transformation — a thin view layer that decouples downstream models from the raw source path. If the source table name or location changes, only `sources.yml` needs updating.
 
@@ -81,9 +81,7 @@ databricks bundle run medallion_dbt_job --target dev
 | `bronze_catalog` | `dpa_bronze_dev` | Catalog for bronze views |
 | `silver_catalog` | `dpa_silver_dev` | Catalog for silver tables |
 | `gold_catalog` | `dpa_gold_dev` | Catalog for gold tables |
-| `bronze_schema` | `tpch_dbt` | Schema name in the bronze catalog |
-| `silver_schema` | `tpch_dbt` | Schema name in the silver catalog |
-| `gold_schema` | `tpch_dbt` | Schema name in the gold catalog |
+| `schema` | `tpch_dbt` | Schema name used across all three catalogs (DAB prefixes with initials in dev mode) |
 
 ## Local development
 

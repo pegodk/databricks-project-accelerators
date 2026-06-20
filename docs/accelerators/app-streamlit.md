@@ -11,7 +11,7 @@ Streamlit is the Python library used here. It lets you build interactive dashboa
 ## What gets generated
 
 ```
-tpch-analytics/
+app-streamlit/
 ├── databricks.yml              # Asset Bundle root config
 ├── .gitignore
 ├── app/
@@ -47,7 +47,7 @@ Results are cached for one hour (`@st.cache_data(ttl=3600)`), so repeated page v
 
 ```bash
 dpa init app-streamlit
-cd tpch-analytics
+cd app-streamlit
 ```
 
 Set your warehouse ID in `databricks.yml`, or let the bundle create one automatically (the default). Deploy:
@@ -56,7 +56,7 @@ Set your warehouse ID in `databricks.yml`, or let the bundle create one automati
 databricks bundle deploy --target dev
 ```
 
-Find the app URL in the Databricks UI under **Apps → dpa-tpch-analytics**. The app is accessible to anyone with workspace access — no additional sharing step needed.
+Find the app URL in the Databricks UI under **Apps → dpa-app-streamlit**. The app is accessible to anyone with workspace access — no additional sharing step needed.
 
 For production:
 

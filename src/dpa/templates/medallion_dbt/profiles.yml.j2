@@ -5,7 +5,7 @@ databricks:
     dev:
       type: databricks
       catalog: {{ cfg.gold_catalog }}
-      schema: {{ cfg.gold_schema }}
+      schema: {{ cfg.schema }}
       host: {% raw %}"{{ env_var('DATABRICKS_HOST') }}"
       http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
       token: "{{ env_var('DATABRICKS_TOKEN') }}"{% endraw %}

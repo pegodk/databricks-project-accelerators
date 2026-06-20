@@ -14,15 +14,9 @@ variables:
   gold_catalog:
     default: {{ cfg.gold_catalog }}
     description: Unity Catalog for the gold (business aggregate) layer
-  bronze_schema:
-    default: {{ cfg.bronze_schema }}
-    description: Schema for raw ingested data (source-specific, e.g. tpch)
-  silver_schema:
-    default: {{ cfg.silver_schema }}
-    description: Schema for cleansed data (source-specific, e.g. tpch)
-  gold_schema:
-    default: {{ cfg.gold_schema }}
-    description: Schema for business-level aggregates (data-product-specific, e.g. tpch_model)
+  schema:
+    default: {{ cfg.schema }}
+    description: Schema name for all dbt models (DAB prefixes with initials in dev mode)
   warehouse_id:
     lookup:
       warehouse: "Serverless Starter Warehouse"

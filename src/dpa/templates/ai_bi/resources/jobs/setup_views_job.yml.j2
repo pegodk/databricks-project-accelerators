@@ -3,9 +3,19 @@ resources:
   jobs:
     {{ slug }}_setup_views:
       name: "dpa-{{ project_slug }}"
+      queue:
+        enabled: true
+      performance_target: STANDARD
+      environments:
+        - environment_key: Default
+          spec:
+            environment_version: "5"
       tasks:
         - task_key: create_metric_views
-          sql_task:
-            warehouse_id: ${var.warehouse_id}
-            file:
-              path: ${workspace.file_path}/src/sql/setup_metric_views.sql
+          environment_key: Default
+          notebook_task:
+            notebook_path: ${workspace.file_path}/notebooks/setup_metric_views
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}

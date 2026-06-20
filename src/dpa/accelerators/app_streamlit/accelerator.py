@@ -15,7 +15,7 @@ class AppStreamlitAccelerator(BaseAccelerator):
     description = "Databricks App (Streamlit) connected to the TPCH sample dataset"
 
     default_config: dict[str, Any] = {
-        "app_name": "tpch-analytics",
+        "app_name": "app-streamlit",
     }
 
     @property

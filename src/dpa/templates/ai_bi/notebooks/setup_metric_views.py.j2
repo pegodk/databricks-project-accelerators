@@ -1,0 +1,179 @@
+# Databricks notebook source
+
+# COMMAND ----------
+# MAGIC %md
+# MAGIC # Metric View Setup — {{ cfg.dashboard_name }}
+# MAGIC
+# MAGIC Creates `v_tpch` in the target catalog/schema backed by the TPCH sample dataset.
+# MAGIC Run once via the setup job before opening the dashboard or Genie Space.
+# MAGIC Catalog and schema are passed as job parameters — override them with `--var` at deploy time.
+
+# COMMAND ----------
+dbutils.widgets.text("catalog", "{{ cfg.catalog }}")
+dbutils.widgets.text("schema", "{{ cfg.schema }}")
+
+catalog = dbutils.widgets.get("catalog")
+schema = dbutils.widgets.get("schema")
+
+# COMMAND ----------
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS `{catalog}`.`{schema}`")
+print(f"Schema ready: {catalog}.{schema}")
+
+# COMMAND ----------
+metric_view_ddl = f"""
+CREATE OR REPLACE VIEW `{catalog}`.`{schema}`.v_tpch
+WITH METRICS
+LANGUAGE YAML
+AS $$
+version: 1.1
+
+source: SELECT * FROM samples.tpch.orders
+
+joins:
+  - name: customer
+    source: samples.tpch.customer
+    'on': o_custkey = c_custkey
+    joins:
+      - name: nation
+        source: samples.tpch.nation
+        'on': c_nationkey = n_nationkey
+
+filter: o_orderdate >= '1995-01-01'
+
+comment: |-
+  Sales analytics metric view for order performance analysis.
+  Joins orders with customers and geography.
+
+fields:
+  - name: order_date
+    expr: o_orderdate
+    display_name: Order Date
+  - name: order_month
+    expr: "DATE_TRUNC('MONTH', order_date)"
+    display_name: Order Month
+  - name: order_year
+    expr: YEAR(order_date)
+    display_name: Order Year
+  - name: order_status
+    expr: |-
+      CASE o_orderstatus
+        WHEN 'O' THEN 'Open'
+        WHEN 'P' THEN 'Processing'
+        WHEN 'F' THEN 'Fulfilled'
+      END
+    display_name: Order Status
+    synonyms:
+      - status
+      - fulfillment status
+  - name: order_priority
+    expr: "SPLIT(o_orderpriority, '-')[0]"
+    display_name: Priority
+  - name: customer_name
+    expr: customer.c_name
+    display_name: Customer Name
+  - name: market_segment
+    expr: customer.c_mktsegment
+    display_name: Market Segment
+    synonyms:
+      - segment
+      - industry
+  - name: customer_nation
+    expr: customer.nation.n_name
+    display_name: Country
+    synonyms:
+      - nation
+      - country
+
+measures:
+  - name: order_count
+    expr: COUNT(DISTINCT o_orderkey)
+    display_name: Order Count
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 0
+      abbreviation: compact
+  - name: total_revenue
+    expr: SUM(o_totalprice)
+    display_name: Total Revenue
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+    synonyms:
+      - revenue
+      - sales
+  - name: unique_customers
+    expr: COUNT(DISTINCT o_custkey)
+    display_name: Unique Customers
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 0
+      abbreviation: compact
+  - name: avg_order_value
+    expr: MEASURE(total_revenue) / MEASURE(order_count)
+    display_name: Avg Order Value
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+    synonyms:
+      - AOV
+  - name: revenue_per_customer
+    expr: MEASURE(total_revenue) / MEASURE(unique_customers)
+    display_name: Revenue per Customer
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+  - name: open_order_revenue
+    expr: SUM(o_totalprice) FILTER (WHERE o_orderstatus = 'O')
+    display_name: Open Order Revenue
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+    synonyms:
+      - backlog
+  - name: fulfilled_order_revenue
+    expr: SUM(o_totalprice) FILTER (WHERE o_orderstatus = 'F')
+    display_name: Fulfilled Revenue
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+  - name: t7d_customers
+    expr: COUNT(DISTINCT o_custkey)
+    window:
+      - order: order_date
+        semiadditive: last
+        range: trailing 7 day
+    display_name: 7-Day Rolling Customers
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 0
+$$
+"""
+
+spark.sql(metric_view_ddl)
+print(f"Metric view created: {catalog}.{schema}.v_tpch")

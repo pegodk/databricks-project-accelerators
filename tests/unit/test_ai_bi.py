@@ -24,7 +24,7 @@ def test_ai_bi_list_files():
     assert "resources/jobs/setup_views_job.yml" in files
     assert "resources/dashboards/dashboard.yml" in files
     assert "resources/genie_spaces/tpch_genie.genie_space.yml" in files
-    assert "src/sql/setup_metric_views.sql" in files
+    assert "notebooks/setup_metric_views.py" in files
     assert "resources/dashboards/tpch_overview.lvdash.json" in files
 
 
@@ -39,26 +39,28 @@ def test_ai_bi_scaffold(tmp_path: Path):
     assert (project_dir / "resources" / "jobs" / "setup_views_job.yml").exists()
     assert (project_dir / "resources" / "dashboards" / "dashboard.yml").exists()
     assert (project_dir / "resources" / "genie_spaces" / "tpch_genie.genie_space.yml").exists()
-    assert (project_dir / "src" / "sql" / "setup_metric_views.sql").exists()
+    assert (project_dir / "notebooks" / "setup_metric_views.py").exists()
     assert (project_dir / "resources" / "dashboards" / "tpch_overview.lvdash.json").exists()
 
 
-def test_ai_bi_scaffold_renders_setup_sql(tmp_path: Path):
+def test_ai_bi_scaffold_renders_setup_notebook(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("ai-bi")()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
-    sql = (project_dir / "src" / "sql" / "setup_metric_views.sql").read_text()
-    assert "dpa_gold_dev.tpch_metrics" in sql
-    assert "CREATE OR REPLACE VIEW" in sql
-    assert "WITH METRICS" in sql
-    assert "LANGUAGE YAML" in sql
-    assert "v_tpch" in sql
-    assert "samples.tpch.orders" in sql
-    assert "t7d_customers" in sql
-    assert "total_revenue" in sql
+    nb = (project_dir / "notebooks" / "setup_metric_views.py").read_text()
+    # Widget defaults are baked from cfg at scaffold time; runtime values come from job parameters.
+    assert 'dbutils.widgets.text("catalog", "dpa_gold_dev")' in nb
+    assert 'dbutils.widgets.text("schema", "tpch_metrics")' in nb
+    assert "CREATE OR REPLACE VIEW" in nb
+    assert "WITH METRICS" in nb
+    assert "LANGUAGE YAML" in nb
+    assert "v_tpch" in nb
+    assert "samples.tpch.orders" in nb
+    assert "t7d_customers" in nb
+    assert "total_revenue" in nb
 
 
 def test_ai_bi_scaffold_renders_valid_dashboard_json(tmp_path: Path):

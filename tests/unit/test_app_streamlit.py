@@ -48,10 +48,10 @@ def test_app_streamlit_scaffold_renders_app_name(tmp_path: Path):
     acc.scaffold(target=project_dir)
 
     bundle = (project_dir / "databricks.yml").read_text()
-    assert "tpch-analytics" in bundle
+    assert "app-streamlit" in bundle
 
     app_resource = (project_dir / "resources" / "apps" / "app.yml").read_text()
-    assert "tpch_analytics" in app_resource
+    assert "app_streamlit" in app_resource
     assert "DATABRICKS_HTTP_PATH" in app_resource
     assert "var.warehouse_id" in app_resource
 

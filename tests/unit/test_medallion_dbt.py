@@ -61,7 +61,6 @@ def test_medallion_dbt_scaffold_renders_dbt_project(tmp_path: Path):
     assert "dpa_bronze_dev" in content
     assert "dpa_silver_dev" in content
     assert "dpa_gold_dev" in content
-    assert "tpch_dbt" in content
 
 
 def test_medallion_dbt_scaffold_renders_bundle_variables(tmp_path: Path):

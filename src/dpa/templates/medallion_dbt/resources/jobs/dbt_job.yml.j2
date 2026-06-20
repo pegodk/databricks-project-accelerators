@@ -24,7 +24,7 @@ resources:
               - "dbt test"
             warehouse_id: ${var.warehouse_id}
             catalog: ${var.gold_catalog}
-            schema: ${var.gold_schema}
+            schema: ${var.schema}
       schedule:
         quartz_cron_expression: "0 0 6 * * ?"
         timezone_id: UTC

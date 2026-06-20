@@ -68,9 +68,7 @@ def _bundle_vars(accelerator_name: str) -> list[str]:
             "--var", f"bronze_catalog={_BRONZE_CATALOG}",
             "--var", f"silver_catalog={_SILVER_CATALOG}",
             "--var", f"gold_catalog={_GOLD_CATALOG}",
-            "--var", "bronze_schema=tpch_dbt",
-            "--var", "silver_schema=tpch_dbt",
-            "--var", "gold_schema=tpch_model_dbt",
+            "--var", "schema=tpch_dbt",
         ]
     return []
 

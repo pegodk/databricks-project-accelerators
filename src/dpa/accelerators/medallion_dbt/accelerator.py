@@ -15,9 +15,7 @@ class MedallionDbtAccelerator(BaseAccelerator):
         "bronze_catalog": "dpa_bronze_dev",
         "silver_catalog": "dpa_silver_dev",
         "gold_catalog": "dpa_gold_dev",
-        "bronze_schema": "tpch_dbt",
-        "silver_schema": "tpch_dbt",
-        "gold_schema": "tpch_dbt",
+        "schema": "tpch_dbt",
     }
 
     @property
