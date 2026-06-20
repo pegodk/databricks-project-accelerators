@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -73,6 +74,52 @@ def _bundle_vars(accelerator_name: str) -> list[str]:
     return []
 
 
+def _current_databricks_user(cli: str) -> str:
+    result = subprocess.run(
+        [cli, "current-user", "me", "--output", "json"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return ""
+    try:
+        return json.loads(result.stdout).get("userName", "")
+    except (json.JSONDecodeError, AttributeError):
+        return ""
+
+
+def _cleanup_stale_schemas(cli: str, accelerator_name: str) -> None:
+    """Delete schemas stranded by a previous partially-failed bundle deploy.
+
+    When bundle deploy fails mid-way, DAB may create Unity Catalog schemas without
+    recording them in the deployment state. Subsequent `bundle destroy` skips them,
+    causing SCHEMA_ALREADY_EXISTS on the next deploy.
+    """
+    from dpa.accelerators import get_accelerator
+
+    acc_cls = get_accelerator(accelerator_name)
+    if acc_cls is None:
+        return
+    cfg = acc_cls.default_config
+    catalog = cfg.get("catalog")
+    schema = cfg.get("schema")
+    if not catalog or not schema:
+        return
+
+    username = _current_databricks_user(cli)
+    if not username:
+        return
+
+    # DAB dev mode prefix: "dev_" + local part of email with dots replaced by underscores
+    local = username.split("@")[0].replace(".", "_")
+    subprocess.run(
+        [cli, "schemas", "delete", "--full-name", f"{catalog}.dev_{local}_{schema}"],
+        capture_output=True,
+        check=False,
+    )
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _workspace_env() -> None:
     """Ensure workspace credentials are present for the whole session."""
@@ -112,6 +159,10 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
         cwd=project_dir,
         check=False,
     )
+
+    # Drop schemas stranded by a previous partially-failed deploy that bundle
+    # destroy won't reach because they were never recorded in the deployment state.
+    _cleanup_stale_schemas(cli, accelerator_name)
 
     subprocess.run(
         [cli, "bundle", "deploy", "--target", "dev"] + vars_,

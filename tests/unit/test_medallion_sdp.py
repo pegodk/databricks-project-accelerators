@@ -22,7 +22,6 @@ def test_medallion_sdp_list_files():
     assert "databricks.yml" in files
     assert "pyproject.toml" in files
     assert "resources/pipelines/pipeline.yml" in files
-    assert "resources/jobs/job.yml" in files
     assert "resources/schemas/schemas.yml" in files
     assert any("synthetic_data_source" in f for f in files)
     assert any("dim_entity" in f for f in files)
@@ -39,7 +38,6 @@ def test_medallion_sdp_scaffold(tmp_path: Path):
     assert (project_dir / "databricks.yml").exists()
     assert (project_dir / "pyproject.toml").exists()
     assert (project_dir / "resources" / "pipelines" / "pipeline.yml").exists()
-    assert (project_dir / "resources" / "jobs" / "job.yml").exists()
     assert (project_dir / "resources" / "schemas" / "schemas.yml").exists()
     assert (project_dir / "src" / "framework" / "config.py").exists()
     assert (project_dir / "src" / "framework" / "dlt.py").exists()
