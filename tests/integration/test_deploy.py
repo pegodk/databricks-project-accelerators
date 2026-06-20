@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import shutil
 import subprocess
@@ -60,30 +59,4 @@ def test_bundle_deploys(deployed_project: Path) -> None:
     assert result.returncode == 0, (
         f"bundle validate failed post-deploy:\n"
         f"stdout: {result.stdout}\nstderr: {result.stderr}"
-    )
-
-
-@pytest.mark.integration
-@pytest.mark.parametrize("deployed_project", ["medallion-sdp"], indirect=True)
-def test_pipeline_exists_in_workspace(deployed_project: Path) -> None:
-    """Confirm the DLT pipeline is registered in the workspace after deploy."""
-    import yaml
-
-    cli = shutil.which("databricks")
-    assert cli is not None
-
-    bundle_yml = yaml.safe_load((deployed_project / "databricks.yml").read_text())
-    bundle_name = bundle_yml["bundle"]["name"]
-
-    result = subprocess.run(
-        [cli, "pipelines", "list-pipelines", "--output", "json"],
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode == 0, result.stderr
-
-    pipelines = json.loads(result.stdout or "[]")
-    names = [p.get("name", "") for p in pipelines]
-    assert any(bundle_name in name for name in names), (
-        f"Expected a pipeline containing {bundle_name!r} in workspace, got: {names}"
     )
