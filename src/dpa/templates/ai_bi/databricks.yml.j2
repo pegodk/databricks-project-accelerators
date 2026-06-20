@@ -6,6 +6,14 @@ bundle:
     lock:
       enabled: false
 
+variables:
+  catalog:
+    default: {{ cfg.catalog }}
+    description: Unity Catalog catalog for metric views
+  schema:
+    default: {{ cfg.schema }}
+    description: Schema for metric views
+
 include:
   - resources/**/*.yml
 

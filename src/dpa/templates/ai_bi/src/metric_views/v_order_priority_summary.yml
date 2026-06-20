@@ -1,0 +1,21 @@
+version: 1.1
+comment: "Order count and revenue by order priority"
+source: samples.tpch.orders
+fields:
+  - name: order_priority
+    expr: o_orderpriority
+    display_name: "Order Priority"
+    synonyms: ["priority", "urgency", "priority level"]
+measures:
+  - name: order_count
+    expr: COUNT(*)
+    display_name: "Order Count"
+    synonyms: ["number of orders", "orders"]
+  - name: total_revenue
+    expr: SUM(o_totalprice)
+    display_name: "Total Revenue"
+    synonyms: ["revenue", "sales"]
+  - name: avg_order_value
+    expr: AVG(o_totalprice)
+    display_name: "Avg Order Value"
+    synonyms: ["AOV", "average order value"]

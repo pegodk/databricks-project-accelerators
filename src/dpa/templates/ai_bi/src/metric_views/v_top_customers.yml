@@ -1,0 +1,53 @@
+version: 1.1
+comment: "Revenue metrics by customer with geographic context"
+source: samples.tpch.orders
+joins:
+  - name: customer
+    source: samples.tpch.customer
+    on: source.o_custkey = customer.c_custkey
+    rely:
+      at_most_one_match: true
+    joins:
+      - name: nation
+        source: samples.tpch.nation
+        on: customer.c_nationkey = nation.n_nationkey
+        rely:
+          at_most_one_match: true
+        joins:
+          - name: region
+            source: samples.tpch.region
+            on: nation.n_regionkey = region.r_regionkey
+            rely:
+              at_most_one_match: true
+fields:
+  - name: customer_id
+    expr: source.o_custkey
+    display_name: "Customer ID"
+  - name: customer_name
+    expr: customer.c_name
+    display_name: "Customer Name"
+    synonyms: ["customer", "client"]
+  - name: market_segment
+    expr: customer.c_mktsegment
+    display_name: "Market Segment"
+    synonyms: ["segment"]
+  - name: nation
+    expr: customer.nation.n_name
+    display_name: "Nation"
+    synonyms: ["country"]
+  - name: region
+    expr: customer.nation.region.r_name
+    display_name: "Region"
+measures:
+  - name: total_revenue
+    expr: SUM(o_totalprice)
+    display_name: "Total Revenue"
+    synonyms: ["revenue", "lifetime revenue", "sales"]
+  - name: total_orders
+    expr: COUNT(o_orderkey)
+    display_name: "Total Orders"
+    synonyms: ["order count"]
+  - name: avg_order_value
+    expr: AVG(o_totalprice)
+    display_name: "Avg Order Value"
+    synonyms: ["AOV", "average order"]
