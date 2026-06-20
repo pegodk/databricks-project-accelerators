@@ -9,8 +9,13 @@ bronze_schema  = spark.conf.get("bronze_schema")
 
 @dp.expect_or_fail("valid_region_name", "r_name IS NOT NULL AND LENGTH(r_name) > 0")
 @dp.temporary_view()
-def v_tpch_region():
-    return spark.read.table(f"{bronze_catalog}.{bronze_schema}.region")
+def v_region():
+    return (
+        spark.readStream  # type: ignore[name-defined]  # noqa: F821
+        .format("delta")
+        .table(f"{bronze_catalog}.{bronze_schema}.region")
+        .withColumn("_seq", F.col("_metadata.file_modification_time"))
+    )
 
 
 dp.create_streaming_table(
@@ -19,9 +24,10 @@ dp.create_streaming_table(
     comment="Silver: region",
 )
 
-dp.create_auto_cdc_from_snapshot_flow(
+dp.create_auto_cdc_flow(
     target=f"{silver_catalog}.{silver_schema}.region",
-    source="v_tpch_region",
+    source="v_region",
     keys=["r_regionkey"],
+    sequence_by="_seq",
     stored_as_scd_type=1,
 )

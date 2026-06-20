@@ -10,8 +10,13 @@ bronze_schema  = spark.conf.get("bronze_schema")
 @dp.expect_or_fail("positive_size", "p_size > 0")
 @dp.expect("positive_retail_price", "p_retailprice > 0")
 @dp.temporary_view()
-def v_tpch_part():
-    return spark.read.table(f"{bronze_catalog}.{bronze_schema}.part")
+def v_part():
+    return (
+        spark.readStream  # type: ignore[name-defined]  # noqa: F821
+        .format("delta")
+        .table(f"{bronze_catalog}.{bronze_schema}.part")
+        .withColumn("_seq", F.col("_metadata.file_modification_time"))
+    )
 
 
 dp.create_streaming_table(
@@ -20,9 +25,10 @@ dp.create_streaming_table(
     comment="Silver: part",
 )
 
-dp.create_auto_cdc_from_snapshot_flow(
+dp.create_auto_cdc_flow(
     target=f"{silver_catalog}.{silver_schema}.part",
-    source="v_tpch_part",
+    source="v_part",
     keys=["p_partkey"],
+    sequence_by="_seq",
     stored_as_scd_type=1,
 )
