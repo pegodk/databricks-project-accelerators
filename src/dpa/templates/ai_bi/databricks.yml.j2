@@ -6,9 +6,6 @@ bundle:
     lock:
       enabled: false
 
-workspace:
-  host: https://<your-workspace-url>  # TODO: replace with your workspace URL
-
 variables:
   catalog:
     default: {{ cfg.catalog }}
@@ -18,18 +15,19 @@ variables:
     description: Schema for metric views
 
 include:
-  - resources/dashboards/*.yml
-  - resources/genie_spaces/*.yml
-  - resources/jobs/*.yml
-  - resources/warehouses/*.yml
+  - resources/**/*.yml
 
 targets:
   dev:
     mode: development
     default: true
+    workspace:
+      host: https://<your-dev-workspace-url>
 
   prod:
     mode: production
+    workspace:
+      host: https://<your-prod-workspace-url>
     permissions:
       - level: CAN_VIEW
         group_name: users

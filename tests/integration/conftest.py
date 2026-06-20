@@ -61,9 +61,18 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     if acc_cls is None:
         pytest.skip(f"Unknown accelerator {accelerator_name!r}")
 
+    host = _require_env("DATABRICKS_HOST")
+
     acc = acc_cls()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
+
+    # Replace per-target workspace URL placeholders with the real host from env.
+    dab_yml = project_dir / "databricks.yml"
+    content = dab_yml.read_text()
+    content = content.replace("https://<your-dev-workspace-url>", host)
+    content = content.replace("https://<your-prod-workspace-url>", host)
+    dab_yml.write_text(content)
 
     vars_ = _bundle_vars(accelerator_name)
 

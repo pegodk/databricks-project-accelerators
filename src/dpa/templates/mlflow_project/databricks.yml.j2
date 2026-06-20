@@ -4,9 +4,6 @@ bundle:
     lock:
       enabled: false
 
-workspace:
-  host: https://<your-workspace-url>  # TODO: replace with your workspace URL
-
 variables:
   catalog:
     default: {{ cfg.catalog }}
@@ -25,15 +22,18 @@ variables:
     description: "VM size (Standard_DS3_v2 for Azure, i3.xlarge for AWS, n2-highmem-4 for GCP)"
 
 include:
-  - resources/jobs/*.yml
-  - resources/schemas/*.yml
+  - resources/**/*.yml
 
 targets:
   dev:
     mode: development
     default: true
+    workspace:
+      host: https://<your-dev-workspace-url>
   prod:
     mode: production
+    workspace:
+      host: https://<your-prod-workspace-url>
     permissions:
       - level: CAN_VIEW
         group_name: users

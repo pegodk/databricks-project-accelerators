@@ -3,9 +3,6 @@
 bundle:
   name: {{ project_slug }}
 
-workspace:
-  host: https://<your-workspace-url>  # TODO: replace with your workspace URL
-
 variables:
   bronze_catalog:
     description: Unity Catalog for the bronze (raw) layer
@@ -24,9 +21,13 @@ targets:
   dev:
     mode: development
     default: true
+    workspace:
+      host: https://<your-dev-workspace-url>
 
   prod:
     mode: production
+    workspace:
+      host: https://<your-prod-workspace-url>
     permissions:
       - level: CAN_VIEW
         group_name: users
