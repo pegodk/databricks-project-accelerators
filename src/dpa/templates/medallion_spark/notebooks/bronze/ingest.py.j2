@@ -7,20 +7,20 @@
 # MAGIC making it safe to schedule repeatedly without re-ingesting existing rows.
 # MAGIC
 # MAGIC **Source:** `samples.tpch`
-# MAGIC **Target:** `${var.bronze_catalog}.${var.schema}`
+# MAGIC **Target:** `${var.bronze_catalog}.${var.bronze_schema}`
 
 # COMMAND ----------
 
 dbutils.widgets.text("bronze_catalog", "{{ cfg.bronze_catalog }}")
-dbutils.widgets.text("schema", "{{ cfg.schema }}")
+dbutils.widgets.text("bronze_schema", "{{ cfg.bronze_schema }}")
 
 bronze_catalog = dbutils.widgets.get("bronze_catalog")
-schema = dbutils.widgets.get("schema")
-checkpoint_base = f"dbfs:/checkpoints/{bronze_catalog}/{schema}"
+bronze_schema = dbutils.widgets.get("bronze_schema")
+checkpoint_base = f"dbfs:/checkpoints/{bronze_catalog}/{bronze_schema}"
 
 # COMMAND ----------
 
-spark.sql(f"CREATE SCHEMA IF NOT EXISTS {bronze_catalog}.{schema}")
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS {bronze_catalog}.{bronze_schema}")
 
 # COMMAND ----------
 
@@ -45,7 +45,7 @@ def stream_table(source: str, target: str, checkpoint: str) -> None:
 for table in ["orders", "lineitem", "customer", "nation", "region"]:
     stream_table(
         source=f"samples.tpch.{table}",
-        target=f"{bronze_catalog}.{schema}.{table}",
+        target=f"{bronze_catalog}.{bronze_schema}.{table}",
         checkpoint=f"{checkpoint_base}/{table}",
     )
-    print(f"Ingested samples.tpch.{table} → {bronze_catalog}.{schema}.{table}")
+    print(f"Ingested samples.tpch.{table} → {bronze_catalog}.{bronze_schema}.{table}")

@@ -15,8 +15,9 @@ class MedallionSparkAccelerator(BaseAccelerator):
         "bronze_catalog": "bronze_dev",
         "silver_catalog": "silver_dev",
         "gold_catalog": "gold_dev",
-        "schema": "tpch",
-        "node_type_id": "Standard_DS3_v2",
+        "bronze_schema": "tpch",
+        "silver_schema": "tpch",
+        "gold_schema": "tpch_model",
     }
 
     @property

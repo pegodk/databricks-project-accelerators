@@ -17,10 +17,6 @@ variables:
   model_name:
     default: {{ cfg.model_name }}
     description: Registered model name (registered as catalog.schema.model_name)
-  node_type_id:
-    default: {{ cfg.node_type_id }}
-    description: "VM size (Standard_DS3_v2 for Azure, i3.xlarge for AWS, n2-highmem-4 for GCP)"
-
 include:
   - resources/**/*.yml
 

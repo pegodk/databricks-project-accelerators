@@ -5,32 +5,34 @@
 # MAGIC Streams from bronze `orders` and joins with `customer`, `nation`, and `region`
 # MAGIC dimension tables (stream-static join). Writes an enriched orders table to the silver catalog.
 # MAGIC
-# MAGIC **Source:** `${var.bronze_catalog}.${var.schema}`
-# MAGIC **Target:** `${var.silver_catalog}.${var.schema}.orders_enriched`
+# MAGIC **Source:** `${var.bronze_catalog}.${var.bronze_schema}`
+# MAGIC **Target:** `${var.silver_catalog}.${var.silver_schema}.orders_enriched`
 
 # COMMAND ----------
 
 dbutils.widgets.text("bronze_catalog", "{{ cfg.bronze_catalog }}")
 dbutils.widgets.text("silver_catalog", "{{ cfg.silver_catalog }}")
-dbutils.widgets.text("schema", "{{ cfg.schema }}")
+dbutils.widgets.text("bronze_schema", "{{ cfg.bronze_schema }}")
+dbutils.widgets.text("silver_schema", "{{ cfg.silver_schema }}")
 
 bronze_catalog = dbutils.widgets.get("bronze_catalog")
 silver_catalog = dbutils.widgets.get("silver_catalog")
-schema = dbutils.widgets.get("schema")
-checkpoint_base = f"dbfs:/checkpoints/{silver_catalog}/{schema}"
+bronze_schema = dbutils.widgets.get("bronze_schema")
+silver_schema = dbutils.widgets.get("silver_schema")
+checkpoint_base = f"dbfs:/checkpoints/{silver_catalog}/{silver_schema}"
 
 # COMMAND ----------
 
-spark.sql(f"CREATE SCHEMA IF NOT EXISTS {silver_catalog}.{schema}")
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS {silver_catalog}.{silver_schema}")
 
 # COMMAND ----------
 
 from pyspark.sql import functions as F
 
 # Dimension tables are small and static — batch-load for stream-static joins
-customers = spark.table(f"{bronze_catalog}.{schema}.customer")
-nations   = spark.table(f"{bronze_catalog}.{schema}.nation")
-regions   = spark.table(f"{bronze_catalog}.{schema}.region")
+customers = spark.table(f"{bronze_catalog}.{bronze_schema}.customer")
+nations   = spark.table(f"{bronze_catalog}.{bronze_schema}.nation")
+regions   = spark.table(f"{bronze_catalog}.{bronze_schema}.region")
 
 dim = (
     customers
@@ -50,7 +52,7 @@ dim = (
 (
     spark.readStream
     .format("delta")
-    .table(f"{bronze_catalog}.{schema}.orders")
+    .table(f"{bronze_catalog}.{bronze_schema}.orders")
     .join(dim, F.col("o_custkey") == F.col("c_custkey"))
     .select(
         F.col("o_orderkey").alias("order_key"),
@@ -69,6 +71,6 @@ dim = (
     .outputMode("append")
     .option("checkpointLocation", f"{checkpoint_base}/orders_enriched")
     .trigger(availableNow=True)
-    .toTable(f"{silver_catalog}.{schema}.orders_enriched")
+    .toTable(f"{silver_catalog}.{silver_schema}.orders_enriched")
     .awaitTermination()
 )

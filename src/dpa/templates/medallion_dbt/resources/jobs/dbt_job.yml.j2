@@ -2,20 +2,16 @@
 resources:
   jobs:
     {{ slug }}_job:
-      name: "[${bundle.target}] {{ project_slug }}"
-      job_clusters:
-        - job_cluster_key: dbt_cluster
-          new_cluster:
-            spark_version: "15.4.x-scala2.12"
-            node_type_id: ${var.node_type_id}
-            num_workers: 1
-            data_security_mode: SINGLE_USER
+      name: "dpa-{{ project_slug }}"
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+            dependencies:
+              - "dbt-databricks>=1.8.0,<2.0.0"
       tasks:
         - task_key: dbt_run
-          job_cluster_key: dbt_cluster
-          libraries:
-            - pypi:
-                package: "dbt-databricks>=1.8.0,<2.0.0"
+          environment_key: default
           dbt_task:
             project_directory: "${workspace.file_path}"
             source: WORKSPACE
@@ -24,8 +20,8 @@ resources:
               - "dbt run"
               - "dbt test"
             warehouse_id: ${var.warehouse_id}
-            catalog: ${var.catalog}
-            schema: ${var.schema}
+            catalog: ${var.gold_catalog}
+            schema: ${var.gold_schema}
       schedule:
         quartz_cron_expression: "0 0 6 * * ?"
         timezone_id: UTC

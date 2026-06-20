@@ -6,13 +6,13 @@ bundle:
 variables:
   bronze_catalog:
     description: Unity Catalog for the bronze (raw) layer
-    default: main
+    default: bronze_dev
   silver_catalog:
     description: Unity Catalog for the silver (cleaned) layer
-    default: main
+    default: silver_dev
   gold_catalog:
     description: Unity Catalog for the gold (dimensional model) layer
-    default: main
+    default: gold_dev
 
 include:
   - resources/**/*.yml

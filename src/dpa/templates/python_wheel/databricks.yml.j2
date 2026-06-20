@@ -11,10 +11,6 @@ variables:
   schema:
     default: {{ cfg.schema }}
     description: Schema for the wheel volume
-  node_type_id:
-    default: {{ cfg.node_type_id }}
-    description: "VM size (Standard_DS3_v2 for Azure, i3.xlarge for AWS, n2-highmem-4 for GCP)"
-
 include:
   - resources/**/*.yml
 

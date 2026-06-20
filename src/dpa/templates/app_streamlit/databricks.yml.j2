@@ -3,6 +3,11 @@
 bundle:
   name: {{ project_slug }}
 
+variables:
+  warehouse_id:
+    lookup:
+      sql_warehouse: "Serverless Starter Warehouse"
+
 include:
   - resources/**/*.yml
 

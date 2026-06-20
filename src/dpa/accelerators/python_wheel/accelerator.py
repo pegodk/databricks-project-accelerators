@@ -14,7 +14,6 @@ class PythonWheelAccelerator(BaseAccelerator):
     default_config: dict[str, Any] = {
         "catalog": "main",
         "schema": "python_wheel",
-        "node_type_id": "Standard_DS3_v2",
     }
 
     @property

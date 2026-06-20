@@ -5,8 +5,8 @@
 # MAGIC Streams from the silver enriched orders table and writes two pre-aggregated summary
 # MAGIC tables to the gold catalog.
 # MAGIC
-# MAGIC **Source:** `${var.silver_catalog}.${var.schema}.orders_enriched`
-# MAGIC **Target:** `${var.gold_catalog}.${var.schema}`
+# MAGIC **Source:** `${var.silver_catalog}.${var.silver_schema}.orders_enriched`
+# MAGIC **Target:** `${var.gold_catalog}.${var.gold_schema}`
 # MAGIC
 # MAGIC | Table | Grain | Key measures |
 # MAGIC |---|---|---|
@@ -17,17 +17,19 @@
 
 dbutils.widgets.text("silver_catalog", "{{ cfg.silver_catalog }}")
 dbutils.widgets.text("gold_catalog", "{{ cfg.gold_catalog }}")
-dbutils.widgets.text("schema", "{{ cfg.schema }}")
+dbutils.widgets.text("silver_schema", "{{ cfg.silver_schema }}")
+dbutils.widgets.text("gold_schema", "{{ cfg.gold_schema }}")
 
 silver_catalog = dbutils.widgets.get("silver_catalog")
 gold_catalog = dbutils.widgets.get("gold_catalog")
-schema = dbutils.widgets.get("schema")
-checkpoint_base = f"dbfs:/checkpoints/{gold_catalog}/{schema}"
-source_table = f"{silver_catalog}.{schema}.orders_enriched"
+silver_schema = dbutils.widgets.get("silver_schema")
+gold_schema = dbutils.widgets.get("gold_schema")
+checkpoint_base = f"dbfs:/checkpoints/{gold_catalog}/{gold_schema}"
+source_table = f"{silver_catalog}.{silver_schema}.orders_enriched"
 
 # COMMAND ----------
 
-spark.sql(f"CREATE SCHEMA IF NOT EXISTS {gold_catalog}.{schema}")
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS {gold_catalog}.{gold_schema}")
 
 # COMMAND ----------
 
@@ -50,7 +52,7 @@ from pyspark.sql import functions as F
     .outputMode("complete")
     .option("checkpointLocation", f"{checkpoint_base}/sales_summary")
     .trigger(availableNow=True)
-    .toTable(f"{gold_catalog}.{schema}.sales_summary")
+    .toTable(f"{gold_catalog}.{gold_schema}.sales_summary")
     .awaitTermination()
 )
 
@@ -74,6 +76,6 @@ from pyspark.sql import functions as F
     .outputMode("complete")
     .option("checkpointLocation", f"{checkpoint_base}/customer_summary")
     .trigger(availableNow=True)
-    .toTable(f"{gold_catalog}.{schema}.customer_summary")
+    .toTable(f"{gold_catalog}.{gold_schema}.customer_summary")
     .awaitTermination()
 )

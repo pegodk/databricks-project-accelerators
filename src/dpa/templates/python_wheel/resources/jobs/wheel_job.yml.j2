@@ -2,17 +2,14 @@
 resources:
   jobs:
     {{ slug }}_wheel:
-      name: "[${bundle.target}] {{ project_slug }} — Build & Verify Wheel"
-      job_clusters:
-        - job_cluster_key: default_cluster
-          new_cluster:
-            spark_version: "15.4.x-scala2.12"
-            node_type_id: ${var.node_type_id}
-            num_workers: 1
-            data_security_mode: SINGLE_USER
+      name: "dpa-{{ project_slug }} — Build & Verify Wheel"
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
       tasks:
         - task_key: build_and_upload
-          job_cluster_key: default_cluster
+          environment_key: default
           notebook_task:
             notebook_path: ${workspace.file_path}/notebooks/build_and_upload.py
             base_parameters:
@@ -23,7 +20,7 @@ resources:
         - task_key: verify_imports
           depends_on:
             - task_key: build_and_upload
-          job_cluster_key: default_cluster
+          environment_key: default
           notebook_task:
             notebook_path: ${workspace.file_path}/notebooks/verify_imports.py
             base_parameters:

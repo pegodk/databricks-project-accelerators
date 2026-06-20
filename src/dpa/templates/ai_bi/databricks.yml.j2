@@ -13,6 +13,9 @@ variables:
   schema:
     default: {{ cfg.schema }}
     description: Schema for metric views
+  warehouse_id:
+    lookup:
+      sql_warehouse: "Serverless Starter Warehouse"
 
 include:
   - resources/**/*.yml

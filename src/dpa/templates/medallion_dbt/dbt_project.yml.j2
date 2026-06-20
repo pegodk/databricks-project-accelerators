@@ -20,10 +20,13 @@ models:
   {{ slug }}:
     bronze:
       +materialized: view
-      +schema: bronze
+      +database: "{{ cfg.bronze_catalog }}"
+      +schema: "{{ cfg.bronze_schema }}"
     silver:
       +materialized: table
-      +schema: silver
+      +database: "{{ cfg.silver_catalog }}"
+      +schema: "{{ cfg.silver_schema }}"
     gold:
       +materialized: table
-      +schema: gold
+      +database: "{{ cfg.gold_catalog }}"
+      +schema: "{{ cfg.gold_schema }}"

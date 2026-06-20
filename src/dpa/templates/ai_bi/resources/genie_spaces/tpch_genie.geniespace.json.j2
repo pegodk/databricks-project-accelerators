@@ -1,5 +1,5 @@
 {
-  "display_name": "{{ cfg.genie_space_name }}",
+  "display_name": "dpa-{{ cfg.genie_space_name }}",
   "description": "Ask natural-language questions about TPCH sales data. Powered by the v_tpch metric view in {{ cfg.catalog }}.{{ cfg.schema }}.",
   "instructions": "You are a sales analytics assistant for a global trading company. The data comes from the TPC-H benchmark dataset covering orders, customers, and geography (post-1995). All monetary values are in USD. The metric view v_tpch exposes dimensions (order_date, order_month, order_year, order_status [Open/Processing/Fulfilled], order_priority, customer_name, market_segment, customer_nation) and measures (order_count, total_revenue, unique_customers, avg_order_value, revenue_per_customer, open_order_revenue, fulfilled_order_revenue, t7d_customers). When asked about revenue without qualification, use total_revenue. For trend questions group by order_month. For geographic questions group by customer_nation. Always round monetary amounts to 2 decimal places.",
   "tables": [

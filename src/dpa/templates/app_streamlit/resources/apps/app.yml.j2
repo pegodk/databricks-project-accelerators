@@ -2,10 +2,10 @@
 resources:
   apps:
     {{ slug }}:
-      name: "${bundle.target}-{{ project_slug }}"
+      name: "dpa-{{ project_slug }}"
       description: "Streamlit sales analytics app powered by the TPCH sample dataset"
       source_code_path: ../../app
       config:
         env:
           - name: DATABRICKS_HTTP_PATH
-            value: /sql/1.0/warehouses/${resources.sql_warehouses.starter_warehouse.id}
+            value: /sql/1.0/warehouses/${var.warehouse_id}

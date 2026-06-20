@@ -16,7 +16,6 @@ class MlflowProjectAccelerator(BaseAccelerator):
         "schema": "mlflow_demo",
         "experiment_name": "/Shared/tpch-order-value",
         "model_name": "tpch_order_value",
-        "node_type_id": "Standard_DS3_v2",
     }
 
     @property

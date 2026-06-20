@@ -23,7 +23,6 @@ def test_ai_bi_list_files():
     assert "databricks.yml" in files
     assert "resources/jobs/setup_views_job.yml" in files
     assert "resources/dashboards/dashboard.yml" in files
-    assert "resources/warehouses/warehouse.yml" in files
     assert "resources/genie_spaces/tpch_genie.genie_space.yml" in files
     assert "src/sql/setup_metric_views.sql" in files
     assert "resources/dashboards/tpch_overview.lvdash.json" in files
@@ -40,7 +39,6 @@ def test_ai_bi_scaffold(tmp_path: Path):
     assert (project_dir / "databricks.yml").exists()
     assert (project_dir / "resources" / "jobs" / "setup_views_job.yml").exists()
     assert (project_dir / "resources" / "dashboards" / "dashboard.yml").exists()
-    assert (project_dir / "resources" / "warehouses" / "warehouse.yml").exists()
     assert (project_dir / "resources" / "genie_spaces" / "tpch_genie.genie_space.yml").exists()
     assert (project_dir / "src" / "sql" / "setup_metric_views.sql").exists()
     assert (project_dir / "resources" / "dashboards" / "tpch_overview.lvdash.json").exists()
@@ -135,5 +133,5 @@ def test_ai_bi_scaffold_renders_genie_space_yml(tmp_path: Path):
 
     genie_yml = (project_dir / "resources" / "genie_spaces" / "tpch_genie.genie_space.yml").read_text()
     assert "TPCH Sales Genie" in genie_yml
-    assert "starter_warehouse" in genie_yml
+    assert "var.warehouse_id" in genie_yml
     assert "tpch_genie.geniespace.json" in genie_yml

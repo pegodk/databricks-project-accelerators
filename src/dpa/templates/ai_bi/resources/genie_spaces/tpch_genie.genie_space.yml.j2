@@ -2,6 +2,6 @@
 resources:
   genie_spaces:
     {{ slug }}_genie:
-      display_name: "{{ cfg.genie_space_name }}"
-      warehouse_id: ${resources.sql_warehouses.starter_warehouse.id}
+      display_name: "dpa-{{ cfg.genie_space_name }}"
+      warehouse_id: ${var.warehouse_id}
       file_path: resources/genie_spaces/tpch_genie.geniespace.json

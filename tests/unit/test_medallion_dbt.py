@@ -57,9 +57,11 @@ def test_medallion_dbt_scaffold_renders_dbt_project(tmp_path: Path):
 
     content = (project_dir / "dbt_project.yml").read_text()
     assert "medallion_dbt" in content
-    assert "+schema: bronze" in content
-    assert "+schema: silver" in content
-    assert "+schema: gold" in content
+    assert "+database" in content
+    assert "bronze_dev" in content
+    assert "silver_dev" in content
+    assert "gold_dev" in content
+    assert "tpch_model" in content
 
 
 def test_medallion_dbt_scaffold_renders_bundle_variables(tmp_path: Path):
@@ -71,10 +73,13 @@ def test_medallion_dbt_scaffold_renders_bundle_variables(tmp_path: Path):
 
     bundle = (project_dir / "databricks.yml").read_text()
     assert "medallion-dbt" in bundle
-    assert "dbt_tpch" in bundle
+    assert "bronze_dev" in bundle
+    assert "silver_dev" in bundle
+    assert "gold_dev" in bundle
+    assert "tpch_model" in bundle
 
 
-def test_medallion_dbt_scaffold_renders_job_cluster(tmp_path: Path):
+def test_medallion_dbt_scaffold_renders_serverless_env(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("medallion-dbt")()
@@ -82,7 +87,7 @@ def test_medallion_dbt_scaffold_renders_job_cluster(tmp_path: Path):
     acc.scaffold(target=project_dir)
 
     job_yml = (project_dir / "resources" / "jobs" / "dbt_job.yml").read_text()
-    assert "dbt_cluster" in job_yml
+    assert "environment_key" in job_yml
     assert "dbt-databricks" in job_yml
     assert "workspace.file_path" in job_yml
     assert "WORKSPACE" in job_yml

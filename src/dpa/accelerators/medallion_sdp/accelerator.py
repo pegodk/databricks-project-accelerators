@@ -17,9 +17,9 @@ class MedallionSdpAccelerator(BaseAccelerator):
     default_config: dict[str, Any] = {
         "pipeline_name": "main",
         "source_class": "SyntheticDataSource",
-        "bronze_schema": "bronze",
-        "silver_schema": "silver",
-        "gold_schema": "gold",
+        "bronze_schema": "tpch",
+        "silver_schema": "tpch",
+        "gold_schema": "tpch_model",
         "bronze_tables": [
             {"name": "events", "primary_keys": ["event_id"], "description": "Raw events"},
             {"name": "entities", "primary_keys": ["entity_id"], "description": "Entity records"},
