@@ -1,0 +1,46 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  jobs:
+    {{ slug }}_pipeline:
+      name: "[${bundle.target}] {{ project_slug }} — Train, Register & Score"
+      job_clusters:
+        - job_cluster_key: ml_cluster
+          new_cluster:
+            # Databricks ML Runtime — includes scikit-learn, MLflow, and all ML libraries
+            spark_version: "15.4.x-cpu-ml-scala2.12"
+            node_type_id: ${var.node_type_id}
+            num_workers: 1
+            data_security_mode: SINGLE_USER
+      tasks:
+        - task_key: train
+          job_cluster_key: ml_cluster
+          notebook_task:
+            notebook_path: ${workspace.file_path}/notebooks/train.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              experiment_name: ${var.experiment_name}
+              model_name: ${var.model_name}
+
+        - task_key: register
+          depends_on:
+            - task_key: train
+          job_cluster_key: ml_cluster
+          notebook_task:
+            notebook_path: ${workspace.file_path}/notebooks/register.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              experiment_name: ${var.experiment_name}
+              model_name: ${var.model_name}
+
+        - task_key: score
+          depends_on:
+            - task_key: register
+          job_cluster_key: ml_cluster
+          notebook_task:
+            notebook_path: ${workspace.file_path}/notebooks/score.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              model_name: ${var.model_name}

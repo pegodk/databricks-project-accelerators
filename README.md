@@ -45,6 +45,7 @@ That's it — your Databricks solution is live.
 |------|-------------|
 | `medallion-sdp` | Streaming Delta Pipeline (DLT) with bronze/silver/gold layers and a DAB job |
 | `medallion-spark` | Medallion architecture using Spark Structured Streaming notebooks |
+| `mlflow-project` | MLflow training, model registration, and batch scoring over TPCH |
 | `python-wheel` | Python wheel package with build-and-upload job and import verification |
 | `app-streamlit` | Databricks-hosted Databricks app wired to a SQL warehouse |
 | `ai-bi` | Lakeview dashboard + Genie Space with metric views over the TPCH sample dataset |

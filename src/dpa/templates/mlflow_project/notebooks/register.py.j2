@@ -1,0 +1,57 @@
+# Databricks notebook source
+# MAGIC %md
+# MAGIC # Register — Promote Best Run to UC Model Registry
+# MAGIC
+# MAGIC Finds the run with the lowest RMSE in the experiment, registers the model to
+# MAGIC the Unity Catalog Model Registry, and sets the `champion` alias on the new version.
+# MAGIC
+# MAGIC **Registry:** `${var.catalog}.${var.schema}.${var.model_name}@champion`
+
+# COMMAND ----------
+
+dbutils.widgets.text("catalog", "{{ cfg.catalog }}")
+dbutils.widgets.text("schema", "{{ cfg.schema }}")
+dbutils.widgets.text("experiment_name", "{{ cfg.experiment_name }}")
+dbutils.widgets.text("model_name", "{{ cfg.model_name }}")
+
+catalog        = dbutils.widgets.get("catalog")
+schema         = dbutils.widgets.get("schema")
+experiment_name = dbutils.widgets.get("experiment_name")
+model_name     = dbutils.widgets.get("model_name")
+uc_model       = f"{catalog}.{schema}.{model_name}"
+
+# COMMAND ----------
+
+import mlflow
+from mlflow.tracking import MlflowClient
+
+mlflow.set_registry_uri("databricks-uc")
+client = MlflowClient()
+
+# COMMAND ----------
+
+# Find the best run by lowest RMSE
+experiment = client.get_experiment_by_name(experiment_name)
+assert experiment, f"Experiment {experiment_name!r} not found — run the train task first."
+
+runs = client.search_runs(
+    experiment_ids=[experiment.experiment_id],
+    order_by=["metrics.rmse ASC"],
+    max_results=1,
+)
+assert runs, "No completed runs found in the experiment."
+
+best_run = runs[0]
+print(f"Best run : {best_run.info.run_id}")
+print(f"RMSE     : {best_run.data.metrics['rmse']:>12,.0f}")
+print(f"R²       : {best_run.data.metrics['r2']:>12.3f}")
+
+# COMMAND ----------
+
+# Register to Unity Catalog and set champion alias
+model_uri = f"runs:/{best_run.info.run_id}/model"
+mv = mlflow.register_model(model_uri=model_uri, name=uc_model)
+print(f"Registered: {uc_model} v{mv.version}")
+
+client.set_registered_model_alias(name=uc_model, alias="champion", version=mv.version)
+print(f"Alias 'champion' → v{mv.version}")

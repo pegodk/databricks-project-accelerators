@@ -1,0 +1,57 @@
+# Databricks notebook source
+# MAGIC %md
+# MAGIC # Score — Batch Inference with Champion Model
+# MAGIC
+# MAGIC Loads the `champion` model version from the Unity Catalog Model Registry
+# MAGIC and scores a sample of TPCH orders.
+# MAGIC
+# MAGIC **Model:** `${var.catalog}.${var.schema}.${var.model_name}@champion`
+
+# COMMAND ----------
+
+dbutils.widgets.text("catalog", "{{ cfg.catalog }}")
+dbutils.widgets.text("schema", "{{ cfg.schema }}")
+dbutils.widgets.text("model_name", "{{ cfg.model_name }}")
+
+catalog    = dbutils.widgets.get("catalog")
+schema     = dbutils.widgets.get("schema")
+model_name = dbutils.widgets.get("model_name")
+uc_model   = f"{catalog}.{schema}.{model_name}"
+
+# COMMAND ----------
+
+import mlflow
+import mlflow.pyfunc
+
+mlflow.set_registry_uri("databricks-uc")
+
+model = mlflow.pyfunc.load_model(f"models:/{uc_model}@champion")
+print(f"Loaded: {uc_model}@champion")
+
+# COMMAND ----------
+
+# Prepare a sample of orders for scoring
+orders    = spark.table("samples.tpch.orders")
+customers = spark.table("samples.tpch.customer")
+nations   = spark.table("samples.tpch.nation")
+
+sample = (
+    orders
+    .join(customers, orders.o_custkey == customers.c_custkey)
+    .join(nations, customers.c_nationkey == nations.n_nationkey)
+    .select("o_orderkey", "o_orderpriority", "o_orderstatus", "c_mktsegment", "n_name")
+    .limit(1000)
+    .toPandas()
+)
+
+features = ["o_orderpriority", "o_orderstatus", "c_mktsegment", "n_name"]
+
+# COMMAND ----------
+
+sample["predicted_total_price"] = model.predict(sample[features])
+
+display(
+    spark.createDataFrame(
+        sample[["o_orderkey", "o_orderpriority", "c_mktsegment", "n_name", "predicted_total_price"]]
+    )
+)

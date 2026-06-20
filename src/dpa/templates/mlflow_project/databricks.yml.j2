@@ -10,17 +10,23 @@ workspace:
 variables:
   catalog:
     default: {{ cfg.catalog }}
-    description: Unity Catalog catalog for the wheel volume
+    description: Unity Catalog catalog for the model registry and schema
   schema:
     default: {{ cfg.schema }}
-    description: Schema for the wheel volume
+    description: Schema for the registered model
+  experiment_name:
+    default: {{ cfg.experiment_name }}
+    description: Workspace path for the MLflow experiment
+  model_name:
+    default: {{ cfg.model_name }}
+    description: Registered model name (registered as catalog.schema.model_name)
   node_type_id:
     default: {{ cfg.node_type_id }}
     description: "VM size (Standard_DS3_v2 for Azure, i3.xlarge for AWS, n2-highmem-4 for GCP)"
 
 include:
   - resources/jobs/*.yml
-  - resources/volumes/*.yml
+  - resources/schemas/*.yml
 
 targets:
   dev:
