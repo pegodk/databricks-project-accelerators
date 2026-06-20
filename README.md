@@ -1,5 +1,7 @@
 # Databricks Project Accelerators
 
+![](docs/assets/hero.png)
+
 CLI tool that scaffolds production-ready Databricks solutions via Jinja2 templates and Databricks Asset Bundles.
 
 **[Documentation](https://pegodk.github.io/databricks-project-accelerators/)**
@@ -36,7 +38,7 @@ databricks bundle deploy --target dev
 |------|-------------|
 | `medallion-sdp` | Streaming Delta Pipeline with bronze/silver/gold layers and a DAB job |
 | `app-streamlit` | Databricks-hosted Streamlit app wired to a SQL warehouse |
-| `dashboard` | Lakeview dashboard with SQL metric views and a setup job |
+| `ai-bi` | Lakeview dashboard + Genie Space with metric views over the TPCH sample dataset |
 
 ## Requirements
 

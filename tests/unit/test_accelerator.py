@@ -262,7 +262,6 @@ def test_ai_bi_list_files():
     assert "resources/warehouses/warehouse.yml" in files
     assert "resources/genie_spaces/tpch_genie.genie_space.yml" in files
     assert "src/sql/setup_metric_views.sql" in files
-    assert "resources/metric_views/v_tpch.yml" in files
     assert "resources/dashboards/tpch_overview.lvdash.json" in files
     assert "resources/genie_spaces/tpch_genie.geniespace.json" in files
 
@@ -280,7 +279,6 @@ def test_ai_bi_scaffold(tmp_path: Path):
     assert (project_dir / "resources" / "warehouses" / "warehouse.yml").exists()
     assert (project_dir / "resources" / "genie_spaces" / "tpch_genie.genie_space.yml").exists()
     assert (project_dir / "src" / "sql" / "setup_metric_views.sql").exists()
-    assert (project_dir / "resources" / "metric_views" / "v_tpch.yml").exists()
     assert (project_dir / "resources" / "dashboards" / "tpch_overview.lvdash.json").exists()
     assert (project_dir / "resources" / "genie_spaces" / "tpch_genie.geniespace.json").exists()
 
@@ -296,31 +294,9 @@ def test_ai_bi_scaffold_renders_setup_sql(tmp_path: Path):
     assert "main.tpch_metrics" in sql
     assert "CREATE OR REPLACE METRIC VIEW" in sql
     assert "v_tpch" in sql
-    # YAML definition is inlined via Jinja2 include
-    assert "samples.tpch.lineitem" in sql
     assert "samples.tpch.orders" in sql
-
-
-def test_ai_bi_scaffold_renders_metric_view_yaml(tmp_path: Path):
-    import yaml
-
-    from dpa.accelerators import get_accelerator
-
-    acc = get_accelerator("ai-bi")()
-    project_dir = tmp_path / acc.project_slug
-    acc.scaffold(target=project_dir)
-
-    content = (project_dir / "resources" / "metric_views" / "v_tpch.yml").read_text()
-    parsed = yaml.safe_load(content)
-    assert parsed["version"] == 1.1
-    assert parsed["source"] == "samples.tpch.lineitem"
-    assert "joins" in parsed
-    assert "fields" in parsed
-    assert "measures" in parsed
-    measure_names = {m["name"] for m in parsed["measures"]}
-    assert "net_revenue" in measure_names
-    assert "order_count" in measure_names
-    assert "avg_order_value" in measure_names
+    assert "t7d_customers" in sql
+    assert "total_revenue" in sql
 
 
 def test_ai_bi_scaffold_renders_valid_dashboard_json(tmp_path: Path):

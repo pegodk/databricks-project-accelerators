@@ -1,6 +1,6 @@
 # AI/BI Accelerator
 
-The **AI/BI** accelerator scaffolds a complete Databricks AI/BI solution over the TPCH sample dataset: a single unified metric view as the semantic layer, a Lakeview dashboard for visual analytics, and a Genie Space for natural-language querying — all deployed via a single Databricks Asset Bundle.
+The **AI/BI** accelerator scaffolds a complete Databricks AI/BI solution over the TPCH sample dataset: a metric view as the semantic layer, a Lakeview dashboard for visual analytics, and a Genie Space for natural-language querying — all deployed via a single Databricks Asset Bundle.
 
 ## What gets generated
 
@@ -17,80 +17,73 @@ ai-bi/
 │   │   └── tpch_genie.geniespace.json                    # Genie Space definition
 │   ├── jobs/
 │   │   └── setup_views_job.yml                           # One-time job to deploy metric view
-│   ├── metric_views/
-│   │   └── v_tpch.yml                                    # Metric view YAML definition
 │   └── warehouses/
 │       └── warehouse.yml                                 # Serverless SQL warehouse
 └── src/
     └── sql/
-        └── setup_metric_views.sql                        # Generated SQL (v_tpch.yml inlined)
+        └── setup_metric_views.sql                        # CREATE METRIC VIEW statement
 ```
 
 ## Metric view — `v_tpch`
 
-A single metric view joining from `samples.tpch.lineitem` through the full TPCH dimension hierarchy:
+A single metric view sourced from `samples.tpch.orders`, joined to customer and nation:
 
 ```
-lineitem → orders → customer → nation → region
+orders → customer → nation
 ```
+
+Filter: `o_orderdate >= '1995-01-01'`
 
 **Fields (dimensions)**
 
 | Field | Expression | Description |
 |---|---|---|
-| `order_date` | `orders.o_orderdate` | Date the order was placed |
-| `order_month` | `DATE_TRUNC('MONTH', ...)` | Month grain for trend analysis |
-| `order_status` | `orders.o_orderstatus` | O / F / P |
-| `order_priority` | `orders.o_orderpriority` | 1-URGENT through 5-LOW |
-| `ship_mode` | `l_shipmode` | AIR / MAIL / SHIP / TRUCK / REG AIR / FOB / RAIL |
-| `ship_date` | `l_shipdate` | Date the line item shipped |
-| `customer_name` | `orders.customer.c_name` | Customer display name |
-| `market_segment` | `orders.customer.c_mktsegment` | AUTOMOBILE / BUILDING / FURNITURE / HOUSEHOLD / MACHINERY |
-| `nation` | `orders.customer.nation.n_name` | Customer nation |
-| `region` | `orders.customer.nation.region.r_name` | AFRICA / AMERICA / ASIA / EUROPE / MIDDLE EAST |
+| `order_date` | `o_orderdate` | Date the order was placed |
+| `order_month` | `DATE_TRUNC('MONTH', order_date)` | Month grain for trend analysis |
+| `order_year` | `YEAR(order_date)` | Year grain |
+| `order_status` | CASE on `o_orderstatus` | Open / Processing / Fulfilled |
+| `order_priority` | `SPLIT(o_orderpriority, '-')[0]` | Priority number (1–5) |
+| `customer_name` | `customer.c_name` | Customer display name |
+| `market_segment` | `customer.c_mktsegment` | AUTOMOBILE / BUILDING / FURNITURE / HOUSEHOLD / MACHINERY |
+| `customer_nation` | `customer.nation.n_name` | Customer country (synonyms: nation, country) |
 
 **Measures**
 
-| Measure | Expression |
-|---|---|
-| `order_count` | `COUNT(DISTINCT orders.o_orderkey)` |
-| `unique_customers` | `COUNT(DISTINCT orders.o_custkey)` |
-| `gross_revenue` | `SUM(l_extendedprice)` |
-| `net_revenue` | `SUM(l_extendedprice * (1 - l_discount))` |
-| `net_revenue_with_tax` | `SUM(l_extendedprice * (1 - l_discount) * (1 + l_tax))` |
-| `avg_discount` | `AVG(l_discount)` |
-| `avg_quantity` | `AVG(l_quantity)` |
-| `avg_order_value` | `net_revenue / order_count` |
-| `line_item_count` | `COUNT(*)` |
-
-All measures carry `display_name` and `synonyms` for AI/BI discovery.
-All joins use `rely.at_most_one_match: true` for query optimisation.
+| Measure | Expression | Format |
+|---|---|---|
+| `order_count` | `COUNT(DISTINCT o_orderkey)` | compact number |
+| `total_revenue` | `SUM(o_totalprice)` | compact USD (synonyms: revenue, sales) |
+| `unique_customers` | `COUNT(DISTINCT o_custkey)` | compact number |
+| `avg_order_value` | `MEASURE(total_revenue) / MEASURE(order_count)` | USD (synonym: AOV) |
+| `revenue_per_customer` | `MEASURE(total_revenue) / MEASURE(unique_customers)` | USD |
+| `open_order_revenue` | `SUM(o_totalprice) FILTER (WHERE o_orderstatus = 'O')` | USD (synonym: backlog) |
+| `fulfilled_order_revenue` | `SUM(o_totalprice) FILTER (WHERE o_orderstatus = 'F')` | USD |
+| `t7d_customers` | `COUNT(DISTINCT o_custkey)` trailing 7-day window | compact number |
 
 ## Lakeview dashboard
 
 Three pages backed by `MEASURE()` queries against `v_tpch`:
 
-- **Overview** — Net Revenue, Total Orders, Avg Order Value counters; monthly revenue trend (area chart); revenue by segment (bar) and by priority (pie)
-- **Logistics & Geography** — revenue and discount by ship mode (bar charts); revenue by region/nation (table)
-- **Top Customers** — top 20 customers by net revenue (table); revenue by segment for those customers (bar)
+- **Overview** — Total Revenue, Total Orders, Avg Order Value counters; monthly revenue trend (area chart); revenue by market segment (bar) and by priority (pie)
+- **Order Analysis** — Revenue and count by order status (bar + pie); revenue by country (table); unique customers counter
+- **Top Customers** — Top 20 customers by total revenue (table with segment, country, avg order value); revenue by segment for those customers (bar)
 
 ## Genie Space
 
-Pre-seeded with 10 curated questions and instructions tuned to the TPCH domain. The single `v_tpch` metric view is registered as the table source — Genie uses its `display_name` and `synonyms` metadata for semantic resolution.
+Pre-seeded with 10 curated questions and instructions tuned to the TPCH domain. The `v_tpch` metric view is registered as the table source — Genie uses its `display_name` and `synonyms` metadata for semantic resolution.
 
 Example questions:
-- "What is the total net revenue?"
+- "What is the total revenue?"
 - "Which market segment generates the most revenue?"
-- "Which shipping mode has the highest average discount?"
+- "What is the revenue split between open, processing, and fulfilled orders?"
 
-## Why the setup job is still needed
+## Why the setup job is needed
 
-DAB does not yet support `metric_views` as a native resource type. The setup job runs `src/sql/setup_metric_views.sql` against the warehouse, which executes a `CREATE OR REPLACE METRIC VIEW` statement with the `v_tpch.yml` definition inlined via Jinja2. When Databricks adds native DAB support, the job can be removed and `resources/metric_views/v_tpch.yml` will deploy directly.
+DAB does not yet support `metric_views` as a native resource type. The setup job runs `src/sql/setup_metric_views.sql` against the warehouse, which executes a `CREATE OR REPLACE METRIC VIEW` statement with the full YAML definition inlined as a SQL heredoc. When Databricks adds native DAB support, the job and SQL file can be removed.
 
 ## Requirements
 
 - Databricks CLI v1.3.0+ (required for Genie Space bundle support)
-- Direct deployment engine enabled (default for new bundles with CLI v1.3.0+)
 - Unity Catalog enabled in your workspace
 - Access to `samples.tpch` (built-in Databricks sample data)
 
