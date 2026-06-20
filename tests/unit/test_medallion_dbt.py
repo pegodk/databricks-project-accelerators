@@ -61,7 +61,7 @@ def test_medallion_dbt_scaffold_renders_dbt_project(tmp_path: Path):
     assert "bronze_dev" in content
     assert "silver_dev" in content
     assert "gold_dev" in content
-    assert "tpch_model" in content
+    assert "tpch_dbt" in content
 
 
 def test_medallion_dbt_scaffold_renders_bundle_variables(tmp_path: Path):
@@ -76,7 +76,7 @@ def test_medallion_dbt_scaffold_renders_bundle_variables(tmp_path: Path):
     assert "bronze_dev" in bundle
     assert "silver_dev" in bundle
     assert "gold_dev" in bundle
-    assert "tpch_model" in bundle
+    assert "tpch_dbt" in bundle
 
 
 def test_medallion_dbt_scaffold_renders_serverless_env(tmp_path: Path):

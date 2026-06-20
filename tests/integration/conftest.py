@@ -10,7 +10,9 @@ from typing import Generator
 
 import pytest
 
-_CATALOG = "main"
+_BRONZE_CATALOG = "bronze_dev"
+_SILVER_CATALOG = "silver_dev"
+_GOLD_CATALOG = "gold_dev"
 _BUNDLE_PREFIX = "dpa"
 
 
@@ -46,9 +48,27 @@ def patch_databricks_yml(project_dir: Path, project_slug: str, host: str) -> Non
 def _bundle_vars(accelerator_name: str) -> list[str]:
     if accelerator_name == "medallion-sdp":
         return [
-            "--var", f"bronze_catalog={_CATALOG}",
-            "--var", f"silver_catalog={_CATALOG}",
-            "--var", f"gold_catalog={_CATALOG}",
+            "--var", f"bronze_catalog={_BRONZE_CATALOG}",
+            "--var", f"silver_catalog={_SILVER_CATALOG}",
+            "--var", f"gold_catalog={_GOLD_CATALOG}",
+        ]
+    if accelerator_name == "medallion-spark":
+        return [
+            "--var", f"bronze_catalog={_BRONZE_CATALOG}",
+            "--var", f"silver_catalog={_SILVER_CATALOG}",
+            "--var", f"gold_catalog={_GOLD_CATALOG}",
+            "--var", "bronze_schema=tpch_spark",
+            "--var", "silver_schema=tpch_spark",
+            "--var", "gold_schema=tpch_model_spark",
+        ]
+    if accelerator_name == "medallion-dbt":
+        return [
+            "--var", f"bronze_catalog={_BRONZE_CATALOG}",
+            "--var", f"silver_catalog={_SILVER_CATALOG}",
+            "--var", f"gold_catalog={_GOLD_CATALOG}",
+            "--var", "bronze_schema=tpch_dbt",
+            "--var", "silver_schema=tpch_dbt",
+            "--var", "gold_schema=tpch_model_dbt",
         ]
     return []
 
@@ -85,6 +105,13 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     patch_databricks_yml(project_dir, acc.project_slug, host)
 
     vars_ = _bundle_vars(accelerator_name)
+
+    # Destroy any leftover deployment from a previous failed run (idempotent).
+    subprocess.run(
+        [cli, "bundle", "destroy", "--target", "dev", "--auto-approve"] + vars_,
+        cwd=project_dir,
+        check=False,
+    )
 
     subprocess.run(
         [cli, "bundle", "deploy", "--target", "dev"] + vars_,
