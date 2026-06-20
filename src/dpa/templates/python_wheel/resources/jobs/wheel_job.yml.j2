@@ -3,15 +3,19 @@ resources:
   jobs:
     {{ slug }}_wheel:
       name: "dpa-{{ project_slug }}"
+      queue:
+        enabled: true
+      performance_target: STANDARD
       environments:
-        - environment_key: default
+        - environment_key: Default
           spec:
-            client: "1"
+            environment_version: "5"
       tasks:
         - task_key: build_and_upload
-          environment_key: default
+          environment_key: Default
           notebook_task:
             notebook_path: ${workspace.file_path}/notebooks/build_and_upload.py
+            source: WORKSPACE
             base_parameters:
               workspace_file_path: ${workspace.file_path}
               catalog: ${var.catalog}
@@ -20,9 +24,10 @@ resources:
         - task_key: verify_imports
           depends_on:
             - task_key: build_and_upload
-          environment_key: default
+          environment_key: Default
           notebook_task:
             notebook_path: ${workspace.file_path}/notebooks/verify_imports.py
+            source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}

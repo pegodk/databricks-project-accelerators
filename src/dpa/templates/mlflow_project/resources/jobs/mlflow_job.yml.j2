@@ -3,18 +3,22 @@ resources:
   jobs:
     {{ slug }}_pipeline:
       name: "dpa-{{ project_slug }}"
+      queue:
+        enabled: true
+      performance_target: STANDARD
       environments:
-        - environment_key: default
+        - environment_key: Default
           spec:
-            client: "1"
+            environment_version: "5"
             dependencies:
               - scikit-learn
               - mlflow
       tasks:
         - task_key: train
-          environment_key: default
+          environment_key: Default
           notebook_task:
             notebook_path: ${workspace.file_path}/notebooks/train.py
+            source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}
@@ -24,9 +28,10 @@ resources:
         - task_key: register
           depends_on:
             - task_key: train
-          environment_key: default
+          environment_key: Default
           notebook_task:
             notebook_path: ${workspace.file_path}/notebooks/register.py
+            source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}
@@ -36,9 +41,10 @@ resources:
         - task_key: score
           depends_on:
             - task_key: register
-          environment_key: default
+          environment_key: Default
           notebook_task:
             notebook_path: ${workspace.file_path}/notebooks/score.py
+            source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}

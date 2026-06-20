@@ -3,15 +3,18 @@ resources:
   jobs:
     {{ slug }}_job:
       name: "dpa-{{ project_slug }}"
+      queue:
+        enabled: true
+      performance_target: STANDARD
       environments:
-        - environment_key: default
+        - environment_key: Default
           spec:
-            client: "1"
+            environment_version: "5"
             dependencies:
               - "dbt-databricks>=1.8.0,<2.0.0"
       tasks:
         - task_key: dbt_run
-          environment_key: default
+          environment_key: Default
           dbt_task:
             project_directory: "${workspace.file_path}"
             source: WORKSPACE
