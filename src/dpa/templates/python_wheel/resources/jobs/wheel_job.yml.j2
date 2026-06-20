@@ -1,0 +1,31 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  jobs:
+    {{ slug }}_wheel:
+      name: "[${bundle.target}] {{ project_slug }} — Build & Verify Wheel"
+      job_clusters:
+        - job_cluster_key: default_cluster
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            node_type_id: ${var.node_type_id}
+            num_workers: 1
+            data_security_mode: SINGLE_USER
+      tasks:
+        - task_key: build_and_upload
+          job_cluster_key: default_cluster
+          notebook_task:
+            notebook_path: ${workspace.file_path}/notebooks/build_and_upload.py
+            base_parameters:
+              workspace_file_path: ${workspace.file_path}
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+
+        - task_key: verify_imports
+          depends_on:
+            - task_key: build_and_upload
+          job_cluster_key: default_cluster
+          notebook_task:
+            notebook_path: ${workspace.file_path}/notebooks/verify_imports.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}

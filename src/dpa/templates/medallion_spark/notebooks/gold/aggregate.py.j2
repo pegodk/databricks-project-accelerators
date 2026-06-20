@@ -1,0 +1,79 @@
+# Databricks notebook source
+# MAGIC %md
+# MAGIC # Gold — Business Aggregates
+# MAGIC
+# MAGIC Streams from the silver enriched orders table and writes two pre-aggregated summary
+# MAGIC tables to the gold catalog.
+# MAGIC
+# MAGIC **Source:** `${var.silver_catalog}.${var.schema}.orders_enriched`
+# MAGIC **Target:** `${var.gold_catalog}.${var.schema}`
+# MAGIC
+# MAGIC | Table | Grain | Key measures |
+# MAGIC |---|---|---|
+# MAGIC | `sales_summary` | order_month × market_segment × region | revenue, order count, unique customers |
+# MAGIC | `customer_summary` | customer_name | lifetime revenue, order count, avg order value |
+
+# COMMAND ----------
+
+dbutils.widgets.text("silver_catalog", "{{ cfg.silver_catalog }}")
+dbutils.widgets.text("gold_catalog", "{{ cfg.gold_catalog }}")
+dbutils.widgets.text("schema", "{{ cfg.schema }}")
+
+silver_catalog = dbutils.widgets.get("silver_catalog")
+gold_catalog = dbutils.widgets.get("gold_catalog")
+schema = dbutils.widgets.get("schema")
+checkpoint_base = f"dbfs:/checkpoints/{gold_catalog}/{schema}"
+source_table = f"{silver_catalog}.{schema}.orders_enriched"
+
+# COMMAND ----------
+
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS {gold_catalog}.{schema}")
+
+# COMMAND ----------
+
+from pyspark.sql import functions as F
+
+# Monthly sales summary by market segment and region
+(
+    spark.readStream
+    .format("delta")
+    .table(source_table)
+    .groupBy("order_month", "market_segment", "region")
+    .agg(
+        F.sum("total_price").alias("total_revenue"),
+        F.count("order_key").alias("order_count"),
+        F.countDistinct("customer_name").alias("unique_customers"),
+        F.avg("total_price").alias("avg_order_value"),
+    )
+    .writeStream
+    .format("delta")
+    .outputMode("complete")
+    .option("checkpointLocation", f"{checkpoint_base}/sales_summary")
+    .trigger(availableNow=True)
+    .toTable(f"{gold_catalog}.{schema}.sales_summary")
+    .awaitTermination()
+)
+
+# COMMAND ----------
+
+# Customer lifetime value summary
+(
+    spark.readStream
+    .format("delta")
+    .table(source_table)
+    .groupBy("customer_name", "market_segment", "nation", "region")
+    .agg(
+        F.sum("total_price").alias("lifetime_revenue"),
+        F.count("order_key").alias("order_count"),
+        F.avg("total_price").alias("avg_order_value"),
+        F.min("order_date").alias("first_order_date"),
+        F.max("order_date").alias("last_order_date"),
+    )
+    .writeStream
+    .format("delta")
+    .outputMode("complete")
+    .option("checkpointLocation", f"{checkpoint_base}/customer_summary")
+    .trigger(availableNow=True)
+    .toTable(f"{gold_catalog}.{schema}.customer_summary")
+    .awaitTermination()
+)

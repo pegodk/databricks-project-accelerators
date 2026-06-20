@@ -40,6 +40,8 @@ nav:
   - Getting Started: getting-started.md
   - Accelerators:
       - Medallion SDP: accelerators/medallion-sdp.md
+      - Medallion Spark: accelerators/medallion-spark.md
+      - Python Wheel: accelerators/python-wheel.md
       - AI/BI: accelerators/ai-bi.md
   - API Reference:
       - Accelerators: api/accelerators.md

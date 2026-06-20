@@ -4,20 +4,29 @@
 
 A CLI tool that scaffolds production-ready Databricks solutions via Jinja2 templates and Databricks Asset Bundles.
 
-## Features
+## Quickstart
 
-- Scaffold complete Databricks projects in seconds
-- Medallion architecture (Bronze → Silver → Gold) out of the box
-- Delta Live Tables pipeline templates
-- Streamlit apps hosted on Databricks
-- Lakeview dashboards with SQL metric views
-- Databricks Asset Bundle compatible
-
-## Quick Start
+Open an empty folder in VS Code, then run in the terminal:
 
 ```bash
 pip install databricks-project-accelerators
-dpa init medallion-sdp --output ./my-project
+
+dpa list                    # browse available accelerators
+dpa init medallion-spark    # scaffold a project
+
+cd medallion-spark
+databricks bundle deploy    # deploy to your workspace
+databricks bundle run medallion_spark_medallion
 ```
 
-See [Getting Started](getting-started.md) for a full walkthrough.
+## Available accelerators
+
+| Accelerator | What you get |
+|---|---|
+| [`medallion-sdp`](accelerators/medallion-sdp.md) | Delta Live Tables pipeline — bronze/silver/gold with a scheduled DAB job |
+| [`medallion-spark`](accelerators/medallion-spark.md) | Spark Structured Streaming notebooks — bronze ingestion, silver joins, gold aggregates |
+| [`python-wheel`](accelerators/python-wheel.md) | Python package with a build-and-upload job and an import verification notebook |
+| [`app-streamlit`](accelerators/medallion-sdp.md) | Streamlit app hosted on Databricks, wired to a SQL warehouse |
+| [`ai-bi`](accelerators/ai-bi.md) | Lakeview dashboard + Genie Space with a metric view over the TPCH sample dataset |
+
+See [Getting Started](getting-started.md) for a full walkthrough including authentication, environment targeting, and variable overrides.

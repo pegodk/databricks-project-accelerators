@@ -1,0 +1,39 @@
+bundle:
+  name: {{ project_slug }}
+  deployment:
+    lock:
+      enabled: false
+
+variables:
+  bronze_catalog:
+    default: {{ cfg.bronze_catalog }}
+    description: Catalog for raw ingested data
+  silver_catalog:
+    default: {{ cfg.silver_catalog }}
+    description: Catalog for cleansed and enriched data
+  gold_catalog:
+    default: {{ cfg.gold_catalog }}
+    description: Catalog for business-level aggregates
+  schema:
+    default: {{ cfg.schema }}
+    description: Schema name used across all three catalogs
+  node_type_id:
+    default: {{ cfg.node_type_id }}
+    description: "VM size (Standard_DS3_v2 for Azure, i3.xlarge for AWS, n2-highmem-4 for GCP)"
+
+include:
+  - resources/jobs/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
+    variables:
+      bronze_catalog: {{ cfg.bronze_catalog }}
+      silver_catalog: {{ cfg.silver_catalog }}
+      gold_catalog: {{ cfg.gold_catalog }}
+  prod:
+    mode: production
+    permissions:
+      - level: CAN_VIEW
+        group_name: users

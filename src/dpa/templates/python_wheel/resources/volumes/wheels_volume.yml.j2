@@ -1,0 +1,12 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  schemas:
+    {{ slug }}_schema:
+      catalog_name: ${var.catalog}
+      name: ${var.schema}
+  volumes:
+    {{ slug }}_wheels:
+      catalog_name: ${var.catalog}
+      schema_name: ${var.schema}
+      name: wheels
+      volume_type: MANAGED

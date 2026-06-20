@@ -1,0 +1,43 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  jobs:
+    {{ slug }}_medallion:
+      name: "[${bundle.target}] {{ project_slug }} — Medallion Pipeline"
+      job_clusters:
+        - job_cluster_key: medallion_cluster
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            node_type_id: ${var.node_type_id}
+            num_workers: 2
+            data_security_mode: SINGLE_USER
+            runtime_engine: PHOTON
+      tasks:
+        - task_key: bronze_ingest
+          job_cluster_key: medallion_cluster
+          notebook_task:
+            notebook_path: ${workspace.file_path}/notebooks/bronze/ingest.py
+            base_parameters:
+              bronze_catalog: ${var.bronze_catalog}
+              schema: ${var.schema}
+
+        - task_key: silver_transform
+          depends_on:
+            - task_key: bronze_ingest
+          job_cluster_key: medallion_cluster
+          notebook_task:
+            notebook_path: ${workspace.file_path}/notebooks/silver/transform.py
+            base_parameters:
+              bronze_catalog: ${var.bronze_catalog}
+              silver_catalog: ${var.silver_catalog}
+              schema: ${var.schema}
+
+        - task_key: gold_aggregate
+          depends_on:
+            - task_key: silver_transform
+          job_cluster_key: medallion_cluster
+          notebook_task:
+            notebook_path: ${workspace.file_path}/notebooks/gold/aggregate.py
+            base_parameters:
+              silver_catalog: ${var.silver_catalog}
+              gold_catalog: ${var.gold_catalog}
+              schema: ${var.schema}

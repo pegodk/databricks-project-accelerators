@@ -1,0 +1,30 @@
+bundle:
+  name: {{ project_slug }}
+  deployment:
+    lock:
+      enabled: false
+
+variables:
+  catalog:
+    default: {{ cfg.catalog }}
+    description: Unity Catalog catalog for the wheel volume
+  schema:
+    default: {{ cfg.schema }}
+    description: Schema for the wheel volume
+  node_type_id:
+    default: {{ cfg.node_type_id }}
+    description: "VM size (Standard_DS3_v2 for Azure, i3.xlarge for AWS, n2-highmem-4 for GCP)"
+
+include:
+  - resources/jobs/*.yml
+  - resources/volumes/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
+  prod:
+    mode: production
+    permissions:
+      - level: CAN_VIEW
+        group_name: users
