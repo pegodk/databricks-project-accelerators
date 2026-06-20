@@ -100,7 +100,7 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     vars_ = _bundle_vars(accelerator_name)
 
     subprocess.run(
-        [cli, "bundle", "deploy", "--target", "dev"] + vars_,
+        [cli, "bundle", "deploy", "--target", "dev", "--auto-approve"] + vars_,
         cwd=project_dir,
         check=True,
     )
