@@ -10,19 +10,19 @@ resources:
       tasks:
         - task_key: build_and_upload
           environment_key: default
-          spark_python_task:
-            python_file: ${workspace.file_path}/notebooks/build_and_upload.py
-            parameters:
-              - ${workspace.file_path}
-              - ${var.catalog}
-              - ${var.schema}
+          notebook_task:
+            notebook_path: ${workspace.file_path}/notebooks/build_and_upload.py
+            base_parameters:
+              workspace_file_path: ${workspace.file_path}
+              catalog: ${var.catalog}
+              schema: ${var.schema}
 
         - task_key: verify_imports
           depends_on:
             - task_key: build_and_upload
           environment_key: default
-          spark_python_task:
-            python_file: ${workspace.file_path}/notebooks/verify_imports.py
-            parameters:
-              - ${var.catalog}
-              - ${var.schema}
+          notebook_task:
+            notebook_path: ${workspace.file_path}/notebooks/verify_imports.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
