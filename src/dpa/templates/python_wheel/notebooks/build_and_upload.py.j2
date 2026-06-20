@@ -13,6 +13,9 @@ dbutils.widgets.text("schema", "{{ cfg.schema }}")
 workspace_file_path = dbutils.widgets.get("workspace_file_path")
 catalog = dbutils.widgets.get("catalog")
 schema = dbutils.widgets.get("schema")
+
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
+spark.sql(f"CREATE VOLUME IF NOT EXISTS {catalog}.{schema}.wheels")
 volume_path = f"/Volumes/{catalog}/{schema}/wheels"
 
 # COMMAND ----------

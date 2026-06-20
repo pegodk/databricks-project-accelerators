@@ -85,7 +85,12 @@ with mlflow.start_run() as run:
     mlflow.log_metrics(metrics)
 
     signature = mlflow.models.infer_signature(X_train, pipeline.predict(X_train))
-    mlflow.sklearn.log_model(pipeline, "model", signature=signature)
+    mlflow.sklearn.log_model(
+        pipeline,
+        "model",
+        signature=signature,
+        skops_trusted_types=["sklearn.compose._column_transformer._RemainderColsList"],
+    )
 
     print(f"Run ID : {run.info.run_id}")
     print(f"RMSE   : {metrics['rmse']:>12,.0f}")

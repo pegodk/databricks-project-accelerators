@@ -19,11 +19,9 @@ bronze_catalog = dbutils.widgets.get("bronze_catalog")
 silver_catalog = dbutils.widgets.get("silver_catalog")
 bronze_schema = dbutils.widgets.get("bronze_schema")
 silver_schema = dbutils.widgets.get("silver_schema")
-checkpoint_base = f"dbfs:/checkpoints/{silver_catalog}/{silver_schema}"
-
-# COMMAND ----------
-
 spark.sql(f"CREATE SCHEMA IF NOT EXISTS {silver_catalog}.{silver_schema}")
+spark.sql(f"CREATE VOLUME IF NOT EXISTS {silver_catalog}.{silver_schema}.streaming_checkpoints")
+checkpoint_base = f"/Volumes/{silver_catalog}/{silver_schema}/streaming_checkpoints"
 
 # COMMAND ----------
 

@@ -22,7 +22,6 @@ def test_python_wheel_list_files():
     assert "databricks.yml" in files
     assert "pyproject.toml" in files
     assert "resources/jobs/wheel_job.yml" in files
-    assert "resources/volumes/wheels_volume.yml" in files
     assert "notebooks/build_and_upload.py" in files
     assert "notebooks/verify_imports.py" in files
     assert "src/python_wheel/__init__.py" in files
@@ -39,7 +38,6 @@ def test_python_wheel_scaffold(tmp_path: Path):
     assert (project_dir / "databricks.yml").exists()
     assert (project_dir / "pyproject.toml").exists()
     assert (project_dir / "resources" / "jobs" / "wheel_job.yml").exists()
-    assert (project_dir / "resources" / "volumes" / "wheels_volume.yml").exists()
     assert (project_dir / "notebooks" / "build_and_upload.py").exists()
     assert (project_dir / "notebooks" / "verify_imports.py").exists()
     assert (project_dir / "src" / "python_wheel" / "__init__.py").exists()

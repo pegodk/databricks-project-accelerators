@@ -24,12 +24,10 @@ silver_catalog = dbutils.widgets.get("silver_catalog")
 gold_catalog = dbutils.widgets.get("gold_catalog")
 silver_schema = dbutils.widgets.get("silver_schema")
 gold_schema = dbutils.widgets.get("gold_schema")
-checkpoint_base = f"dbfs:/checkpoints/{gold_catalog}/{gold_schema}"
 source_table = f"{silver_catalog}.{silver_schema}.orders_enriched"
-
-# COMMAND ----------
-
 spark.sql(f"CREATE SCHEMA IF NOT EXISTS {gold_catalog}.{gold_schema}")
+spark.sql(f"CREATE VOLUME IF NOT EXISTS {gold_catalog}.{gold_schema}.streaming_checkpoints")
+checkpoint_base = f"/Volumes/{gold_catalog}/{gold_schema}/streaming_checkpoints"
 
 # COMMAND ----------
 

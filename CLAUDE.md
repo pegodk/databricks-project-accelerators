@@ -85,6 +85,20 @@ Add the page to the `nav` in `mkdocs.yml` under the Accelerators section.
 
 ---
 
+## Code quality — no technical debt
+
+**Delete, don't stub.** If a file is no longer referenced or has been superseded, delete it and its directory. Never leave placeholder files with only comments or empty resource blocks (`resources: {}`). If a file has no content that matters, it has no reason to exist.
+
+**Remove before adding.** When refactoring a feature (e.g. moving logic from a DAB resource file into a notebook), remove the old file in the same change. Do not leave both.
+
+**Keep tests in sync.** Whenever a template file is added or removed, update the corresponding unit test assertions (`list_files`, `scaffold`, render tests) in the same commit. Stale test assertions that check for non-existent files, or missing assertions for new files, are both bugs.
+
+**No dead config keys.** If a `default_config` key is removed from an accelerator, remove it from the template, the `databricks.yml.j2` variables block, the job `base_parameters`, and any notebook widget defaults in the same change.
+
+**Consistent catalog defaults.** All accelerators use `dpa_bronze_dev` / `dpa_silver_dev` / `dpa_gold_dev` (or `dpa_gold_dev` for single-catalog accelerators) as default catalog values. Never use `main` as a default.
+
+---
+
 ## Key conventions
 
 **Template rendering**
