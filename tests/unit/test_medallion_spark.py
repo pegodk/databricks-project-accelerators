@@ -48,9 +48,9 @@ def test_medallion_spark_scaffold_renders_catalogs(tmp_path: Path):
     acc.scaffold(target=project_dir)
 
     bundle = (project_dir / "databricks.yml").read_text()
-    assert "bronze_dev" in bundle
-    assert "silver_dev" in bundle
-    assert "gold_dev" in bundle
+    assert "dpa_bronze_dev" in bundle
+    assert "dpa_silver_dev" in bundle
+    assert "dpa_gold_dev" in bundle
 
 
 def test_medallion_spark_scaffold_renders_bronze_notebook(tmp_path: Path):
@@ -63,7 +63,7 @@ def test_medallion_spark_scaffold_renders_bronze_notebook(tmp_path: Path):
     nb = (project_dir / "notebooks" / "bronze" / "ingest.py").read_text()
     assert "# Databricks notebook source" in nb
     assert "samples.tpch" in nb
-    assert "bronze_dev" in nb
+    assert "dpa_bronze_dev" in nb
     assert "trigger(availableNow=True)" in nb
     assert "readStream" in nb
 

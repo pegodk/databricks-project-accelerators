@@ -58,9 +58,9 @@ def test_medallion_dbt_scaffold_renders_dbt_project(tmp_path: Path):
     content = (project_dir / "dbt_project.yml").read_text()
     assert "medallion_dbt" in content
     assert "+database" in content
-    assert "bronze_dev" in content
-    assert "silver_dev" in content
-    assert "gold_dev" in content
+    assert "dpa_bronze_dev" in content
+    assert "dpa_silver_dev" in content
+    assert "dpa_gold_dev" in content
     assert "tpch_dbt" in content
 
 
@@ -73,9 +73,9 @@ def test_medallion_dbt_scaffold_renders_bundle_variables(tmp_path: Path):
 
     bundle = (project_dir / "databricks.yml").read_text()
     assert "medallion-dbt" in bundle
-    assert "bronze_dev" in bundle
-    assert "silver_dev" in bundle
-    assert "gold_dev" in bundle
+    assert "dpa_bronze_dev" in bundle
+    assert "dpa_silver_dev" in bundle
+    assert "dpa_gold_dev" in bundle
     assert "tpch_dbt" in bundle
 
 

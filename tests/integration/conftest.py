@@ -10,9 +10,9 @@ from typing import Generator
 
 import pytest
 
-_BRONZE_CATALOG = "bronze_dev"
-_SILVER_CATALOG = "silver_dev"
-_GOLD_CATALOG = "gold_dev"
+_BRONZE_CATALOG = "dpa_bronze_dev"
+_SILVER_CATALOG = "dpa_silver_dev"
+_GOLD_CATALOG = "dpa_gold_dev"
 _BUNDLE_PREFIX = "dpa"
 
 

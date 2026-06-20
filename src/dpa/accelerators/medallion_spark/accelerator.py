@@ -12,9 +12,9 @@ class MedallionSparkAccelerator(BaseAccelerator):
     name = "medallion-spark"
     description = "Medallion architecture (bronze/silver/gold) using Spark Structured Streaming notebooks over TPCH"
     default_config: dict[str, Any] = {
-        "bronze_catalog": "bronze_dev",
-        "silver_catalog": "silver_dev",
-        "gold_catalog": "gold_dev",
+        "bronze_catalog": "dpa_bronze_dev",
+        "silver_catalog": "dpa_silver_dev",
+        "gold_catalog": "dpa_gold_dev",
         "bronze_schema": "tpch_spark",
         "silver_schema": "tpch_spark",
         "gold_schema": "tpch_spark",
