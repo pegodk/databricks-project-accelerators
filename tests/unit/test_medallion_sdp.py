@@ -20,15 +20,18 @@ def test_medallion_sdp_list_files():
     files = [str(f).replace("\\", "/") for f in acc.list_files()]
 
     assert "databricks.yml" in files
-    assert "pyproject.toml" in files
     assert "resources/pipelines/pipeline.yml" in files
     assert "resources/schemas/schemas.yml" in files
     assert "resources/jobs/trigger_job.yml" in files
-    assert any("synthetic_data_source" in f for f in files)
-    assert any("dim_entity" in f for f in files)
-    assert any("fact_events" in f for f in files)
-    assert "src/pipelines/main/metadata/bronze/tables.py" in files
-    assert "src/pipelines/main/metadata/silver/tables.py" in files
+    assert "src/pipelines/bronze/ingest.py" in files
+    assert "src/pipelines/silver/tpch_customer.py" in files
+    assert "src/pipelines/silver/tpch_orders.py" in files
+    assert "src/pipelines/silver/tpch_lineitem.py" in files
+    assert "src/pipelines/gold/tpch_dim_customer.py" in files
+    assert "src/pipelines/gold/tpch_dim_part.py" in files
+    assert "src/pipelines/gold/tpch_dim_supplier.py" in files
+    assert "src/pipelines/gold/tpch_fact_order.py" in files
+    assert not any("src_example" in f for f in files)
 
 
 def test_medallion_sdp_scaffold(tmp_path: Path):
@@ -39,19 +42,18 @@ def test_medallion_sdp_scaffold(tmp_path: Path):
     acc.scaffold(target=project_dir)
 
     assert (project_dir / "databricks.yml").exists()
-    assert (project_dir / "pyproject.toml").exists()
     assert (project_dir / "resources" / "pipelines" / "pipeline.yml").exists()
     assert (project_dir / "resources" / "schemas" / "schemas.yml").exists()
     assert (project_dir / "resources" / "jobs" / "trigger_job.yml").exists()
-    assert (project_dir / "src" / "framework" / "config.py").exists()
-    assert (project_dir / "src" / "framework" / "dlt.py").exists()
-    assert (project_dir / "src" / "pipelines" / "main" / "metadata" / "bronze" / "tables.py").exists()
-    assert (project_dir / "src" / "pipelines" / "main" / "metadata" / "silver" / "tables.py").exists()
-    assert (project_dir / "src" / "pipelines" / "main" / "data_sources" / "synthetic_data_source.py").exists()
-    assert (project_dir / "src" / "pipelines" / "main" / "transformations" / "bronze" / "ingest_tables.py").exists()
-    assert (project_dir / "src" / "pipelines" / "main" / "transformations" / "silver" / "clean_tables.py").exists()
-    assert (project_dir / "src" / "pipelines" / "main" / "transformations" / "gold" / "dim_entity.py").exists()
-    assert (project_dir / "src" / "pipelines" / "main" / "transformations" / "gold" / "fact_events.py").exists()
+    assert (project_dir / "src" / "pipelines" / "bronze" / "ingest.py").exists()
+    assert (project_dir / "src" / "pipelines" / "silver" / "tpch_customer.py").exists()
+    assert (project_dir / "src" / "pipelines" / "silver" / "tpch_orders.py").exists()
+    assert (project_dir / "src" / "pipelines" / "silver" / "tpch_lineitem.py").exists()
+    assert (project_dir / "src" / "pipelines" / "gold" / "tpch_dim_customer.py").exists()
+    assert (project_dir / "src" / "pipelines" / "gold" / "tpch_dim_part.py").exists()
+    assert (project_dir / "src" / "pipelines" / "gold" / "tpch_dim_supplier.py").exists()
+    assert (project_dir / "src" / "pipelines" / "gold" / "tpch_fact_order.py").exists()
+    assert not (project_dir / "src_example").exists()
 
 
 def test_medallion_sdp_scaffold_renders_project_slug(tmp_path: Path):
@@ -64,47 +66,84 @@ def test_medallion_sdp_scaffold_renders_project_slug(tmp_path: Path):
     assert "medallion-sdp" in content
 
 
-def test_medallion_sdp_scaffold_renders_bronze_metadata(tmp_path: Path):
+def test_medallion_sdp_scaffold_renders_pipeline_config(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("medallion-sdp")()
     acc.scaffold(target=tmp_path / acc.project_slug)
 
-    bronze_py = (
-        tmp_path / acc.project_slug / "src" / "pipelines" / "main" / "metadata" / "bronze" / "tables.py"
-    ).read_text()
-    assert "events" in bronze_py
-    assert "entities" in bronze_py
-    assert "records" in bronze_py
-    assert "SyntheticDataSource" in bronze_py
+    pipeline = (tmp_path / acc.project_slug / "resources" / "pipelines" / "pipeline.yml").read_text()
+    assert "src/pipelines/**" in pipeline
+    assert "bronze_catalog" in pipeline
+    assert "silver_catalog" in pipeline
+    assert "gold_catalog" in pipeline
+    assert "bronze_schema" in pipeline
+    assert "gold_schema" in pipeline
 
 
-def test_medallion_sdp_scaffold_renders_silver_expectations(tmp_path: Path):
+def test_medallion_sdp_scaffold_renders_schemas(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("medallion-sdp")()
     acc.scaffold(target=tmp_path / acc.project_slug)
 
-    silver_py = (
-        tmp_path / acc.project_slug / "src" / "pipelines" / "main" / "metadata" / "silver" / "tables.py"
-    ).read_text()
-    assert "event_id_not_null" in silver_py
-    assert "entity_id_not_null" in silver_py
+    schemas = (tmp_path / acc.project_slug / "resources" / "schemas" / "schemas.yml").read_text()
+    assert "var.bronze_catalog" in schemas
+    assert "var.silver_catalog" in schemas
+    assert "var.gold_catalog" in schemas
+    assert "tpch" in schemas
 
 
-def test_medallion_sdp_scaffold_renders_data_source_class(tmp_path: Path):
+def test_medallion_sdp_scaffold_bronze_uses_streaming(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("medallion-sdp")()
     acc.scaffold(target=tmp_path / acc.project_slug)
 
-    source = (
-        tmp_path / acc.project_slug / "src" / "pipelines" / "main" / "data_sources" / "synthetic_data_source.py"
-    ).read_text()
-    assert "class SyntheticDataSource(DataSource)" in source
-    assert "events" in source
-    assert "entities" in source
-    assert "records" in source
+    ingest = (tmp_path / acc.project_slug / "src" / "pipelines" / "bronze" / "ingest.py").read_text()
+    assert "create_streaming_table" in ingest
+    assert "append_flow" in ingest
+    assert "appendOnly" in ingest
+    assert "readStream" in ingest
+    assert "samples.tpch" in ingest
+
+
+def test_medallion_sdp_scaffold_silver_uses_cdc(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("medallion-sdp")()
+    acc.scaffold(target=tmp_path / acc.project_slug)
+
+    orders = (tmp_path / acc.project_slug / "src" / "pipelines" / "silver" / "tpch_orders.py").read_text()
+    assert "create_streaming_table" in orders
+    assert "create_auto_cdc_from_snapshot_flow" in orders
+    assert "expect_or_drop" in orders
+
+
+def test_medallion_sdp_scaffold_gold_dims_have_surrogate_key(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("medallion-sdp")()
+    acc.scaffold(target=tmp_path / acc.project_slug)
+
+    dim = (tmp_path / acc.project_slug / "src" / "pipelines" / "gold" / "tpch_dim_customer.py").read_text()
+    assert "xxhash64" in dim
+    assert "customer_id" in dim
+    assert "materialized_view" in dim
+
+
+def test_medallion_sdp_scaffold_gold_fact_joins_dims(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("medallion-sdp")()
+    acc.scaffold(target=tmp_path / acc.project_slug)
+
+    fact = (tmp_path / acc.project_slug / "src" / "pipelines" / "gold" / "tpch_fact_order.py").read_text()
+    assert "fact_order" in fact
+    assert "datediff" in fact
+    assert "customer_id" in fact
+    assert "part_id" in fact
+    assert "supplier_id" in fact
 
 
 def test_medallion_sdp_scaffold_no_overwrite_without_force(tmp_path: Path):

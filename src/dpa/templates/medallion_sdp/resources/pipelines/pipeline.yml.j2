@@ -10,7 +10,7 @@ resources:
       channel: CURRENT
       libraries:
         - glob:
-            include: ${workspace.file_path}/src/pipelines/{{ cfg.pipeline_name }}/**
+            include: ${workspace.file_path}/src/pipelines/**
       configuration:
         bronze_catalog: ${var.bronze_catalog}
         bronze_schema: ${resources.schemas.{{ slug }}_bronze.name}
