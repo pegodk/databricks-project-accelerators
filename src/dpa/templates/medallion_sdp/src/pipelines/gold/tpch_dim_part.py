@@ -7,9 +7,13 @@ gold_schema    = spark.conf.get("gold_schema")
 silver_schema  = spark.conf.get("silver_schema")
 
 
-@dp.temporary_view()
-def v_tpch_dim_part():
-    return spark.sql(f"""
+@dp.materialized_view(
+    name=f"{gold_catalog}.{gold_schema}.dim_part",
+    cluster_by=["part_key"],
+    comment="Gold Dimension: dim_part",
+)
+def tpch_dim_part():
+    df = spark.sql(f"""
         SELECT
           p_partkey       AS part_key,
           p_name          AS part_name,
@@ -22,27 +26,4 @@ def v_tpch_dim_part():
           p_comment       AS part_comment
         FROM {silver_catalog}.{silver_schema}.part
     """.strip())
-
-
-dp.create_streaming_table(
-    name=f"{gold_catalog}.{gold_schema}.dim_part_cdc",
-    cluster_by=["part_key"],
-    comment="Gold Dimension CDC: dim_part",
-)
-
-dp.create_auto_cdc_from_snapshot_flow(
-    target=f"{gold_catalog}.{gold_schema}.dim_part_cdc",
-    source="v_tpch_dim_part",
-    keys=["part_key"],
-    stored_as_scd_type=1,
-)
-
-
-@dp.materialized_view(
-    name=f"{gold_catalog}.{gold_schema}.dim_part",
-    cluster_by=["part_key"],
-    comment="Gold Dimension: dim_part",
-)
-def tpch_dim_part():
-    base_df = spark.table(f"{gold_catalog}.{gold_schema}.dim_part_cdc")
-    return base_df.select(F.xxhash64(F.col("part_key")).alias("part_id"), "*")
+    return df.select(F.xxhash64(F.col("part_key")).alias("part_id"), "*")

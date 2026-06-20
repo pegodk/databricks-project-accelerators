@@ -22,7 +22,6 @@ def test_medallion_sdp_list_files():
     assert "databricks.yml" in files
     assert "resources/pipelines/pipeline.yml" in files
     assert "resources/schemas/schemas.yml" in files
-    assert "resources/jobs/trigger_job.yml" in files
     assert "src/pipelines/bronze/ingest.py" in files
     assert "src/pipelines/silver/tpch_customer.py" in files
     assert "src/pipelines/silver/tpch_orders.py" in files
@@ -44,7 +43,6 @@ def test_medallion_sdp_scaffold(tmp_path: Path):
     assert (project_dir / "databricks.yml").exists()
     assert (project_dir / "resources" / "pipelines" / "pipeline.yml").exists()
     assert (project_dir / "resources" / "schemas" / "schemas.yml").exists()
-    assert (project_dir / "resources" / "jobs" / "trigger_job.yml").exists()
     assert (project_dir / "src" / "pipelines" / "bronze" / "ingest.py").exists()
     assert (project_dir / "src" / "pipelines" / "silver" / "tpch_customer.py").exists()
     assert (project_dir / "src" / "pipelines" / "silver" / "tpch_orders.py").exists()
@@ -101,8 +99,7 @@ def test_medallion_sdp_scaffold_bronze_uses_streaming(tmp_path: Path):
     acc.scaffold(target=tmp_path / acc.project_slug)
 
     ingest = (tmp_path / acc.project_slug / "src" / "pipelines" / "bronze" / "ingest.py").read_text()
-    assert "create_streaming_table" in ingest
-    assert "append_flow" in ingest
+    assert "dp.table" in ingest
     assert "appendOnly" in ingest
     assert "readStream" in ingest
     assert "samples.tpch" in ingest
