@@ -18,7 +18,7 @@ class AppStreamlitAccelerator(BaseAccelerator):
         "app_name": "app-streamlit",
         "lakebase_project_id": "app-streamlit-lakebase",
         "lakebase_min_cu": 0.5,
-        "lakebase_max_cu": 4.0,
+        "lakebase_max_cu": 0.5,
         "lakebase_pghost": "<set-after-first-deploy>",
         "lakebase_endpoint": "<projects/.../branches/.../endpoints/primary>",
     }
