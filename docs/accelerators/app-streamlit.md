@@ -1,12 +1,12 @@
 # App Streamlit Accelerator
 
-The **App Streamlit** accelerator scaffolds a [Streamlit](https://streamlit.io/) analytics app hosted directly on Databricks, connected to the TPCH sample dataset via a SQL warehouse. No external hosting or infrastructure needed — the app runs inside your Databricks workspace and inherits workspace authentication automatically.
+The **App Streamlit** accelerator scaffolds a [Streamlit](https://streamlit.io/) analytics app hosted directly on Databricks, connected to the TPCH sample dataset via a SQL warehouse and a [Lakebase](https://docs.databricks.com/en/lakebase/index.html) (managed Postgres) instance for master data management. No external hosting or infrastructure needed — the app runs inside your Databricks workspace and inherits workspace authentication automatically.
 
 ## What is a Databricks App?
 
 Databricks Apps is a serverless hosting environment for Python web applications inside your workspace. You deploy code, Databricks handles compute, scaling, and authentication. Users access the app through a workspace URL and are authenticated via their Databricks identity — no separate auth system required.
 
-Streamlit is the Python library used here. It lets you build interactive dashboards with plain Python: write a script, and Streamlit renders charts, tables, filters, and metrics as a web UI. The app connects to a SQL warehouse for data queries, so it benefits from Databricks SQL optimisations (photon, caching, compute scaling) without any extra configuration.
+Streamlit is the Python library used here. It lets you build interactive dashboards with plain Python: write a script, and Streamlit renders charts, tables, filters, and metrics as a web UI.
 
 ## What gets generated
 
@@ -17,31 +17,40 @@ app-streamlit/
 ├── app/
 │   ├── app.py                  # Streamlit application
 │   ├── app.yaml                # Databricks App entrypoint config
-│   └── requirements.txt        # Python dependencies (streamlit, plotly, databricks-sdk)
+│   └── requirements.txt        # Python dependencies
 └── resources/
-    ├── apps/
-    │   └── app.yml             # Databricks App resource definition
-    └── warehouses/
-        └── warehouse.yml       # Serverless SQL warehouse
+    └── apps/
+        └── app.yml             # Databricks App resource definition
 ```
 
 ## What the app shows
 
-Five views backed by queries against `samples.tpch`:
+The app has two tabs.
+
+**Analytics** — five views backed by queries against `samples.tpch` via a SQL warehouse:
 
 - **KPI row** — Total Revenue, Total Orders, Avg Order Value, Unique Customers
 - **Monthly Revenue** — area chart of revenue by month
-- **Revenue by Market Segment** — bar chart across AUTOMOBILE / BUILDING / FURNITURE / HOUSEHOLD / MACHINERY
+- **Revenue by Market Segment** — bar chart across the five TPCH market segments
 - **Orders by Status** — donut chart of Open / Fulfilled / Pending orders
 - **Revenue & Discount by Ship Mode** — grouped bar chart of gross vs. net revenue per shipping mode
 - **Top 20 Customers** — table with customer name, segment, nation, revenue, orders, avg order value
 
 Results are cached for one hour (`@st.cache_data(ttl=3600)`), so repeated page views don't re-query the warehouse.
 
+**Master Data** — an editable table backed by Lakebase (Postgres):
+
+- Loads the top 50 customers from `samples.tpch.customer` and merges with any overrides stored in Lakebase.
+- Users can edit **Display Name** and **Market Segment** inline via `st.data_editor`.
+- Saving upserts changes into a `customer_master` table in Lakebase. The table is created automatically on first load.
+
+This demonstrates using Lakebase as a low-latency transactional layer alongside the analytical SQL warehouse — a pattern common in master data management and operational apps.
+
 ## Requirements
 
 - Unity Catalog enabled in your workspace
-- A SQL warehouse to serve queries (created automatically by the bundle)
+- A SQL warehouse (resolved automatically via the `warehouse_id` variable)
+- A Lakebase instance with connection credentials stored in a Databricks secret scope
 
 ## Usage
 
@@ -50,13 +59,23 @@ dpa init app-streamlit
 cd app-streamlit
 ```
 
-Set your warehouse ID in `databricks.yml`, or let the bundle create one automatically (the default). Deploy:
+Store your Lakebase credentials in a Databricks secret scope (default scope name: `dpa-secrets`):
+
+```bash
+databricks secrets create-scope dpa-secrets
+databricks secrets put-secret dpa-secrets lakebase_host    --string-value <host>
+databricks secrets put-secret dpa-secrets lakebase_database --string-value <database>
+databricks secrets put-secret dpa-secrets lakebase_user    --string-value <user>
+databricks secrets put-secret dpa-secrets lakebase_password --string-value <password>
+```
+
+Deploy:
 
 ```bash
 databricks bundle deploy --target dev
 ```
 
-Find the app URL in the Databricks UI under **Apps → dpa-app-streamlit**. The app is accessible to anyone with workspace access — no additional sharing step needed.
+Find the app URL in the Databricks UI under **Apps → dpa-app-streamlit**.
 
 For production:
 
@@ -68,17 +87,19 @@ databricks bundle deploy --target prod
 
 | Variable | Default | Description |
 |---|---|---|
-| `warehouse_id` | _(auto-created)_ | SQL Warehouse ID to connect the app to. Leave unset to let the bundle create a serverless warehouse. |
+| `warehouse_id` | _(auto-resolved)_ | SQL Warehouse used for TPCH analytics queries. Resolved by name ("Serverless Starter Warehouse") if not set. |
+| `secret_scope` | `dpa-secrets` | Databricks secret scope that holds the Lakebase connection credentials. |
 
 ## Customising the app
 
-The app lives in `app/app.py` — it is a plain Python file. Edit the SQL queries, add new chart types, or introduce Streamlit sidebar filters. The only Databricks-specific part is the connection setup at the top:
+The app lives in `app/app.py`. The Lakebase connection is configured via environment variables injected from the secret scope:
 
 ```python
-HOSTNAME = os.environ.get("DATABRICKS_HOST", "").replace("https://", "")
-HTTP_PATH = os.environ.get("DATABRICKS_HTTP_PATH", "")
+LAKEBASE_HOST     = os.environ.get("LAKEBASE_HOST", "")
+LAKEBASE_PORT     = int(os.environ.get("LAKEBASE_PORT", "5432"))
+LAKEBASE_DATABASE = os.environ.get("LAKEBASE_DATABASE", "")
+LAKEBASE_USER     = os.environ.get("LAKEBASE_USER", "")
+LAKEBASE_PASSWORD = os.environ.get("LAKEBASE_PASSWORD", "")
 ```
-
-`DATABRICKS_HOST` and `DATABRICKS_HTTP_PATH` are injected automatically by the Databricks Apps runtime from the app environment configuration in `resources/apps/app.yml`. You do not need to manage credentials in the app code.
 
 Add Python packages to `app/requirements.txt` and redeploy — the runtime installs them on app startup.
