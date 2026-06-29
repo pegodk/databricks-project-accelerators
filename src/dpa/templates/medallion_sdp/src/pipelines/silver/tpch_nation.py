@@ -1,5 +1,4 @@
 from pyspark import pipelines as dp
-from pyspark.sql import functions as F
 
 silver_catalog = spark.conf.get("silver_catalog")
 bronze_catalog = spark.conf.get("bronze_catalog")
@@ -9,8 +8,12 @@ bronze_schema  = spark.conf.get("bronze_schema")
 
 @dp.expect_or_fail("valid_nation_name", "n_name IS NOT NULL AND LENGTH(n_name) > 0")
 @dp.temporary_view()
-def v_tpch_nation():
-    return spark.read.table(f"{bronze_catalog}.{bronze_schema}.nation")
+def v_nation():
+    return (
+        spark.readStream  # type: ignore[name-defined]  # noqa: F821
+        .format("delta")
+        .table(f"{bronze_catalog}.{bronze_schema}.nation")
+    )
 
 
 dp.create_streaming_table(
@@ -19,9 +22,10 @@ dp.create_streaming_table(
     comment="Silver: nation",
 )
 
-dp.create_auto_cdc_from_snapshot_flow(
+dp.create_auto_cdc_flow(
     target=f"{silver_catalog}.{silver_schema}.nation",
-    source="v_tpch_nation",
+    source="v_nation",
     keys=["n_nationkey"],
+    sequence_by="n_nationkey",  # placeholder: tpch is static reference data with no event sequence
     stored_as_scd_type=1,
 )

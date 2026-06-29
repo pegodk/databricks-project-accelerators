@@ -1,5 +1,4 @@
 from pyspark import pipelines as dp
-from pyspark.sql import functions as F
 
 silver_catalog = spark.conf.get("silver_catalog")
 bronze_catalog = spark.conf.get("bronze_catalog")
@@ -11,8 +10,12 @@ bronze_schema  = spark.conf.get("bronze_schema")
 @dp.expect("reasonable_tax", "l_tax < 0.15")
 @dp.expect("reasonable_discount", "l_discount < 0.10")
 @dp.temporary_view()
-def v_tpch_lineitem():
-    return spark.read.table(f"{bronze_catalog}.{bronze_schema}.lineitem")
+def v_lineitem():
+    return (
+        spark.readStream  # type: ignore[name-defined]  # noqa: F821
+        .format("delta")
+        .table(f"{bronze_catalog}.{bronze_schema}.lineitem")
+    )
 
 
 dp.create_streaming_table(
@@ -21,9 +24,10 @@ dp.create_streaming_table(
     comment="Silver: lineitem",
 )
 
-dp.create_auto_cdc_from_snapshot_flow(
+dp.create_auto_cdc_flow(
     target=f"{silver_catalog}.{silver_schema}.lineitem",
-    source="v_tpch_lineitem",
+    source="v_lineitem",
     keys=["l_orderkey", "l_linenumber"],
+    sequence_by="l_orderkey",  # placeholder: tpch is static reference data with no event sequence
     stored_as_scd_type=1,
 )

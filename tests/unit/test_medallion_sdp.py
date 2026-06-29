@@ -113,7 +113,8 @@ def test_medallion_sdp_scaffold_silver_uses_cdc(tmp_path: Path):
 
     orders = (tmp_path / acc.project_slug / "src" / "pipelines" / "silver" / "tpch_orders.py").read_text()
     assert "create_streaming_table" in orders
-    assert "create_auto_cdc_from_snapshot_flow" in orders
+    assert "create_auto_cdc_flow" in orders
+    assert "sequence_by" in orders
     assert "expect_or_drop" in orders
 
 
