@@ -14,9 +14,13 @@ from tests.integration.conftest import patch_databricks_yml
 
 ACCELERATORS = list(ACCELERATOR_REGISTRY.keys())
 
+# Persistent output directory so scaffolded projects can be inspected locally.
+# Listed in .gitignore.
+_SCAFFOLDED_DIR = Path(__file__).parent / "scaffolded"
+
 
 @pytest.mark.parametrize("accelerator_name", ACCELERATORS)
-def test_bundle_validates(accelerator_name: str, tmp_path: Path) -> None:
+def test_bundle_validates(accelerator_name: str) -> None:
     """Scaffold the project and confirm ``databricks bundle validate`` passes."""
     cli = shutil.which("databricks")
     assert cli is not None
@@ -24,7 +28,10 @@ def test_bundle_validates(accelerator_name: str, tmp_path: Path) -> None:
     from dpa.accelerators import get_accelerator
 
     acc = get_accelerator(accelerator_name)()
-    project_dir = tmp_path / acc.project_slug
+    project_dir = _SCAFFOLDED_DIR / accelerator_name / acc.project_slug
+    if project_dir.exists():
+        shutil.rmtree(project_dir)
+    project_dir.mkdir(parents=True, exist_ok=True)
     acc.scaffold(target=project_dir)
 
     host = os.getenv("DATABRICKS_HOST", "").strip()
