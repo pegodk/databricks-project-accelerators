@@ -40,12 +40,11 @@ nav:
   - Getting Started: getting-started.md
   - Accelerators:
       - Medallion SDP: accelerators/medallion-sdp.md
-      - Custom Spark Lib: accelerators/custom-spark-lib.md
       - Medallion DBT: accelerators/medallion-dbt.md
       - MLflow Project: accelerators/mlflow-project.md
       - Lakebase App: accelerators/lakebase-app.md
+      - Custom Python Wheel: accelerators/custom-python-wheel.md
       - AI/BI: accelerators/ai-bi.md
-      - Python Wheel: accelerators/python-wheel.md
   - API Reference:
       - Accelerators: api/accelerators.md
       - Deploy: api/deploy.md
