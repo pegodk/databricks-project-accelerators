@@ -16,7 +16,7 @@ class LakebaseAppAccelerator(BaseAccelerator):
 
     default_config: dict[str, Any] = {
         "app_name": "lakebase-app",
-        "lakebase_project_id": "lakebase-app-lakebase",
+        "lakebase_project_id": "lakebase-app",
         "lakebase_min_cu": 0.5,
         "lakebase_max_cu": 0.5,
         "lakebase_pghost": "<set-after-first-deploy>",
