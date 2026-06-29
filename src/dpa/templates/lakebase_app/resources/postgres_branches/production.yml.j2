@@ -1,0 +1,9 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  postgres_branches:
+    production:
+      branch_id: production
+      parent: ${resources.postgres_projects.{{ slug }}_lakebase.name}
+      no_expiry: true
+      is_protected: true
+      replace_existing: true

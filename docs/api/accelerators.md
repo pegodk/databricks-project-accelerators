@@ -1,9 +1,15 @@
 # Accelerators API
 
-::: dia.accelerators.base.BaseAccelerator
+::: dpa.accelerators.base.BaseAccelerator
 
-::: dia.accelerators.medallion_sdp.accelerator.MedallionSdpAccelerator
+::: dpa.accelerators.medallion_sdp.accelerator.MedallionSdpAccelerator
 
-::: dia.accelerators.app_streamlit.accelerator.AppStreamlitAccelerator
+::: dpa.accelerators.medallion_dbt.accelerator.MedallionDbtAccelerator
 
-::: dia.accelerators.dashboard.accelerator.DashboardAccelerator
+::: dpa.accelerators.lakebase_app.accelerator.LakebaseAppAccelerator
+
+::: dpa.accelerators.ai_bi.accelerator.AiBiAccelerator
+
+::: dpa.accelerators.mlflow_project.accelerator.MlflowProjectAccelerator
+
+::: dpa.accelerators.custom_python_wheel.accelerator.CustomPythonWheelAccelerator

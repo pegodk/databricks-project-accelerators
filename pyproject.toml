@@ -9,7 +9,21 @@ description = "CLI to scaffold Databricks solutions for industry use cases"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
+authors = [
+    { name = "Peter Gormsen", email = "peter.gormsen@twoday.com" },
+]
 keywords = ["databricks", "delta-live-tables", "medallion", "accelerator"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Utilities",
+]
 dependencies = [
     "typer>=0.12",
     "rich>=13",
@@ -17,6 +31,12 @@ dependencies = [
     "jinja2>=3.1",
     "pyyaml>=6",
 ]
+
+[project.urls]
+Homepage = "https://github.com/pegodk/databricks-project-accelerators"
+Repository = "https://github.com/pegodk/databricks-project-accelerators"
+Documentation = "https://pegodk.github.io/databricks-project-accelerators/"
+"Bug Tracker" = "https://github.com/pegodk/databricks-project-accelerators/issues"
 
 [project.optional-dependencies]
 spark = ["pyspark>=3.5", "faker>=25"]

@@ -12,20 +12,18 @@ if TYPE_CHECKING:
     from dpa.accelerators.base import BaseAccelerator
 
 from dpa.accelerators.ai_bi import AiBiAccelerator
-from dpa.accelerators.app_streamlit import AppStreamlitAccelerator
+from dpa.accelerators.custom_python_wheel import CustomPythonWheelAccelerator
+from dpa.accelerators.lakebase_app import LakebaseAppAccelerator
 from dpa.accelerators.medallion_dbt import MedallionDbtAccelerator
 from dpa.accelerators.medallion_sdp import MedallionSdpAccelerator
-from dpa.accelerators.medallion_spark import MedallionSparkAccelerator
 from dpa.accelerators.mlflow_project import MlflowProjectAccelerator
-from dpa.accelerators.python_wheel import PythonWheelAccelerator
 
 ACCELERATOR_REGISTRY: dict[str, type[BaseAccelerator]] = {
     "medallion-sdp": MedallionSdpAccelerator,
-    "medallion-spark": MedallionSparkAccelerator,
     "medallion-dbt": MedallionDbtAccelerator,
     "mlflow-project": MlflowProjectAccelerator,
-    "app-streamlit": AppStreamlitAccelerator,
-    "python-wheel": PythonWheelAccelerator,
+    "lakebase-app": LakebaseAppAccelerator,
+    "custom-python-wheel": CustomPythonWheelAccelerator,
     "ai-bi": AiBiAccelerator,
 }
 
