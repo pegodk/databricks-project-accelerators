@@ -1,0 +1,10 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  postgres_endpoints:
+    primary:
+      endpoint_id: primary
+      parent: ${resources.postgres_branches.production.name}
+      endpoint_type: ENDPOINT_TYPE_READ_WRITE
+      autoscaling_limit_min_cu: ${var.lakebase_min_cu}
+      autoscaling_limit_max_cu: ${var.lakebase_max_cu}
+      replace_existing: true

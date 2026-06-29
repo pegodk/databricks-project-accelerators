@@ -7,6 +7,21 @@ variables:
   warehouse_id:
     lookup:
       warehouse: "Serverless Starter Warehouse"
+  lakebase_project_id:
+    description: "Lakebase project ID (lowercase, hyphen-delimited)"
+    default: "{{ project_slug }}-lakebase"
+  lakebase_min_cu:
+    description: "Minimum compute units for the Lakebase endpoint"
+    default: 0.5
+  lakebase_max_cu:
+    description: "Maximum compute units for the Lakebase endpoint"
+    default: 4.0
+  lakebase_pghost:
+    description: "Endpoint hostname — copy from the Lakebase Connect modal after first deploy"
+    default: "<set-after-first-deploy>"
+  lakebase_endpoint:
+    description: "Endpoint resource name — copy from the Lakebase Computes tab after first deploy"
+    default: "<projects/.../branches/.../endpoints/primary>"
 
 include:
   - resources/**/*.yml

@@ -1,0 +1,12 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  postgres_projects:
+    {{ slug }}_lakebase:
+      project_id: ${var.lakebase_project_id}
+      spec:
+        pg_version: 17
+        display_name: "{{ project_slug }} Lakebase"
+        default_endpoint_settings:
+          autoscaling_limit_min_cu: ${var.lakebase_min_cu}
+          autoscaling_limit_max_cu: ${var.lakebase_max_cu}
+          suspend_timeout_duration: "300s"
