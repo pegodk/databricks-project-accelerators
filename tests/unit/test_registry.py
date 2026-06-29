@@ -21,9 +21,9 @@ def test_registry_contains_all_accelerators():
     from dpa.accelerators import ACCELERATOR_REGISTRY
 
     assert "medallion-sdp" in ACCELERATOR_REGISTRY
-    assert "medallion-spark" in ACCELERATOR_REGISTRY
+    assert "custom-spark-lib" in ACCELERATOR_REGISTRY
     assert "medallion-dbt" in ACCELERATOR_REGISTRY
     assert "mlflow-project" in ACCELERATOR_REGISTRY
-    assert "app-streamlit" in ACCELERATOR_REGISTRY
+    assert "lakebase-app" in ACCELERATOR_REGISTRY
     assert "python-wheel" in ACCELERATOR_REGISTRY
     assert "ai-bi" in ACCELERATOR_REGISTRY

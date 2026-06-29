@@ -66,9 +66,9 @@ def test_custom_spark_lib_scaffold_renders_pyproject(tmp_path: Path):
     acc.scaffold(target=project_dir)
 
     pyproject = (project_dir / "pyproject.toml").read_text()
-    assert "custom_spark_lib" in pyproject
+    assert "custom_spark_lib_transforms" in pyproject
     assert "setuptools" in pyproject
-    assert "spark_transforms" in pyproject
+    assert 'where = ["src"]' in pyproject
 
 
 def test_custom_spark_lib_scaffold_renders_bronze_notebook(tmp_path: Path):
