@@ -12,11 +12,9 @@ from databricks import sql
 HOSTNAME = os.environ.get("DATABRICKS_HOST", "").replace("https://", "")
 HTTP_PATH = os.environ.get("DATABRICKS_HTTP_PATH", "")
 
-LAKEBASE_HOST = os.environ.get("LAKEBASE_HOST", "")
-LAKEBASE_PORT = int(os.environ.get("LAKEBASE_PORT", "5432"))
-LAKEBASE_DATABASE = os.environ.get("LAKEBASE_DATABASE", "")
-LAKEBASE_USER = os.environ.get("LAKEBASE_USER", "")
-LAKEBASE_PASSWORD = os.environ.get("LAKEBASE_PASSWORD", "")
+# Injected automatically by Databricks Apps when a `database` resource is attached.
+# Format: postgresql://user:password@host:port/dbname
+LAKEBASE_URL = os.environ.get("LAKEBASE_DATABASE_URL", "")
 
 st.set_page_config(
     page_title="TPCH Sales Analytics",
@@ -36,14 +34,7 @@ def run_query(query: str) -> pd.DataFrame:
 
 
 def lakebase_connect() -> psycopg2.extensions.connection:
-    return psycopg2.connect(
-        host=LAKEBASE_HOST,
-        port=LAKEBASE_PORT,
-        dbname=LAKEBASE_DATABASE,
-        user=LAKEBASE_USER,
-        password=LAKEBASE_PASSWORD,
-        connect_timeout=5,
-    )
+    return psycopg2.connect(LAKEBASE_URL, connect_timeout=5)
 
 
 def init_lakebase(conn: psycopg2.extensions.connection) -> None:
@@ -101,8 +92,8 @@ with st.sidebar:
             "**DATABRICKS_HTTP_PATH** is not set.\n\n"
             "Set it via the app environment config or a `.env` file to connect to a SQL warehouse."
         )
-    if not LAKEBASE_HOST:
-        st.warning("**LAKEBASE_HOST** is not set — master data tab will be unavailable.")
+    if not LAKEBASE_URL:
+        st.warning("**LAKEBASE_DATABASE_URL** is not set — master data tab will be unavailable.")
     else:
         st.success("Lakebase connected")
 
@@ -271,10 +262,10 @@ with tab_master:
         "Changes are stored in Lakebase (Postgres) and take effect immediately."
     )
 
-    if not LAKEBASE_HOST:
+    if not LAKEBASE_URL:
         st.error(
-            "Lakebase is not configured. Set `LAKEBASE_HOST`, `LAKEBASE_DATABASE`, "
-            "`LAKEBASE_USER`, and `LAKEBASE_PASSWORD` in the app environment."
+            "Lakebase is not configured. Ensure the `databases` resource is deployed "
+            "and the app has a `database` resource reference in `app.yml`."
         )
     else:
         try:

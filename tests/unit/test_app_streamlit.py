@@ -21,6 +21,7 @@ def test_app_streamlit_list_files():
 
     assert "databricks.yml" in files
     assert "resources/apps/app.yml" in files
+    assert "resources/databases/lakebase.yml" in files
     assert "app/app.py" in files
     assert "app/app.yaml" in files
     assert "app/requirements.txt" in files
@@ -35,6 +36,7 @@ def test_app_streamlit_scaffold(tmp_path: Path):
 
     assert (project_dir / "databricks.yml").exists()
     assert (project_dir / "resources" / "apps" / "app.yml").exists()
+    assert (project_dir / "resources" / "databases" / "lakebase.yml").exists()
     assert (project_dir / "app" / "app.py").exists()
     assert (project_dir / "app" / "app.yaml").exists()
     assert (project_dir / "app" / "requirements.txt").exists()
@@ -49,15 +51,16 @@ def test_app_streamlit_scaffold_renders_app_name(tmp_path: Path):
 
     bundle = (project_dir / "databricks.yml").read_text()
     assert "app-streamlit" in bundle
-    assert "secret_scope" in bundle
-    assert "dpa-secrets" in bundle
 
     app_resource = (project_dir / "resources" / "apps" / "app.yml").read_text()
     assert "app_streamlit" in app_resource
     assert "DATABRICKS_HTTP_PATH" in app_resource
     assert "var.warehouse_id" in app_resource
-    assert "LAKEBASE_HOST" in app_resource
-    assert "var.secret_scope" in app_resource
+    assert "type: database" in app_resource
+    assert "app_streamlit_lakebase" in app_resource
+
+    lakebase_resource = (project_dir / "resources" / "databases" / "lakebase.yml").read_text()
+    assert "dpa-app-streamlit-lakebase" in lakebase_resource
 
 
 def test_app_streamlit_scaffold_renders_tpch_queries(tmp_path: Path):
@@ -84,7 +87,7 @@ def test_app_streamlit_scaffold_renders_lakebase(tmp_path: Path):
     assert "lakebase_connect" in app_py
     assert "customer_master" in app_py
     assert "psycopg2" in app_py
-    assert "LAKEBASE_HOST" in app_py
+    assert "LAKEBASE_DATABASE_URL" in app_py
     assert "upsert_master_data" in app_py
 
 
