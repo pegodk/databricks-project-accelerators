@@ -49,11 +49,15 @@ def test_app_streamlit_scaffold_renders_app_name(tmp_path: Path):
 
     bundle = (project_dir / "databricks.yml").read_text()
     assert "app-streamlit" in bundle
+    assert "secret_scope" in bundle
+    assert "dpa-secrets" in bundle
 
     app_resource = (project_dir / "resources" / "apps" / "app.yml").read_text()
     assert "app_streamlit" in app_resource
     assert "DATABRICKS_HTTP_PATH" in app_resource
     assert "var.warehouse_id" in app_resource
+    assert "LAKEBASE_HOST" in app_resource
+    assert "var.secret_scope" in app_resource
 
 
 def test_app_streamlit_scaffold_renders_tpch_queries(tmp_path: Path):
@@ -69,6 +73,21 @@ def test_app_streamlit_scaffold_renders_tpch_queries(tmp_path: Path):
     assert "plotly" in app_py
 
 
+def test_app_streamlit_scaffold_renders_lakebase(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("app-streamlit")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    app_py = (project_dir / "app" / "app.py").read_text()
+    assert "lakebase_connect" in app_py
+    assert "customer_master" in app_py
+    assert "psycopg2" in app_py
+    assert "LAKEBASE_HOST" in app_py
+    assert "upsert_master_data" in app_py
+
+
 def test_app_streamlit_requirements(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
@@ -80,3 +99,4 @@ def test_app_streamlit_requirements(tmp_path: Path):
     assert "streamlit" in reqs
     assert "databricks-sql-connector" in reqs
     assert "plotly" in reqs
+    assert "psycopg2-binary" in reqs

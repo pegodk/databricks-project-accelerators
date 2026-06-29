@@ -7,6 +7,9 @@ variables:
   warehouse_id:
     lookup:
       warehouse: "Serverless Starter Warehouse"
+  secret_scope:
+    default: "dpa-secrets"
+    description: "Databricks secret scope that holds the Lakebase connection credentials"
 
 include:
   - resources/**/*.yml

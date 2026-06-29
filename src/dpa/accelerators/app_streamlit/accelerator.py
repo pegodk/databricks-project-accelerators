@@ -16,6 +16,7 @@ class AppStreamlitAccelerator(BaseAccelerator):
 
     default_config: dict[str, Any] = {
         "app_name": "app-streamlit",
+        "secret_scope": "dpa-secrets",
     }
 
     @property

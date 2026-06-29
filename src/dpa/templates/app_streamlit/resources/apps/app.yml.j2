@@ -9,3 +9,21 @@ resources:
         env:
           - name: DATABRICKS_HTTP_PATH
             value: /sql/1.0/warehouses/${var.warehouse_id}
+          - name: LAKEBASE_HOST
+            valueFrom:
+              secretScope: ${var.secret_scope}
+              secretKey: lakebase_host
+          - name: LAKEBASE_PORT
+            value: "5432"
+          - name: LAKEBASE_DATABASE
+            valueFrom:
+              secretScope: ${var.secret_scope}
+              secretKey: lakebase_database
+          - name: LAKEBASE_USER
+            valueFrom:
+              secretScope: ${var.secret_scope}
+              secretKey: lakebase_user
+          - name: LAKEBASE_PASSWORD
+            valueFrom:
+              secretScope: ${var.secret_scope}
+              secretKey: lakebase_password
