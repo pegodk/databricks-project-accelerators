@@ -5,12 +5,12 @@ from typing import Any
 
 from dpa.accelerators.base import BaseAccelerator
 
-_TEMPLATE_ROOT = Path(__file__).parent.parent.parent / "templates" / "medallion_spark"
+_TEMPLATE_ROOT = Path(__file__).parent.parent.parent / "templates" / "custom_spark_lib"
 
 
-class MedallionSparkAccelerator(BaseAccelerator):
-    name = "medallion-spark"
-    description = "Medallion architecture (bronze/silver/gold) using Spark Structured Streaming notebooks over TPCH"
+class CustomSparkLibAccelerator(BaseAccelerator):
+    name = "custom-spark-lib"
+    description = "Medallion pipeline with a custom PySpark library packaged as a wheel and deployed via DAB artifacts"
     default_config: dict[str, Any] = {
         "bronze_catalog": "dpa_bronze_dev",
         "gold_catalog": "dpa_gold_dev",

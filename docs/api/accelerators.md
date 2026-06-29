@@ -4,11 +4,11 @@
 
 ::: dpa.accelerators.medallion_sdp.accelerator.MedallionSdpAccelerator
 
-::: dpa.accelerators.medallion_spark.accelerator.MedallionSparkAccelerator
+::: dpa.accelerators.custom_spark_lib.accelerator.CustomSparkLibAccelerator
 
 ::: dpa.accelerators.medallion_dbt.accelerator.MedallionDbtAccelerator
 
-::: dpa.accelerators.app_streamlit.accelerator.AppStreamlitAccelerator
+::: dpa.accelerators.lakebase_app.accelerator.LakebaseAppAccelerator
 
 ::: dpa.accelerators.ai_bi.accelerator.AiBiAccelerator
 

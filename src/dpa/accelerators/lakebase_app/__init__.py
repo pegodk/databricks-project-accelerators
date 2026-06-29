@@ -1,3 +1,3 @@
-from dpa.accelerators.app_streamlit.accelerator import AppStreamlitAccelerator
+from dpa.accelerators.lakebase_app.accelerator import LakebaseAppAccelerator
 
-__all__ = ["AppStreamlitAccelerator"]
+__all__ = ["LakebaseAppAccelerator"]

@@ -17,6 +17,12 @@ variables:
   gold_schema:
     default: {{ cfg.gold_schema }}
     description: Schema for business-level aggregates (data-product-specific, e.g. tpch_model)
+artifacts:
+  default:
+    type: whl
+    path: .
+    build: "pip install build && python -m build --wheel --outdir dist/ ."
+
 include:
   - resources/**/*.yml
 

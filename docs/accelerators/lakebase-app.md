@@ -1,6 +1,6 @@
-# App Streamlit Accelerator
+# Lakebase App Accelerator
 
-The **App Streamlit** accelerator scaffolds a [Streamlit](https://streamlit.io/) analytics app hosted directly on Databricks, connected to the TPCH sample dataset via a SQL warehouse and a [Lakebase](https://docs.databricks.com/en/lakebase/index.html) (managed Postgres) instance for master data management. No external hosting or infrastructure needed — the app runs inside your Databricks workspace and inherits workspace authentication automatically.
+The **Lakebase App** accelerator scaffolds a [Streamlit](https://streamlit.io/) analytics app hosted directly on Databricks, connected to the TPCH sample dataset via a SQL warehouse and a [Lakebase](https://docs.databricks.com/en/lakebase/index.html) (managed Postgres) instance for master data management. No external hosting or infrastructure needed — the app runs inside your Databricks workspace and inherits workspace authentication automatically.
 
 ## What is a Databricks App?
 
@@ -11,7 +11,7 @@ Streamlit is the Python library used here. It lets you build interactive dashboa
 ## What gets generated
 
 ```
-app-streamlit/
+lakebase-app/
 ├── databricks.yml              # Asset Bundle root config
 ├── .gitignore
 ├── app/
@@ -19,9 +19,42 @@ app-streamlit/
 │   ├── app.yaml                # Databricks App entrypoint config
 │   └── requirements.txt        # Python dependencies
 └── resources/
-    └── apps/
-        └── app.yml             # Databricks App resource definition
+    ├── apps/
+    │   └── app.yml             # Databricks App resource definition
+    ├── postgres_projects/
+    │   └── lakebase.yml        # Lakebase project (managed Postgres)
+    ├── postgres_branches/
+    │   └── production.yml      # Production branch (protected, no expiry)
+    └── postgres_endpoints/
+        └── primary.yml         # Read/write endpoint (autoscaling)
 ```
+
+## Two-step deploy
+
+Lakebase resources must exist before the app can connect to them. The first deploy provisions the Postgres project, branch, and endpoint. Then you copy the connection details from the Databricks UI and redeploy.
+
+**Step 1 — provision Lakebase:**
+
+```bash
+dpa init lakebase-app
+cd lakebase-app
+databricks bundle deploy --target dev
+```
+
+After the deploy completes, open the Databricks UI under **Lakebase** and copy:
+
+- **PGHOST** — the endpoint hostname (from the Connect modal)
+- **ENDPOINT_NAME** — the endpoint resource path (from the Computes tab, e.g. `projects/.../branches/.../endpoints/primary`)
+
+**Step 2 — deploy the app with connection details:**
+
+```bash
+databricks bundle deploy --target dev \
+  --var="lakebase_pghost=<host>" \
+  --var="lakebase_endpoint=<endpoint-path>"
+```
+
+The app will appear under **Apps** in the Databricks UI.
 
 ## What the app shows
 
@@ -46,60 +79,32 @@ Results are cached for one hour (`@st.cache_data(ttl=3600)`), so repeated page v
 
 This demonstrates using Lakebase as a low-latency transactional layer alongside the analytical SQL warehouse — a pattern common in master data management and operational apps.
 
-## Requirements
+## Authentication
 
-- Unity Catalog enabled in your workspace
-- A SQL warehouse (resolved automatically via the `warehouse_id` variable)
-- A Lakebase instance with connection credentials stored in a Databricks secret scope
+The app connects to Lakebase using OAuth tokens issued by the Databricks SDK. Tokens are rotated automatically on each connection (tokens expire after 1 hour) using a custom `psycopg3` connection class:
 
-## Usage
-
-```bash
-dpa init app-streamlit
-cd app-streamlit
+```python
+class _OAuthConn(psycopg.Connection):
+    @classmethod
+    def connect(cls, conninfo="", **kwargs):
+        cred = WorkspaceClient().postgres.generate_database_credential(endpoint=ENDPOINT_NAME)
+        kwargs["password"] = cred.token
+        return super().connect(conninfo, **kwargs)
 ```
 
-Store your Lakebase credentials in a Databricks secret scope (default scope name: `dpa-secrets`):
-
-```bash
-databricks secrets create-scope dpa-secrets
-databricks secrets put-secret dpa-secrets lakebase_host    --string-value <host>
-databricks secrets put-secret dpa-secrets lakebase_database --string-value <database>
-databricks secrets put-secret dpa-secrets lakebase_user    --string-value <user>
-databricks secrets put-secret dpa-secrets lakebase_password --string-value <password>
-```
-
-Deploy:
-
-```bash
-databricks bundle deploy --target dev
-```
-
-Find the app URL in the Databricks UI under **Apps → dpa-app-streamlit**.
-
-For production:
-
-```bash
-databricks bundle deploy --target prod
-```
+The `DATABRICKS_CLIENT_ID` env var is auto-injected by Databricks Apps as the service principal identity and is used as the Postgres username.
 
 ## Variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `warehouse_id` | _(auto-resolved)_ | SQL Warehouse used for TPCH analytics queries. Resolved by name ("Serverless Starter Warehouse") if not set. |
-| `secret_scope` | `dpa-secrets` | Databricks secret scope that holds the Lakebase connection credentials. |
+| `warehouse_id` | _(auto-resolved)_ | SQL Warehouse for TPCH analytics. Resolved by name ("Serverless Starter Warehouse"). |
+| `lakebase_project_id` | `lakebase-app-lakebase` | Lakebase project ID (lowercase, hyphen-delimited). |
+| `lakebase_min_cu` | `0.5` | Minimum compute units for the Lakebase endpoint. |
+| `lakebase_max_cu` | `0.5` | Maximum compute units for the Lakebase endpoint. |
+| `lakebase_pghost` | _(set after first deploy)_ | Endpoint hostname — copy from Lakebase Connect modal. |
+| `lakebase_endpoint` | _(set after first deploy)_ | Endpoint resource path — copy from Lakebase Computes tab. |
 
 ## Customising the app
 
-The app lives in `app/app.py`. The Lakebase connection is configured via environment variables injected from the secret scope:
-
-```python
-LAKEBASE_HOST     = os.environ.get("LAKEBASE_HOST", "")
-LAKEBASE_PORT     = int(os.environ.get("LAKEBASE_PORT", "5432"))
-LAKEBASE_DATABASE = os.environ.get("LAKEBASE_DATABASE", "")
-LAKEBASE_USER     = os.environ.get("LAKEBASE_USER", "")
-LAKEBASE_PASSWORD = os.environ.get("LAKEBASE_PASSWORD", "")
-```
-
-Add Python packages to `app/requirements.txt` and redeploy — the runtime installs them on app startup.
+The app lives in `app/app.py`. Add Python packages to `app/requirements.txt` and redeploy — the runtime installs them on app startup.

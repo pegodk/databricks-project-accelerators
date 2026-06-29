@@ -17,6 +17,8 @@ resources:
       tasks:
         - task_key: bronze_ingest
           environment_key: Default
+          libraries:
+            - whl: /Workspace${workspace.file_path}/dist/*.whl
           notebook_task:
             notebook_path: ${workspace.file_path}/notebooks/bronze/ingest
             source: WORKSPACE
@@ -28,6 +30,8 @@ resources:
           depends_on:
             - task_key: bronze_ingest
           environment_key: Default
+          libraries:
+            - whl: /Workspace${workspace.file_path}/dist/*.whl
           notebook_task:
             notebook_path: ${workspace.file_path}/notebooks/gold/aggregate
             source: WORKSPACE

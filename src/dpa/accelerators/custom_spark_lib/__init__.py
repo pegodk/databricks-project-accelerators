@@ -1,3 +1,3 @@
-from dpa.accelerators.medallion_spark.accelerator import MedallionSparkAccelerator
+from dpa.accelerators.custom_spark_lib.accelerator import CustomSparkLibAccelerator
 
-__all__ = ["MedallionSparkAccelerator"]
+__all__ = ["CustomSparkLibAccelerator"]
