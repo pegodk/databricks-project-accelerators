@@ -66,9 +66,9 @@ def _bundle_vars(accelerator_name: str) -> list[str]:
 
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def _workspace_env() -> None:
-    """Ensure workspace credentials are present for the whole session."""
+    """Ensure workspace credentials and CLI are present for deploy tests."""
     _require_env("DATABRICKS_HOST")
     _require_env("DATABRICKS_TOKEN")
     _require_databricks_cli()

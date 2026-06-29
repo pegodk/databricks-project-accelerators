@@ -23,7 +23,8 @@ _SCAFFOLDED_DIR = Path(__file__).parent / "scaffolded"
 def test_bundle_validates(accelerator_name: str) -> None:
     """Scaffold the project and confirm ``databricks bundle validate`` passes."""
     cli = shutil.which("databricks")
-    assert cli is not None
+    if cli is None:
+        pytest.skip("Databricks CLI not found on PATH")
 
     from dpa.accelerators import get_accelerator
 
@@ -35,8 +36,11 @@ def test_bundle_validates(accelerator_name: str) -> None:
     acc.scaffold(target=project_dir)
 
     host = os.getenv("DATABRICKS_HOST", "").strip()
-    if host:
-        patch_databricks_yml(project_dir, acc.project_slug, host)
+    token = os.getenv("DATABRICKS_TOKEN", "").strip()
+    if not host or not token:
+        pytest.skip("$DATABRICKS_HOST / $DATABRICKS_TOKEN not set — skipping bundle validate (scaffold output is in tests/integration/scaffolded/)")
+
+    patch_databricks_yml(project_dir, acc.project_slug, host)
 
     result = subprocess.run(
         [cli, "bundle", "validate", "--target", "dev"],
@@ -51,6 +55,7 @@ def test_bundle_validates(accelerator_name: str) -> None:
 
 
 @pytest.mark.integration
+@pytest.mark.usefixtures("_workspace_env")
 @pytest.mark.parametrize("deployed_project", ACCELERATORS, indirect=True)
 def test_bundle_deploys(deployed_project: Path) -> None:
     """Deploy the scaffolded project and confirm the bundle still validates post-deploy."""
