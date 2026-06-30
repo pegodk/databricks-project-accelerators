@@ -25,6 +25,8 @@ def test_mlflow_project_list_files():
     assert "notebooks/train.py" in files
     assert "notebooks/register.py" in files
     assert "notebooks/score.py" in files
+    assert ".github/workflows/ci.yml" in files
+    assert "azure-pipelines.yml" in files
 
 
 def test_mlflow_project_scaffold(tmp_path: Path):
@@ -40,6 +42,8 @@ def test_mlflow_project_scaffold(tmp_path: Path):
     assert (project_dir / "notebooks" / "train.py").exists()
     assert (project_dir / "notebooks" / "register.py").exists()
     assert (project_dir / "notebooks" / "score.py").exists()
+    assert (project_dir / ".github" / "workflows" / "ci.yml").exists()
+    assert (project_dir / "azure-pipelines.yml").exists()
 
 
 def test_mlflow_project_scaffold_renders_train_notebook(tmp_path: Path):
@@ -83,6 +87,19 @@ def test_mlflow_project_scaffold_renders_score_notebook(tmp_path: Path):
     assert "mlflow.pyfunc.load_model" in nb
     assert "@champion" in nb
     assert "predicted_total_price" in nb
+
+
+def test_mlflow_project_scaffold_renders_ci_pipelines(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("mlflow-project")()
+    acc.scaffold(target=tmp_path / acc.project_slug)
+
+    ci = (tmp_path / acc.project_slug / ".github" / "workflows" / "ci.yml").read_text()
+    assert "databricks bundle validate" in ci
+
+    pipeline = (tmp_path / acc.project_slug / "azure-pipelines.yml").read_text()
+    assert "databricks bundle validate" in pipeline
 
 
 def test_mlflow_project_scaffold_renders_bundle_variables(tmp_path: Path):

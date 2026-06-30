@@ -33,6 +33,8 @@ def test_medallion_dbt_list_files():
     assert "models/gold/dim_part.sql" in files
     assert "models/gold/dim_supplier.sql" in files
     assert "models/gold/fact_order.sql" in files
+    assert ".github/workflows/ci.yml" in files
+    assert "azure-pipelines.yml" in files
 
 
 def test_medallion_dbt_scaffold(tmp_path: Path):
@@ -55,6 +57,8 @@ def test_medallion_dbt_scaffold(tmp_path: Path):
     assert (project_dir / "models" / "gold" / "dim_part.sql").exists()
     assert (project_dir / "models" / "gold" / "dim_supplier.sql").exists()
     assert (project_dir / "models" / "gold" / "fact_order.sql").exists()
+    assert (project_dir / ".github" / "workflows" / "ci.yml").exists()
+    assert (project_dir / "azure-pipelines.yml").exists()
 
 
 def test_medallion_dbt_scaffold_renders_dbt_project(tmp_path: Path):
@@ -83,6 +87,19 @@ def test_medallion_dbt_scaffold_renders_bundle_variables(tmp_path: Path):
     assert "dpa_bronze_dev" in bundle
     assert "dpa_gold_dev" in bundle
     assert "tpch_dbt" in bundle
+
+
+def test_medallion_dbt_scaffold_renders_ci_pipelines(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("medallion-dbt")()
+    acc.scaffold(target=tmp_path / acc.project_slug)
+
+    ci = (tmp_path / acc.project_slug / ".github" / "workflows" / "ci.yml").read_text()
+    assert "databricks bundle validate" in ci
+
+    pipeline = (tmp_path / acc.project_slug / "azure-pipelines.yml").read_text()
+    assert "databricks bundle validate" in pipeline
 
 
 def test_medallion_dbt_scaffold_renders_serverless_env(tmp_path: Path):

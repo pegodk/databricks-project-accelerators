@@ -27,6 +27,8 @@ def test_lakebase_app_list_files():
     assert "app/app.py" in files
     assert "app/app.yaml" in files
     assert "app/requirements.txt" in files
+    assert ".github/workflows/ci.yml" in files
+    assert "azure-pipelines.yml" in files
 
 
 def test_lakebase_app_scaffold(tmp_path: Path):
@@ -44,6 +46,8 @@ def test_lakebase_app_scaffold(tmp_path: Path):
     assert (project_dir / "app" / "app.py").exists()
     assert (project_dir / "app" / "app.yaml").exists()
     assert (project_dir / "app" / "requirements.txt").exists()
+    assert (project_dir / ".github" / "workflows" / "ci.yml").exists()
+    assert (project_dir / "azure-pipelines.yml").exists()
 
 
 def test_lakebase_app_scaffold_renders_app_name(tmp_path: Path):
@@ -112,6 +116,19 @@ def test_lakebase_app_scaffold_renders_lakebase(tmp_path: Path):
     assert "ENDPOINT_NAME" in app_py
     assert "generate_database_credential" in app_py
     assert "ConnectionPool" in app_py
+
+
+def test_lakebase_app_scaffold_renders_ci_pipelines(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("lakebase-app")()
+    acc.scaffold(target=tmp_path / acc.project_slug)
+
+    ci = (tmp_path / acc.project_slug / ".github" / "workflows" / "ci.yml").read_text()
+    assert "databricks bundle validate" in ci
+
+    pipeline = (tmp_path / acc.project_slug / "azure-pipelines.yml").read_text()
+    assert "databricks bundle validate" in pipeline
 
 
 def test_lakebase_app_requirements(tmp_path: Path):

@@ -1,0 +1,25 @@
+"""Unit tests for {{ project_slug | replace('-', '_') }}."""
+
+from __future__ import annotations
+
+from {{ project_slug | replace('-', '_') }}.functions import add, greet
+
+
+def test_greet_returns_hello_name():
+    assert greet("Databricks") == "Hello, Databricks!"
+
+
+def test_greet_with_empty_string():
+    assert greet("") == "Hello, !"
+
+
+def test_add_integers():
+    assert add(2, 3) == 5.0
+
+
+def test_add_floats():
+    assert abs(add(1.1, 2.2) - 3.3) < 1e-9
+
+
+def test_add_negative():
+    assert add(-1, 1) == 0.0
