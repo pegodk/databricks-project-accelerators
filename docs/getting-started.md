@@ -51,12 +51,12 @@ dpa list
 ┌──────────────────────────┬───────────────────────────────────────────────────────┐
 │ Name                     │ Description                                             │
 ├──────────────────────────┼───────────────────────────────────────────────────────┤
-│ medallion-sdp            │ Streaming Delta Pipeline with bronze/silver/gold       │
-│ medallion-dbt            │ Medallion architecture using dbt models over TPCH      │
-│ mlflow-project           │ MLflow training, registration, and batch scoring       │
-│ lakebase-streamlit-app   │ Databricks App (Streamlit) + Lakebase master data      │
-│ custom-python-wheel      │ Custom Python wheel package with build-and-upload job  │
 │ ai-bi                    │ Lakeview dashboard + Genie Space with metric views     │
+│ custom-python-wheel      │ Custom Python wheel package with build-and-upload job  │
+│ lakebase-streamlit-app   │ Databricks App (Streamlit) + Lakebase master data      │
+│ medallion-dbt            │ Medallion architecture using dbt models over TPCH      │
+│ medallion-sdp            │ Streaming Delta Pipeline with bronze/silver/gold       │
+│ mlflow-project           │ MLflow training, registration, and batch scoring       │
 └──────────────────────────┴───────────────────────────────────────────────────────┘
 ```
 

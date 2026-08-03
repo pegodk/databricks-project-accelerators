@@ -39,12 +39,12 @@ nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - Accelerators:
-      - Medallion SDP: accelerators/medallion-sdp.md
-      - Medallion DBT: accelerators/medallion-dbt.md
-      - MLflow Project: accelerators/mlflow-project.md
-      - Lakebase App: accelerators/lakebase-streamlit-app.md
-      - Custom Python Wheel: accelerators/custom-python-wheel.md
       - AI/BI: accelerators/ai-bi.md
+      - Custom Python Wheel: accelerators/custom-python-wheel.md
+      - Lakebase App: accelerators/lakebase-streamlit-app.md
+      - Medallion DBT: accelerators/medallion-dbt.md
+      - Medallion SDP: accelerators/medallion-sdp.md
+      - MLflow Project: accelerators/mlflow-project.md
   - API Reference:
       - Accelerators: api/accelerators.md
       - Deploy: api/deploy.md
