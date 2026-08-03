@@ -9,43 +9,43 @@ resources:
         version: 2
         config:
           sample_questions:
-            - id: "01"
+            - id: "00000000000000000000000000000001"
               question: ["What is the total revenue?"]
-            - id: "02"
+            - id: "00000000000000000000000000000002"
               question: ["How has monthly revenue trended over time?"]
-            - id: "03"
+            - id: "00000000000000000000000000000003"
               question: ["Which market segment generates the most revenue?"]
-            - id: "04"
+            - id: "00000000000000000000000000000004"
               question: ["What are the top 10 customers by total revenue?"]
-            - id: "05"
+            - id: "00000000000000000000000000000005"
               question: ["Which country has the highest order count?"]
-            - id: "06"
+            - id: "00000000000000000000000000000006"
               question: ["What is the average order value by market segment?"]
-            - id: "07"
+            - id: "00000000000000000000000000000007"
               question: ["How many unique customers have placed orders?"]
-            - id: "08"
+            - id: "00000000000000000000000000000008"
               question: ["What is the revenue split between open, processing, and fulfilled orders?"]
-            - id: "09"
+            - id: "00000000000000000000000000000009"
               question: ["What percentage of revenue comes from high-priority orders?"]
-            - id: "10"
+            - id: "0000000000000000000000000000000a"
               question: ["Which country has the highest revenue per customer?"]
         instructions:
           text_instructions:
-            - id: "01"
+            - id: "00000000000000000000000000000101"
               content:
                 - "You are a sales analytics assistant for a global trading company.\n"
                 - "The data covers TPC-H orders, customers, and geography (post-1995). All monetary values are in USD.\n"
                 - "The metric view v_tpch exposes dimensions (order_date, order_month, order_year, order_status [Open/Processing/Fulfilled], order_priority, customer_name, market_segment, customer_nation) and measures (order_count, total_revenue, unique_customers, avg_order_value, revenue_per_customer, open_order_revenue, fulfilled_order_revenue, t7d_customers).\n"
                 - "When asked about revenue without qualification, use total_revenue. For trend questions group by order_month. For geographic questions group by customer_nation. Always round monetary amounts to 2 decimal places."
           example_question_sqls:
-            - id: "02"
+            - id: "00000000000000000000000000000201"
               question: ["What is the total revenue by market segment?"]
               sql:
                 - "SELECT market_segment, MEASURE(total_revenue)\n"
                 - "FROM ${var.catalog}.${var.schema}.v_tpch\n"
                 - "GROUP BY market_segment\n"
                 - "ORDER BY MEASURE(total_revenue) DESC"
-            - id: "03"
+            - id: "00000000000000000000000000000202"
               question: ["How has monthly revenue trended over time?"]
               sql:
                 - "SELECT order_month, MEASURE(total_revenue), MEASURE(order_count)\n"
