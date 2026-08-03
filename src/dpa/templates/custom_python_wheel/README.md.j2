@@ -6,7 +6,7 @@ A self-contained Python package with a two-task Databricks job: build the wheel 
 
 - [Databricks CLI](https://docs.databricks.com/dev-tools/cli/install.html) v0.230+, authenticated (`databricks auth login`)
 - Unity Catalog enabled
-- Catalog `{{ cfg.catalog }}` must exist before deploying
+- Permission to create catalogs in the metastore — the bundle creates catalog `{{ cfg.catalog }}` on deploy
 
 ## What's here
 

@@ -24,6 +24,7 @@ def test_medallion_dbt_list_files():
     assert "dbt_project.yml" in files
     assert "profiles.yml" in files
     assert "resources/jobs/dbt_job.yml" in files
+    assert "resources/catalogs/catalogs.yml" in files
     assert "models/sources.yml" in files
     assert "models/bronze/orders.sql" in files
     assert "models/bronze/lineitem.sql" in files
@@ -51,6 +52,7 @@ def test_medallion_dbt_scaffold(tmp_path: Path):
     assert (project_dir / "dbt_project.yml").exists()
     assert (project_dir / "profiles.yml").exists()
     assert (project_dir / "resources" / "jobs" / "dbt_job.yml").exists()
+    assert (project_dir / "resources" / "catalogs" / "catalogs.yml").exists()
     assert (project_dir / "models" / "sources.yml").exists()
     assert (project_dir / "models" / "bronze" / "orders.sql").exists()
     assert (project_dir / "models" / "bronze" / "part.sql").exists()
@@ -75,9 +77,9 @@ def test_medallion_dbt_scaffold_renders_dbt_project(tmp_path: Path):
     content = (project_dir / "dbt_project.yml").read_text()
     assert "medallion_dbt" in content
     assert "+database" in content
-    assert "dpa_bronze_dev" in content
-    assert "dpa_silver_dev" in content
-    assert "dpa_gold_dev" in content
+    assert "dpa_dbt_bronze_dev" in content
+    assert "dpa_dbt_silver_dev" in content
+    assert "dpa_dbt_gold_dev" in content
 
 
 def test_medallion_dbt_scaffold_renders_bundle_variables(tmp_path: Path):
@@ -89,9 +91,25 @@ def test_medallion_dbt_scaffold_renders_bundle_variables(tmp_path: Path):
 
     bundle = (project_dir / "databricks.yml").read_text()
     assert "medallion-dbt" in bundle
-    assert "dpa_bronze_dev" in bundle
-    assert "dpa_gold_dev" in bundle
+    assert "dpa_dbt_bronze_dev" in bundle
+    assert "dpa_dbt_gold_dev" in bundle
     assert "tpch_dbt" in bundle
+    assert "engine: direct" in bundle
+
+
+def test_medallion_dbt_scaffold_renders_catalog_resources(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("medallion-dbt")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    catalogs = (project_dir / "resources" / "catalogs" / "catalogs.yml").read_text()
+    assert "resources:" in catalogs
+    assert "catalogs:" in catalogs
+    assert "${var.bronze_catalog}" in catalogs
+    assert "dpa_dbt_silver_dev" in catalogs
+    assert "${var.gold_catalog}" in catalogs
 
 
 def test_medallion_dbt_scaffold_renders_ci_pipelines(tmp_path: Path):

@@ -6,7 +6,7 @@ Streaming Delta Pipeline (DLT) implementing bronze → silver → gold over the 
 
 - [Databricks CLI](https://docs.databricks.com/dev-tools/cli/install.html) v0.230+, authenticated (`databricks auth login`)
 - A Unity Catalog-enabled workspace with access to `samples.tpch`
-- The `bronze_catalog`, `silver_catalog`, and `gold_catalog` (see Variables below) must exist before deploying — the bundle creates schemas within them, not the catalogs themselves
+- Permission to create catalogs in the metastore — the bundle creates the `bronze_catalog`, `silver_catalog`, and `gold_catalog` (see Variables below) and the schemas within them
 
 ## What's here
 
@@ -44,9 +44,9 @@ databricks bundle deploy --target prod
 
 | Variable | Default | Description |
 |---|---|---|
-| `bronze_catalog` | `dpa_bronze_dev` | Catalog for raw ingested data |
-| `silver_catalog` | `dpa_silver_dev` | Catalog for cleansed and validated data |
-| `gold_catalog` | `dpa_gold_dev` | Catalog for the dimensional model |
+| `bronze_catalog` | `dpa_sdp_bronze_dev` | Catalog for raw ingested data |
+| `silver_catalog` | `dpa_sdp_silver_dev` | Catalog for cleansed and validated data |
+| `gold_catalog` | `dpa_sdp_gold_dev` | Catalog for the dimensional model |
 
 Override at deploy time:
 

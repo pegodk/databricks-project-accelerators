@@ -95,7 +95,7 @@ Add the page to the `nav` in `mkdocs.yml` under the Accelerators section.
 
 **No dead config keys.** If a `default_config` key is removed from an accelerator, remove it from the template, the `databricks.yml.j2` variables block, the job `base_parameters`, and any notebook widget defaults in the same change.
 
-**Consistent catalog defaults.** All accelerators use `dpa_bronze_dev` / `dpa_silver_dev` / `dpa_gold_dev` (or `dpa_gold_dev` for single-catalog accelerators) as default catalog values. Never use `main` as a default.
+**Unique catalog defaults per accelerator.** Bundles create their own `catalogs` resources (via `engine: direct`), so default catalog names must be unique per accelerator to avoid collisions when more than one accelerator is deployed into the same workspace. Use the `dpa_<accelerator>_<layer>_dev` pattern, e.g. `dpa_sdp_bronze_dev` / `dpa_sdp_silver_dev` / `dpa_sdp_gold_dev` for medallion-sdp, or `dpa_<accelerator>_dev` for single-catalog accelerators (e.g. `dpa_mlflow_dev`). Never use `main` as a default, and never reuse another accelerator's default catalog name.
 
 ---
 

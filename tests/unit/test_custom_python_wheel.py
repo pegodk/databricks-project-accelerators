@@ -23,6 +23,7 @@ def test_custom_python_wheel_list_files():
     assert "README.md" in files
     assert "pyproject.toml" in files
     assert "resources/jobs/wheel_job.yml" in files
+    assert "resources/catalogs/catalog.yml" in files
     assert "notebooks/build_and_upload.py" in files
     assert "notebooks/verify_imports.py" in files
     assert "src/custom_python_wheel/__init__.py" in files
@@ -44,6 +45,7 @@ def test_custom_python_wheel_scaffold(tmp_path: Path):
     assert (project_dir / "README.md").exists()
     assert (project_dir / "pyproject.toml").exists()
     assert (project_dir / "resources" / "jobs" / "wheel_job.yml").exists()
+    assert (project_dir / "resources" / "catalogs" / "catalog.yml").exists()
     assert (project_dir / "notebooks" / "build_and_upload.py").exists()
     assert (project_dir / "notebooks" / "verify_imports.py").exists()
     assert (project_dir / "src" / "custom_python_wheel" / "__init__.py").exists()
@@ -52,6 +54,22 @@ def test_custom_python_wheel_scaffold(tmp_path: Path):
     assert (project_dir / "tests" / "test_functions.py").exists()
     assert (project_dir / ".github" / "workflows" / "ci.yml").exists()
     assert (project_dir / "azure-pipelines.yml").exists()
+
+
+def test_custom_python_wheel_scaffold_renders_catalog_resource(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("custom-python-wheel")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    bundle = (project_dir / "databricks.yml").read_text()
+    assert "engine: direct" in bundle
+
+    catalog = (project_dir / "resources" / "catalogs" / "catalog.yml").read_text()
+    assert "resources:" in catalog
+    assert "catalogs:" in catalog
+    assert "${var.catalog}" in catalog
 
 
 def test_custom_python_wheel_scaffold_renders_pyproject(tmp_path: Path):

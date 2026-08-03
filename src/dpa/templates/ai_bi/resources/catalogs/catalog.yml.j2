@@ -1,0 +1,6 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  catalogs:
+    {{ slug }}_catalog:
+      name: ${var.catalog}
+      comment: "Catalog for {{ project_slug }}, created by Databricks Asset Bundles"

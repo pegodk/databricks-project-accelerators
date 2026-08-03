@@ -6,7 +6,7 @@ dbt project running bronze → silver → gold transformations over the Databric
 
 - [Databricks CLI](https://docs.databricks.com/dev-tools/cli/install.html) v0.230+, authenticated (`databricks auth login`)
 - A Unity Catalog-enabled workspace with access to `samples.tpch`
-- Catalogs `{{ cfg.bronze_catalog }}`, `{{ cfg.silver_catalog }}`, `{{ cfg.gold_catalog }}` (or your overrides) created ahead of deploy
+- Permission to create catalogs in the metastore — the bundle creates catalogs `{{ cfg.bronze_catalog }}`, `{{ cfg.silver_catalog }}`, `{{ cfg.gold_catalog }}` (or your overrides) on deploy
 
 ## What's here
 

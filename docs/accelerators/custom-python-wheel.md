@@ -43,7 +43,7 @@ assert add(2, 3) == 5.0
 ## Requirements
 
 - Unity Catalog enabled
-- The catalog specified in `${var.catalog}` must exist before deploying
+- Permission to create catalogs in the metastore — the bundle creates the catalog specified in `${var.catalog}` on deploy
 
 ## Usage
 
@@ -61,7 +61,7 @@ Replace the functions in `src/custom_python_wheel/functions.py` with your own lo
 
 | Variable | Default | Description |
 |---|---|---|
-| `catalog` | `dpa_gold_dev` | Unity Catalog catalog for the wheel volume |
+| `catalog` | `dpa_wheel_dev` | Unity Catalog catalog for the wheel volume |
 | `schema` | `python_wheel` | Schema for the wheel volume |
 
 ## Extending the package

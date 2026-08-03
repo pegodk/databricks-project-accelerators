@@ -23,6 +23,7 @@ def test_medallion_sdp_list_files():
     assert "README.md" in files
     assert "resources/pipelines/pipeline.yml" in files
     assert "resources/schemas/schemas.yml" in files
+    assert "resources/catalogs/catalogs.yml" in files
     assert "src/pipelines/bronze/ingest.py" in files
     assert "src/pipelines/silver/tpch_customer.py" in files
     assert "src/pipelines/silver/tpch_orders.py" in files
@@ -47,6 +48,7 @@ def test_medallion_sdp_scaffold(tmp_path: Path):
     assert (project_dir / "README.md").exists()
     assert (project_dir / "resources" / "pipelines" / "pipeline.yml").exists()
     assert (project_dir / "resources" / "schemas" / "schemas.yml").exists()
+    assert (project_dir / "resources" / "catalogs" / "catalogs.yml").exists()
     assert (project_dir / "src" / "pipelines" / "bronze" / "ingest.py").exists()
     assert (project_dir / "src" / "pipelines" / "silver" / "tpch_customer.py").exists()
     assert (project_dir / "src" / "pipelines" / "silver" / "tpch_orders.py").exists()
@@ -68,6 +70,25 @@ def test_medallion_sdp_scaffold_renders_project_slug(tmp_path: Path):
 
     content = (tmp_path / acc.project_slug / "databricks.yml").read_text()
     assert "medallion-sdp" in content
+    assert "engine: direct" in content
+
+
+def test_medallion_sdp_scaffold_renders_catalog_resources(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("medallion-sdp")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    catalogs = (project_dir / "resources" / "catalogs" / "catalogs.yml").read_text()
+    assert "resources:" in catalogs
+    assert "catalogs:" in catalogs
+    assert "${var.bronze_catalog}" in catalogs
+    assert "${var.silver_catalog}" in catalogs
+    assert "${var.gold_catalog}" in catalogs
+
+    schemas = (project_dir / "resources" / "schemas" / "schemas.yml").read_text()
+    assert "resources.catalogs." in schemas
 
 
 def test_medallion_sdp_scaffold_renders_pipeline_config(tmp_path: Path):
@@ -92,9 +113,9 @@ def test_medallion_sdp_scaffold_renders_schemas(tmp_path: Path):
     acc.scaffold(target=tmp_path / acc.project_slug)
 
     schemas = (tmp_path / acc.project_slug / "resources" / "schemas" / "schemas.yml").read_text()
-    assert "var.bronze_catalog" in schemas
-    assert "var.silver_catalog" in schemas
-    assert "var.gold_catalog" in schemas
+    assert "resources.catalogs.medallion_sdp_bronze_catalog" in schemas
+    assert "resources.catalogs.medallion_sdp_silver_catalog" in schemas
+    assert "resources.catalogs.medallion_sdp_gold_catalog" in schemas
     assert "tpch" in schemas
 
 

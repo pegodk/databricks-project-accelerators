@@ -2,7 +2,7 @@
 resources:
   schemas:
     {{ slug }}_bronze:
-      catalog_name: ${var.bronze_catalog}
+      catalog_name: ${resources.catalogs.{{ slug }}_bronze_catalog.name}
       name: {{ cfg.bronze_schema }}
       grants:
         - principal: ${workspace.current_user.userName}
@@ -10,7 +10,7 @@ resources:
             - ALL_PRIVILEGES
 
     {{ slug }}_silver:
-      catalog_name: ${var.silver_catalog}
+      catalog_name: ${resources.catalogs.{{ slug }}_silver_catalog.name}
       name: {{ cfg.silver_schema }}
       grants:
         - principal: ${workspace.current_user.userName}
@@ -18,7 +18,7 @@ resources:
             - ALL_PRIVILEGES
 
     {{ slug }}_gold:
-      catalog_name: ${var.gold_catalog}
+      catalog_name: ${resources.catalogs.{{ slug }}_gold_catalog.name}
       name: {{ cfg.gold_schema }}
       grants:
         - principal: ${workspace.current_user.userName}
