@@ -43,12 +43,12 @@ That's it — your Databricks solution is live.
 
 | Name | Description |
 |------|-------------|
-| `medallion-sdp` | Streaming Delta Pipeline (DLT) with bronze/silver/gold layers and a DAB job |
-| `medallion-dbt` | Medallion architecture (bronze/silver/gold) using dbt models over TPCH |
-| `mlflow-project` | MLflow training, model registration, and batch scoring over TPCH |
-| `lakebase-streamlit-app` | Databricks App (Streamlit) connected to TPCH analytics + Lakebase master data |
-| `custom-python-wheel` | Custom Python wheel package with a build-and-upload job and an import verification notebook |
 | `ai-bi` | Lakeview dashboard + Genie Space with metric views over the TPCH sample dataset |
+| `custom-python-wheel` | Custom Python wheel package with a build-and-upload job and an import verification notebook |
+| `lakebase-streamlit-app` | Databricks App (Streamlit) connected to TPCH analytics + Lakebase master data |
+| `medallion-dbt` | Medallion architecture (bronze/silver/gold) using dbt models over TPCH |
+| `medallion-sdp` | Streaming Delta Pipeline (DLT) with bronze/silver/gold layers and a DAB job |
+| `mlflow-project` | MLflow training, model registration, and batch scoring over TPCH |
 
 ## CLI reference
 
