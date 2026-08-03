@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 import typer
@@ -85,6 +86,7 @@ def deploy(
 ) -> None:
     """Deploy the project via Databricks Asset Bundle."""
     from dpa.deploy.bundle import deploy as _deploy
+    from dpa.deploy.bundle import validate as _validate
 
     if not (project_dir / "databricks.yml").exists():
         console.print(
@@ -92,11 +94,18 @@ def deploy(
         )
         raise typer.Exit(code=1)
 
+    console.print(f"Validating bundle for [bold]{env}[/bold]…")
+    try:
+        _validate(target_dir=project_dir, env=env)
+    except (RuntimeError, subprocess.CalledProcessError) as exc:
+        console.print(f"[red]Bundle validation failed: {exc}[/red]")
+        raise typer.Exit(code=1)
+
     console.print(f"Deploying to [bold]{env}[/bold]…")
     try:
         _deploy(target_dir=project_dir, env=env)
         console.print(f"[green]✓[/green] Deployed to {env}")
-    except RuntimeError as exc:
+    except (RuntimeError, subprocess.CalledProcessError) as exc:
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(code=1)
 

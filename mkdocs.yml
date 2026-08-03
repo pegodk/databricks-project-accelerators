@@ -42,7 +42,7 @@ nav:
       - Medallion SDP: accelerators/medallion-sdp.md
       - Medallion DBT: accelerators/medallion-dbt.md
       - MLflow Project: accelerators/mlflow-project.md
-      - Lakebase App: accelerators/lakebase-app.md
+      - Lakebase App: accelerators/lakebase-streamlit-app.md
       - Custom Python Wheel: accelerators/custom-python-wheel.md
       - AI/BI: accelerators/ai-bi.md
   - API Reference:

@@ -20,6 +20,7 @@ def test_custom_python_wheel_list_files():
     files = [str(f).replace("\\", "/") for f in acc.list_files()]
 
     assert "databricks.yml" in files
+    assert "README.md" in files
     assert "pyproject.toml" in files
     assert "resources/jobs/wheel_job.yml" in files
     assert "notebooks/build_and_upload.py" in files
@@ -40,6 +41,7 @@ def test_custom_python_wheel_scaffold(tmp_path: Path):
     acc.scaffold(target=project_dir)
 
     assert (project_dir / "databricks.yml").exists()
+    assert (project_dir / "README.md").exists()
     assert (project_dir / "pyproject.toml").exists()
     assert (project_dir / "resources" / "jobs" / "wheel_job.yml").exists()
     assert (project_dir / "notebooks" / "build_and_upload.py").exists()

@@ -2,8 +2,9 @@
 # MAGIC %md
 # MAGIC # Register — Promote Best Run to UC Model Registry
 # MAGIC
-# MAGIC Finds the run with the lowest RMSE in the experiment, registers the model to
-# MAGIC the Unity Catalog Model Registry, and sets the `champion` alias on the new version.
+# MAGIC Finds the run with the lowest RMSE in the experiment and registers it to the
+# MAGIC Unity Catalog Model Registry. The `champion` alias only moves to the new
+# MAGIC version if it beats the current champion's RMSE (or no champion exists yet).
 # MAGIC
 # MAGIC **Registry:** `${var.catalog}.${var.schema}.${var.model_name}@champion`
 
@@ -23,6 +24,7 @@ uc_model        = f"{catalog}.{schema}.{model_name}"
 # COMMAND ----------
 
 import mlflow
+from mlflow.exceptions import MlflowException
 from mlflow.tracking import MlflowClient
 
 mlflow.set_registry_uri("databricks-uc")
@@ -42,9 +44,28 @@ runs = client.search_runs(
 assert runs, "No completed runs found in the experiment."
 
 best_run = runs[0]
+new_rmse = best_run.data.metrics["rmse"]
 print(f"Best run : {best_run.info.run_id}")
-print(f"RMSE     : {best_run.data.metrics['rmse']:>12,.0f}")
+print(f"RMSE     : {new_rmse:>12,.0f}")
 print(f"R²       : {best_run.data.metrics['r2']:>12.3f}")
+
+# COMMAND ----------
+
+# Compare against the current champion (if one exists) before promoting
+try:
+    champion_version = client.get_model_version_by_alias(uc_model, "champion")
+    champion_rmse = client.get_run(champion_version.run_id).data.metrics["rmse"]
+    print(f"Current champion: v{champion_version.version} (RMSE {champion_rmse:,.0f})")
+except MlflowException:
+    champion_rmse = None
+    print("No existing champion — this run will be promoted unconditionally.")
+
+if champion_rmse is not None and new_rmse >= champion_rmse:
+    print(
+        f"Skipping promotion: new RMSE ({new_rmse:,.0f}) does not improve on "
+        f"champion RMSE ({champion_rmse:,.0f})."
+    )
+    dbutils.notebook.exit("not_promoted")
 
 # COMMAND ----------
 

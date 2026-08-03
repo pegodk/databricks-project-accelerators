@@ -1,0 +1,47 @@
+# {{ project_slug }}
+
+MLflow training → registration → batch scoring pipeline over the Databricks TPCH sample dataset, deployed as a Databricks Asset Bundle with a scheduled 3-task job.
+
+## Prerequisites
+
+- [Databricks CLI](https://docs.databricks.com/dev-tools/cli/install.html) v0.230+, authenticated (`databricks auth login`)
+- A Unity Catalog-enabled workspace with access to `samples.tpch`
+- Catalog `{{ cfg.catalog }}` and schema `{{ cfg.schema }}` (or your overrides) created ahead of deploy
+
+## What's here
+
+```
+notebooks/
+├── train.py       # Trains a model, logs runs + metrics to the MLflow experiment
+├── register.py    # Promotes the best run to the UC Model Registry (see below)
+└── score.py       # Batch-scores using the `@champion` alias
+resources/jobs/mlflow_job.yml   # 3-task job: train → register → score, scheduled daily at 06:00 UTC
+```
+
+### Champion promotion gate
+
+`register.py` only moves the `champion` alias to a new model version if its RMSE beats the
+current champion's (or no champion exists yet). A worse run exits early without promoting,
+so scheduled retraining can never regress the model that `score.py` uses in production.
+
+## Deploy
+
+```bash
+databricks bundle validate --target dev
+databricks bundle deploy --target dev
+databricks bundle run {{ project_slug | replace("-", "_") }}_pipeline --target dev
+```
+
+## Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `catalog` | `{{ cfg.catalog }}` | Catalog for the UC Model Registry and scored output table |
+| `schema` | `{{ cfg.schema }}` | Schema for the UC Model Registry and scored output table |
+| `experiment_name` | `{{ cfg.experiment_name }}` | MLflow experiment path for training runs |
+| `model_name` | `{{ cfg.model_name }}` | Registered model name (`catalog.schema.model_name`) |
+
+## Troubleshooting
+
+- **`register` exits with "not_promoted"** — expected behavior when the new run doesn't beat the current champion; check the job's task output for the RMSE comparison.
+- **`score` fails with "no champion alias"** — run the job at least once end-to-end so `register` sets the initial champion.

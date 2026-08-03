@@ -21,11 +21,11 @@ Open an empty folder in VS Code, then run in the terminal:
 dpa list
 
 # Scaffold a project
-dpa init medallion-spark
+dpa init medallion-sdp
 
 # Open the generated project
-code medallion-spark
-cd medallion-spark
+code medallion-sdp
+cd medallion-sdp
 
 # Authenticate the Databricks CLI if you haven't already
 databricks configure
@@ -34,7 +34,7 @@ databricks configure
 databricks bundle deploy
 
 # Run the job
-databricks bundle run medallion_spark_medallion
+databricks bundle run medallion_sdp_job
 ```
 
 That's it — your Databricks solution is live.
@@ -44,10 +44,10 @@ That's it — your Databricks solution is live.
 | Name | Description |
 |------|-------------|
 | `medallion-sdp` | Streaming Delta Pipeline (DLT) with bronze/silver/gold layers and a DAB job |
-| `medallion-spark` | Medallion architecture using Spark Structured Streaming notebooks |
+| `medallion-dbt` | Medallion architecture (bronze/silver/gold) using dbt models over TPCH |
 | `mlflow-project` | MLflow training, model registration, and batch scoring over TPCH |
-| `python-wheel` | Python wheel package with build-and-upload job and import verification |
-| `app-streamlit` | Databricks-hosted Databricks app wired to a SQL warehouse |
+| `lakebase-streamlit-app` | Databricks App (Streamlit) connected to TPCH analytics + Lakebase master data |
+| `custom-python-wheel` | Custom Python wheel package with a build-and-upload job and an import verification notebook |
 | `ai-bi` | Lakeview dashboard + Genie Space with metric views over the TPCH sample dataset |
 
 ## CLI reference

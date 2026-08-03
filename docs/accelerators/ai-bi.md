@@ -86,6 +86,9 @@ databricks bundle deploy --target prod --var catalog=prod_catalog --var schema=t
 
 The dashboard and Genie Space depend on `v_tpch` existing — run the setup job once before opening either.
 
+!!! note
+    The Genie Space's `description` and example-question SQL also use `${var.catalog}`/`${var.schema}`, so they follow the same deploy-time override. The Lakeview dashboard (`tpch_overview.lvdash.json`) is the one exception: dashboard content is an opaque JSON blob that DAB does not variable-substitute, so its queries are baked to the `catalog`/`schema` config values at `dpa init` time. If you need a different catalog for the dashboard, edit the JSON's `query` fields directly after scaffolding.
+
 ## Requirements
 
 - Databricks CLI v1.3.0+ (required for Genie Space bundle support)

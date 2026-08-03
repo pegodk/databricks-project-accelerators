@@ -20,6 +20,7 @@ def test_mlflow_project_list_files():
     files = [str(f).replace("\\", "/") for f in acc.list_files()]
 
     assert "databricks.yml" in files
+    assert "README.md" in files
     assert "resources/jobs/mlflow_job.yml" in files
     assert "resources/schemas/schema.yml" in files
     assert "notebooks/train.py" in files
@@ -37,6 +38,7 @@ def test_mlflow_project_scaffold(tmp_path: Path):
     acc.scaffold(target=project_dir)
 
     assert (project_dir / "databricks.yml").exists()
+    assert (project_dir / "README.md").exists()
     assert (project_dir / "resources" / "jobs" / "mlflow_job.yml").exists()
     assert (project_dir / "resources" / "schemas" / "schema.yml").exists()
     assert (project_dir / "notebooks" / "train.py").exists()
@@ -73,6 +75,8 @@ def test_mlflow_project_scaffold_renders_register_notebook(tmp_path: Path):
     assert "mlflow.register_model" in nb
     assert "set_registered_model_alias" in nb
     assert "champion" in nb
+    assert "get_model_version_by_alias" in nb
+    assert "not_promoted" in nb
 
 
 def test_mlflow_project_scaffold_renders_score_notebook(tmp_path: Path):

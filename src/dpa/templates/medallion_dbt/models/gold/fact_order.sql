@@ -17,7 +17,7 @@ select
     datediff(l.l_receiptdate, o.o_orderdate)            as order_receipt_lag_days,
     datediff(l.l_shipdate,    o.o_orderdate)            as order_ship_lag_days
 from {{ ref('lineitem') }} l
-join {{ ref('orders') }} o
+join {{ ref('orders_enriched') }} o
     on l.l_orderkey = o.o_orderkey
 left join {{ ref('partsupp') }} ps
     on l.l_partkey = ps.ps_partkey and l.l_suppkey = ps.ps_suppkey

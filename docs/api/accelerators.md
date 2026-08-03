@@ -6,7 +6,7 @@
 
 ::: dpa.accelerators.medallion_dbt.accelerator.MedallionDbtAccelerator
 
-::: dpa.accelerators.lakebase_app.accelerator.LakebaseAppAccelerator
+::: dpa.accelerators.lakebase_streamlit_app.accelerator.LakebaseStreamlitAppAccelerator
 
 ::: dpa.accelerators.ai_bi.accelerator.AiBiAccelerator
 

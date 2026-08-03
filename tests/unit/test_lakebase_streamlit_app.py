@@ -1,25 +1,26 @@
-"""Unit tests for the lakebase-app accelerator."""
+"""Unit tests for the lakebase-streamlit-app accelerator."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 
-def test_get_lakebase_app_accelerator():
+def test_get_lakebase_streamlit_app_accelerator():
     from dpa.accelerators import get_accelerator
 
-    cls = get_accelerator("lakebase-app")
+    cls = get_accelerator("lakebase-streamlit-app")
     assert cls is not None
-    assert cls.name == "lakebase-app"
+    assert cls.name == "lakebase-streamlit-app"
 
 
-def test_lakebase_app_list_files():
+def test_lakebase_streamlit_app_list_files():
     from dpa.accelerators import get_accelerator
 
-    acc = get_accelerator("lakebase-app")()
+    acc = get_accelerator("lakebase-streamlit-app")()
     files = [str(f).replace("\\", "/") for f in acc.list_files()]
 
     assert "databricks.yml" in files
+    assert "README.md" in files
     assert "resources/apps/app.yml" in files
     assert "resources/postgres_projects/lakebase.yml" in files
     assert "resources/postgres_branches/production.yml" in files
@@ -31,14 +32,15 @@ def test_lakebase_app_list_files():
     assert "azure-pipelines.yml" in files
 
 
-def test_lakebase_app_scaffold(tmp_path: Path):
+def test_lakebase_streamlit_app_scaffold(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
-    acc = get_accelerator("lakebase-app")()
+    acc = get_accelerator("lakebase-streamlit-app")()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
     assert (project_dir / "databricks.yml").exists()
+    assert (project_dir / "README.md").exists()
     assert (project_dir / "resources" / "apps" / "app.yml").exists()
     assert (project_dir / "resources" / "postgres_projects" / "lakebase.yml").exists()
     assert (project_dir / "resources" / "postgres_branches" / "production.yml").exists()
@@ -50,20 +52,20 @@ def test_lakebase_app_scaffold(tmp_path: Path):
     assert (project_dir / "azure-pipelines.yml").exists()
 
 
-def test_lakebase_app_scaffold_renders_app_name(tmp_path: Path):
+def test_lakebase_streamlit_app_scaffold_renders_app_name(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
-    acc = get_accelerator("lakebase-app")()
+    acc = get_accelerator("lakebase-streamlit-app")()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
     bundle = (project_dir / "databricks.yml").read_text()
-    assert "lakebase-app" in bundle
+    assert "lakebase-streamlit-app" in bundle
     assert "lakebase_project_id" in bundle
     assert "lakebase_pghost" in bundle
 
     app_resource = (project_dir / "resources" / "apps" / "app.yml").read_text()
-    assert "lakebase_app" in app_resource
+    assert "lakebase_streamlit_app" in app_resource
     assert "DATABRICKS_HTTP_PATH" in app_resource
     assert "var.warehouse_id" in app_resource
     assert "postgres:" in app_resource
@@ -73,7 +75,7 @@ def test_lakebase_app_scaffold_renders_app_name(tmp_path: Path):
 
     project_resource = (project_dir / "resources" / "postgres_projects" / "lakebase.yml").read_text()
     assert "postgres_projects" in project_resource
-    assert "lakebase_app_lakebase" in project_resource
+    assert "lakebase_streamlit_app_lakebase" in project_resource
     assert "lakebase_project_id" in project_resource
 
     branch_resource = (project_dir / "resources" / "postgres_branches" / "production.yml").read_text()
@@ -86,10 +88,10 @@ def test_lakebase_app_scaffold_renders_app_name(tmp_path: Path):
     assert "ENDPOINT_TYPE_READ_WRITE" in endpoint_resource
 
 
-def test_lakebase_app_scaffold_renders_tpch_queries(tmp_path: Path):
+def test_lakebase_streamlit_app_scaffold_renders_tpch_queries(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
-    acc = get_accelerator("lakebase-app")()
+    acc = get_accelerator("lakebase-streamlit-app")()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
@@ -99,10 +101,10 @@ def test_lakebase_app_scaffold_renders_tpch_queries(tmp_path: Path):
     assert "plotly" in app_py
 
 
-def test_lakebase_app_scaffold_renders_lakebase(tmp_path: Path):
+def test_lakebase_streamlit_app_scaffold_renders_lakebase(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
-    acc = get_accelerator("lakebase-app")()
+    acc = get_accelerator("lakebase-streamlit-app")()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
@@ -118,10 +120,10 @@ def test_lakebase_app_scaffold_renders_lakebase(tmp_path: Path):
     assert "ConnectionPool" in app_py
 
 
-def test_lakebase_app_scaffold_renders_ci_pipelines(tmp_path: Path):
+def test_lakebase_streamlit_app_scaffold_renders_ci_pipelines(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
-    acc = get_accelerator("lakebase-app")()
+    acc = get_accelerator("lakebase-streamlit-app")()
     acc.scaffold(target=tmp_path / acc.project_slug)
 
     ci = (tmp_path / acc.project_slug / ".github" / "workflows" / "ci.yml").read_text()
@@ -131,10 +133,10 @@ def test_lakebase_app_scaffold_renders_ci_pipelines(tmp_path: Path):
     assert "databricks bundle validate" in pipeline
 
 
-def test_lakebase_app_requirements(tmp_path: Path):
+def test_lakebase_streamlit_app_requirements(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
-    acc = get_accelerator("lakebase-app")()
+    acc = get_accelerator("lakebase-streamlit-app")()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 

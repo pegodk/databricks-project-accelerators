@@ -20,6 +20,7 @@ def test_medallion_sdp_list_files():
     files = [str(f).replace("\\", "/") for f in acc.list_files()]
 
     assert "databricks.yml" in files
+    assert "README.md" in files
     assert "resources/pipelines/pipeline.yml" in files
     assert "resources/schemas/schemas.yml" in files
     assert "src/pipelines/bronze/ingest.py" in files
@@ -43,6 +44,7 @@ def test_medallion_sdp_scaffold(tmp_path: Path):
     acc.scaffold(target=project_dir)
 
     assert (project_dir / "databricks.yml").exists()
+    assert (project_dir / "README.md").exists()
     assert (project_dir / "resources" / "pipelines" / "pipeline.yml").exists()
     assert (project_dir / "resources" / "schemas" / "schemas.yml").exists()
     assert (project_dir / "src" / "pipelines" / "bronze" / "ingest.py").exists()

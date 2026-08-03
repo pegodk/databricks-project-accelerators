@@ -1,0 +1,63 @@
+# {{ project_slug }}
+
+Streaming Delta Pipeline (DLT) implementing bronze → silver → gold over the Databricks TPCH sample dataset, deployed as a Databricks Asset Bundle.
+
+## Prerequisites
+
+- [Databricks CLI](https://docs.databricks.com/dev-tools/cli/install.html) v0.230+, authenticated (`databricks auth login`)
+- A Unity Catalog-enabled workspace with access to `samples.tpch`
+- The `bronze_catalog`, `silver_catalog`, and `gold_catalog` (see Variables below) must exist before deploying — the bundle creates schemas within them, not the catalogs themselves
+
+## What's here
+
+```
+src/pipelines/
+├── bronze/ingest.py           # Streaming ingestion from samples.tpch (one @dp.table per source)
+├── silver/                    # Data-quality expectations + CDC (SCD Type 1) into cleansed tables
+└── gold/                      # Materialized views: dim_customer, dim_part, dim_supplier, fact_order
+                                # (surrogate keys via xxhash64 on the natural key)
+resources/
+├── pipelines/pipeline.yml     # DLT pipeline resource (serverless, ADVANCED edition)
+└── schemas/schemas.yml        # Bronze/silver/gold UC schema declarations
+```
+
+Silver tables enforce data-quality expectations (e.g. `@dp.expect("non_negative_balance", ...)`) on a streaming view, then apply changes into a target table via `dp.create_auto_cdc_flow` (SCD Type 1). Gold builds materialized views on top of silver with a surrogate key column derived from the natural key.
+
+## Deploy
+
+Set your workspace URLs in `databricks.yml` under each target, then:
+
+```bash
+databricks bundle validate --target dev
+databricks bundle deploy --target dev
+```
+
+The pipeline appears under **Delta Live Tables** in the Databricks UI — start it from there, or set a schedule in `resources/pipelines/pipeline.yml`.
+
+For production:
+
+```bash
+databricks bundle deploy --target prod
+```
+
+## Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `bronze_catalog` | `dpa_bronze_dev` | Catalog for raw ingested data |
+| `silver_catalog` | `dpa_silver_dev` | Catalog for cleansed and validated data |
+| `gold_catalog` | `dpa_gold_dev` | Catalog for the dimensional model |
+
+Override at deploy time:
+
+```bash
+databricks bundle deploy \
+  --var="bronze_catalog=my_bronze" \
+  --var="silver_catalog=my_silver" \
+  --var="gold_catalog=my_gold"
+```
+
+## Troubleshooting
+
+- **"Catalog does not exist"** — catalogs must exist before deploying; the bundle only creates schemas within them.
+- **Pipeline fails on first run** — confirm the workspace has access to `samples.tpch` (bundled with every Databricks workspace by default).

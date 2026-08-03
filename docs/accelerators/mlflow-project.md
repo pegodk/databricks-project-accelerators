@@ -43,7 +43,7 @@ Loads `orders`, `customer`, and `nation` from `samples.tpch`, joins them, and tr
 
 **Task 2 — `register`** (depends on train)
 
-Queries the experiment for the run with the lowest RMSE, registers it to the Unity Catalog Model Registry as `${var.catalog}.${var.schema}.${var.model_name}`, and sets the `champion` alias on the new version. Downstream consumers always load `@champion` — they don't need to know which version number was promoted.
+Queries the experiment for the run with the lowest RMSE and registers it to the Unity Catalog Model Registry as `${var.catalog}.${var.schema}.${var.model_name}`. The `champion` alias only moves to the new version if its RMSE beats the current champion's (or no champion exists yet) — otherwise the task exits without promoting, so a worse run can never regress production. Downstream consumers always load `@champion` — they don't need to know which version number was promoted.
 
 **Task 3 — `score`** (depends on register)
 

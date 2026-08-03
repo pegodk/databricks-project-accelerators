@@ -28,7 +28,7 @@ def deploy(target_dir: Path, env: str) -> None:
     )
 
 
-def validate(target_dir: Path) -> None:
-    """Run ``databricks bundle validate`` in *target_dir*."""
+def validate(target_dir: Path, env: str) -> None:
+    """Run ``databricks bundle validate --target <env>`` in *target_dir*."""
     cli = _require_databricks_cli()
-    subprocess.run([cli, "bundle", "validate"], cwd=target_dir, check=True)
+    subprocess.run([cli, "bundle", "validate", "--target", env], cwd=target_dir, check=True)

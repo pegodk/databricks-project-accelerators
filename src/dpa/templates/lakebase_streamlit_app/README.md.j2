@@ -1,0 +1,66 @@
+# {{ project_slug }}
+
+A [Streamlit](https://streamlit.io/) analytics app hosted as a Databricks App, combining TPCH analytics (via SQL warehouse) with an editable master-data table backed by [Lakebase](https://docs.databricks.com/en/lakebase/index.html) (managed Postgres).
+
+## Prerequisites
+
+- [Databricks CLI](https://docs.databricks.com/dev-tools/cli/install.html) v0.230+, authenticated (`databricks auth login`)
+- A workspace with Databricks Apps and Lakebase enabled
+- A running SQL warehouse (the bundle auto-resolves one named "Serverless Starter Warehouse", or override `warehouse_id`)
+
+## What's here
+
+```
+app/
+├── app.py              # Streamlit app (Analytics + Master Data tabs)
+├── app.yaml            # Databricks App entrypoint config
+└── requirements.txt
+resources/
+├── apps/app.yml                       # Databricks App resource
+├── postgres_projects/lakebase.yml     # Lakebase project (managed Postgres)
+├── postgres_branches/production.yml   # Protected production branch
+└── postgres_endpoints/primary.yml     # Autoscaling read/write endpoint
+```
+
+## Two-step deploy
+
+Lakebase resources must exist before the app can connect to them.
+
+**Step 1 — provision Lakebase:**
+
+```bash
+databricks bundle deploy --target dev
+```
+
+After it completes, open **Lakebase** in the Databricks UI and copy:
+
+- **PGHOST** — endpoint hostname (Connect modal)
+- **ENDPOINT_NAME** — endpoint resource path (Computes tab, e.g. `projects/.../branches/.../endpoints/primary`)
+
+**Step 2 — deploy the app with connection details:**
+
+```bash
+databricks bundle deploy --target dev \
+  --var="lakebase_pghost=<host>" \
+  --var="lakebase_endpoint=<endpoint-path>"
+```
+
+The app appears under **Apps** in the Databricks UI.
+
+## Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `warehouse_id` | _(auto-resolved)_ | SQL warehouse used for the Analytics tab |
+| `lakebase_project_id` | `{{ cfg.lakebase_project_id }}` | Lakebase project ID |
+| `lakebase_min_cu` | `{{ cfg.lakebase_min_cu }}` | Minimum compute units for the Lakebase endpoint |
+| `lakebase_max_cu` | `{{ cfg.lakebase_max_cu }}` | Maximum compute units for the Lakebase endpoint |
+| `lakebase_pghost` | _(set after first deploy)_ | Endpoint hostname |
+| `lakebase_endpoint` | _(set after first deploy)_ | Endpoint resource path |
+
+## Troubleshooting
+
+- **App fails to connect to Postgres on first deploy** — expected before Step 2; `lakebase_pghost`/`lakebase_endpoint` default to placeholders until you provide real values.
+- **OAuth token errors** — tokens expire after 1 hour and are refreshed automatically per-connection; if you see stale-credential errors, confirm the app's service principal has access to the Lakebase endpoint.
+
+Add Python packages to `app/requirements.txt` and redeploy — the runtime installs them on app startup.

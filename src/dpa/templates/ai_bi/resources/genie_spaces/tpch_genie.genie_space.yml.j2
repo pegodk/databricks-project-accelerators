@@ -3,7 +3,7 @@ resources:
   genie_spaces:
     {{ slug }}_genie:
       title: "dpa-{{ project_slug }}"
-      description: "Ask natural-language questions about TPCH sales data. Powered by the v_tpch metric view in {{ cfg.catalog }}.{{ cfg.schema }}."
+      description: "Ask natural-language questions about TPCH sales data. Powered by the v_tpch metric view in ${var.catalog}.${var.schema}."
       warehouse_id: ${var.warehouse_id}
       serialized_space:
         version: 2
@@ -42,14 +42,14 @@ resources:
               question: ["What is the total revenue by market segment?"]
               sql:
                 - "SELECT market_segment, MEASURE(total_revenue)\n"
-                - "FROM {{ cfg.catalog }}.{{ cfg.schema }}.v_tpch\n"
+                - "FROM ${var.catalog}.${var.schema}.v_tpch\n"
                 - "GROUP BY market_segment\n"
                 - "ORDER BY MEASURE(total_revenue) DESC"
             - id: "02"
               question: ["How has monthly revenue trended over time?"]
               sql:
                 - "SELECT order_month, MEASURE(total_revenue), MEASURE(order_count)\n"
-                - "FROM {{ cfg.catalog }}.{{ cfg.schema }}.v_tpch\n"
+                - "FROM ${var.catalog}.${var.schema}.v_tpch\n"
                 - "GROUP BY order_month\n"
                 - "ORDER BY order_month"
       permissions:

@@ -21,6 +21,7 @@ def test_ai_bi_list_files():
     files = [str(f).replace("\\", "/") for f in acc.list_files()]
 
     assert "databricks.yml" in files
+    assert "README.md" in files
     assert "resources/jobs/setup_views_job.yml" in files
     assert "resources/dashboards/dashboard.yml" in files
     assert "resources/genie_spaces/tpch_genie.genie_space.yml" in files
@@ -38,6 +39,7 @@ def test_ai_bi_scaffold(tmp_path: Path):
     acc.scaffold(target=project_dir)
 
     assert (project_dir / "databricks.yml").exists()
+    assert (project_dir / "README.md").exists()
     assert (project_dir / "resources" / "jobs" / "setup_views_job.yml").exists()
     assert (project_dir / "resources" / "dashboards" / "dashboard.yml").exists()
     assert (project_dir / "resources" / "genie_spaces" / "tpch_genie.genie_space.yml").exists()
@@ -123,4 +125,4 @@ def test_ai_bi_scaffold_renders_genie_space_yml(tmp_path: Path):
     assert "serialized_space" in genie_yml
     assert "sample_questions" in genie_yml
     assert "text_instructions" in genie_yml
-    assert "dpa_gold_dev.tpch_metrics.v_tpch" in genie_yml
+    assert "${var.catalog}.${var.schema}.v_tpch" in genie_yml

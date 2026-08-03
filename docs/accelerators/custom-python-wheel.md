@@ -1,16 +1,16 @@
-# Python Wheel Accelerator
+# Custom Python Wheel Accelerator
 
-The **Python Wheel** accelerator scaffolds a self-contained Python package with a two-task Databricks job: one task builds the wheel from workspace source files and uploads it to a Unity Catalog Volume, the next installs it and verifies that all public functions import and execute correctly.
+The **Custom Python Wheel** accelerator scaffolds a self-contained Python package with a two-task Databricks job: one task builds the wheel from workspace source files and uploads it to a Unity Catalog Volume, the next installs it and verifies that all public functions import and execute correctly.
 
 ## What gets generated
 
 ```
-python-wheel/
+custom-python-wheel/
 ├── databricks.yml                        # Asset Bundle root config
 ├── pyproject.toml                        # Package metadata (hatchling build backend)
 ├── .gitignore
 ├── src/
-│   └── python_wheel/
+│   └── custom_python_wheel/
 │       ├── __init__.py                   # Public API exports
 │       └── functions.py                  # greet() and add() — replace with your own
 ├── notebooks/
@@ -34,7 +34,7 @@ Receives `workspace_file_path`, `catalog`, and `schema` as widget parameters. Cr
 Finds the wheel in the UC Volume by glob, installs it with `pip install --force-reinstall`, restarts the Python interpreter, then imports and asserts the public API in a separate cell:
 
 ```python
-from python_wheel import greet, add
+from custom_python_wheel import greet, add
 
 assert greet("Databricks") == "Hello, Databricks!"
 assert add(2, 3) == 5.0
@@ -48,14 +48,14 @@ assert add(2, 3) == 5.0
 ## Usage
 
 ```bash
-dpa init python-wheel
-cd python-wheel
+dpa init custom-python-wheel
+cd custom-python-wheel
 
 databricks bundle deploy
-databricks bundle run python_wheel_wheel
+databricks bundle run custom_python_wheel_wheel
 ```
 
-Replace the functions in `src/python_wheel/functions.py` with your own logic. Bump `version` in `pyproject.toml` when you release a new build — the job picks up the latest wheel matching `python_wheel-*.whl` in the volume.
+Replace the functions in `src/custom_python_wheel/functions.py` with your own logic. Bump `version` in `pyproject.toml` when you release a new build — the job picks up the latest wheel matching `custom_python_wheel-*.whl` in the volume.
 
 ## Variables
 
@@ -66,4 +66,4 @@ Replace the functions in `src/python_wheel/functions.py` with your own logic. Bu
 
 ## Extending the package
 
-Add new modules under `src/python_wheel/` and export them from `__init__.py`. Add assertions to `notebooks/verify_imports.py` for each new function. The wheel is rebuilt from source on every job run, so no separate publish step is needed during development.
+Add new modules under `src/custom_python_wheel/` and export them from `__init__.py`. Add assertions to `notebooks/verify_imports.py` for each new function. The wheel is rebuilt from source on every job run, so no separate publish step is needed during development.

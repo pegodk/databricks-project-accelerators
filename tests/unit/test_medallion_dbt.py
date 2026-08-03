@@ -20,6 +20,7 @@ def test_medallion_dbt_list_files():
     files = [str(f).replace("\\", "/") for f in acc.list_files()]
 
     assert "databricks.yml" in files
+    assert "README.md" in files
     assert "dbt_project.yml" in files
     assert "profiles.yml" in files
     assert "resources/jobs/dbt_job.yml" in files
@@ -29,6 +30,7 @@ def test_medallion_dbt_list_files():
     assert "models/bronze/part.sql" in files
     assert "models/bronze/supplier.sql" in files
     assert "models/bronze/partsupp.sql" in files
+    assert "models/silver/orders_enriched.sql" in files
     assert "models/gold/dim_customer.sql" in files
     assert "models/gold/dim_part.sql" in files
     assert "models/gold/dim_supplier.sql" in files
@@ -45,6 +47,7 @@ def test_medallion_dbt_scaffold(tmp_path: Path):
     acc.scaffold(target=project_dir)
 
     assert (project_dir / "databricks.yml").exists()
+    assert (project_dir / "README.md").exists()
     assert (project_dir / "dbt_project.yml").exists()
     assert (project_dir / "profiles.yml").exists()
     assert (project_dir / "resources" / "jobs" / "dbt_job.yml").exists()
@@ -53,6 +56,7 @@ def test_medallion_dbt_scaffold(tmp_path: Path):
     assert (project_dir / "models" / "bronze" / "part.sql").exists()
     assert (project_dir / "models" / "bronze" / "supplier.sql").exists()
     assert (project_dir / "models" / "bronze" / "partsupp.sql").exists()
+    assert (project_dir / "models" / "silver" / "orders_enriched.sql").exists()
     assert (project_dir / "models" / "gold" / "dim_customer.sql").exists()
     assert (project_dir / "models" / "gold" / "dim_part.sql").exists()
     assert (project_dir / "models" / "gold" / "dim_supplier.sql").exists()
@@ -72,6 +76,7 @@ def test_medallion_dbt_scaffold_renders_dbt_project(tmp_path: Path):
     assert "medallion_dbt" in content
     assert "+database" in content
     assert "dpa_bronze_dev" in content
+    assert "dpa_silver_dev" in content
     assert "dpa_gold_dev" in content
 
 
@@ -114,3 +119,20 @@ def test_medallion_dbt_scaffold_renders_serverless_env(tmp_path: Path):
     assert "dbt-databricks" in job_yml
     assert "workspace.file_path" in job_yml
     assert "WORKSPACE" in job_yml
+
+
+def test_medallion_dbt_scaffold_renders_silver_layer(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("medallion-dbt")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    silver = (project_dir / "models" / "silver" / "orders_enriched.sql").read_text()
+    assert "ref('orders')" in silver
+    assert "ref('customer')" in silver
+    assert "ref('nation')" in silver
+    assert "ref('region')" in silver
+
+    fact_order = (project_dir / "models" / "gold" / "fact_order.sql").read_text()
+    assert "ref('orders_enriched')" in fact_order

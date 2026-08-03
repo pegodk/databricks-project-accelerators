@@ -1,0 +1,54 @@
+# {{ project_slug }}
+
+dbt project running bronze → silver → gold transformations over the Databricks TPCH sample dataset, orchestrated by a Databricks Job (`dbt_task`) and deployed as a Databricks Asset Bundle.
+
+## Prerequisites
+
+- [Databricks CLI](https://docs.databricks.com/dev-tools/cli/install.html) v0.230+, authenticated (`databricks auth login`)
+- A Unity Catalog-enabled workspace with access to `samples.tpch`
+- Catalogs `{{ cfg.bronze_catalog }}`, `{{ cfg.silver_catalog }}`, `{{ cfg.gold_catalog }}` (or your overrides) created ahead of deploy
+
+## What's here
+
+```
+models/
+├── sources.yml         # TPCH source declarations
+├── bronze/             # One view per TPCH source table
+├── silver/
+│   └── orders_enriched.sql   # Orders + customer/nation/region attributes resolved
+└── gold/                # Star schema: dim_customer, dim_part, dim_supplier, fact_order
+resources/jobs/dbt_job.yml    # Job running `dbt build` via a serverless dbt_task
+dbt_project.yml               # Per-layer materialization + catalog mapping
+```
+
+## Deploy
+
+```bash
+databricks bundle validate --target dev
+databricks bundle deploy --target dev
+databricks bundle run {{ project_slug | replace("-", "_") }}_job --target dev
+```
+
+## Local dbt development
+
+`profiles.yml` is provided for running dbt from your laptop against the same warehouse:
+
+```bash
+export DATABRICKS_HOST=...
+export DATABRICKS_HTTP_PATH=...
+export DATABRICKS_TOKEN=...
+dbt build
+```
+
+## Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `bronze_catalog` | `{{ cfg.bronze_catalog }}` | Catalog for raw source views |
+| `silver_catalog` | `{{ cfg.silver_catalog }}` | Catalog for cleansed/enriched tables |
+| `gold_catalog` | `{{ cfg.gold_catalog }}` | Catalog for the dimensional model |
+
+## Troubleshooting
+
+- **"Catalog does not exist"** — create the target catalogs before deploying.
+- **`dbt build` fails locally** — check that `DATABRICKS_HOST`/`DATABRICKS_HTTP_PATH`/`DATABRICKS_TOKEN` are exported and point at a running SQL warehouse.
