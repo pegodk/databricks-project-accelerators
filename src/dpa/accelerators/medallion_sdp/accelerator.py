@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from dpa.accelerators.base import BaseAccelerator, SHARED_TEMPLATE_ROOT, render_tree
+from dpa.accelerators.base import SHARED_TEMPLATE_ROOT, BaseAccelerator, render_tree
 
 _TEMPLATE_ROOT = Path(__file__).parent.parent.parent / "templates" / "medallion_sdp"
 _EXCLUDE = frozenset({"src_example"})
