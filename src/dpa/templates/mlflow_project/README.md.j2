@@ -6,7 +6,7 @@ MLflow training → registration → batch scoring pipeline over the Databricks 
 
 - [Databricks CLI](https://docs.databricks.com/dev-tools/cli/install.html) v0.230+, authenticated (`databricks auth login`)
 - A Unity Catalog-enabled workspace with access to `samples.tpch`
-- Catalog `{{ cfg.catalog }}` and schema `{{ cfg.schema }}` (or your overrides) created ahead of deploy
+- Permission to create catalogs in the metastore — the bundle creates catalog `{{ cfg.catalog }}` and schema `{{ cfg.schema }}` (or your overrides) on deploy
 
 ## What's here
 

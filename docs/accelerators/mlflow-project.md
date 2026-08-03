@@ -52,7 +52,7 @@ Loads `models:/${var.catalog}.${var.schema}.${var.model_name}@champion` via `mlf
 ## Requirements
 
 - Unity Catalog enabled
-- `${var.catalog}` must exist before deploying (the schema is created by the bundle)
+- Permission to create catalogs in the metastore — the bundle creates `${var.catalog}` and its schema on deploy
 - Access to `samples.tpch`
 
 ## Usage

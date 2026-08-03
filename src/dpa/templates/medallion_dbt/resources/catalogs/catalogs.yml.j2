@@ -1,0 +1,14 @@
+{% set slug = project_slug | replace('-', '_') %}
+resources:
+  catalogs:
+    {{ slug }}_bronze_catalog:
+      name: ${var.bronze_catalog}
+      comment: "Bronze catalog for {{ project_slug }}, created by Databricks Asset Bundles"
+
+    {{ slug }}_silver_catalog:
+      name: "{{ cfg.silver_catalog }}"
+      comment: "Silver catalog for {{ project_slug }}, created by Databricks Asset Bundles"
+
+    {{ slug }}_gold_catalog:
+      name: ${var.gold_catalog}
+      comment: "Gold catalog for {{ project_slug }}, created by Databricks Asset Bundles"

@@ -25,6 +25,7 @@ def test_ai_bi_list_files():
     assert "resources/jobs/setup_views_job.yml" in files
     assert "resources/dashboards/dashboard.yml" in files
     assert "resources/genie_spaces/tpch_genie.genie_space.yml" in files
+    assert "resources/catalogs/catalog.yml" in files
     assert "notebooks/setup_metric_views.py" in files
     assert "resources/dashboards/tpch_overview.lvdash.json" in files
     assert ".github/workflows/ci.yml" in files
@@ -43,6 +44,7 @@ def test_ai_bi_scaffold(tmp_path: Path):
     assert (project_dir / "resources" / "jobs" / "setup_views_job.yml").exists()
     assert (project_dir / "resources" / "dashboards" / "dashboard.yml").exists()
     assert (project_dir / "resources" / "genie_spaces" / "tpch_genie.genie_space.yml").exists()
+    assert (project_dir / "resources" / "catalogs" / "catalog.yml").exists()
     assert (project_dir / "notebooks" / "setup_metric_views.py").exists()
     assert (project_dir / "resources" / "dashboards" / "tpch_overview.lvdash.json").exists()
     assert (project_dir / ".github" / "workflows" / "ci.yml").exists()
@@ -60,6 +62,22 @@ def test_ai_bi_scaffold_renders_ci_pipelines(tmp_path: Path):
 
     pipeline = (tmp_path / acc.project_slug / "azure-pipelines.yml").read_text()
     assert "databricks bundle validate" in pipeline
+
+
+def test_ai_bi_scaffold_renders_catalog_resource(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("ai-bi")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    bundle = (project_dir / "databricks.yml").read_text()
+    assert "engine: direct" in bundle
+
+    catalog = (project_dir / "resources" / "catalogs" / "catalog.yml").read_text()
+    assert "resources:" in catalog
+    assert "catalogs:" in catalog
+    assert "${var.catalog}" in catalog
 
 
 def test_ai_bi_scaffold_renders_setup_notebook(tmp_path: Path):

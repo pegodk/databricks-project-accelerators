@@ -43,7 +43,7 @@ assert add(2, 3) == 5.0
 ## Requirements
 
 - Unity Catalog enabled
-- The catalog specified in `${var.catalog}` must exist before deploying
+- Permission to create catalogs in the metastore — the bundle creates the catalog specified in `${var.catalog}` on deploy
 
 ## Usage
 
