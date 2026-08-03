@@ -6,10 +6,10 @@
 
 ::: dpa.accelerators.medallion_dbt.accelerator.MedallionDbtAccelerator
 
-::: dpa.accelerators.lakebase_app.accelerator.LakebaseAppAccelerator
+::: dpa.accelerators.app_streamlit.accelerator.AppStreamlitAccelerator
 
 ::: dpa.accelerators.ai_bi.accelerator.AiBiAccelerator
 
 ::: dpa.accelerators.mlflow_project.accelerator.MlflowProjectAccelerator
 
-::: dpa.accelerators.custom_python_wheel.accelerator.CustomPythonWheelAccelerator
+::: dpa.accelerators.python_wheel.accelerator.PythonWheelAccelerator

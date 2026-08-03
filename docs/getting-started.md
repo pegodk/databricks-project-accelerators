@@ -48,15 +48,16 @@ dpa list
 ```
 
 ```
-┌────────────────┬──────────────────────────────────────────────────────────┐
-│ Name           │ Description                                              │
-├────────────────┼──────────────────────────────────────────────────────────┤
-│ medallion-sdp  │ Streaming Delta Pipeline with bronze/silver/gold layers  │
-│ medallion-spark│ Medallion architecture using Spark Structured Streaming  │
-│ app-streamlit  │ Databricks-hosted Streamlit app wired to a SQL warehouse │
-│ python-wheel   │ Python wheel package with build-and-upload job           │
-│ ai-bi          │ Lakeview dashboard + Genie Space with metric views       │
-└────────────────┴──────────────────────────────────────────────────────────┘
+┌──────────────────┬────────────────────────────────────────────────────┐
+│ Name             │ Description                                          │
+├──────────────────┼────────────────────────────────────────────────────┤
+│ medallion-sdp    │ Streaming Delta Pipeline with bronze/silver/gold    │
+│ medallion-dbt    │ Medallion architecture using dbt models over TPCH   │
+│ mlflow-project   │ MLflow training, registration, and batch scoring    │
+│ app-streamlit    │ Databricks App (Streamlit) + Lakebase master data   │
+│ python-wheel     │ Python wheel package with build-and-upload job      │
+│ ai-bi            │ Lakeview dashboard + Genie Space with metric views  │
+└──────────────────┴────────────────────────────────────────────────────┘
 ```
 
 ## 4. Scaffold a project
@@ -64,26 +65,28 @@ dpa list
 Open an empty folder in VS Code, then run in its terminal:
 
 ```bash
-dpa init medallion-spark
+dpa init medallion-sdp
 ```
 
-This generates a complete project in `./medallion-spark/`:
+This generates a complete project in `./medallion-sdp/`:
 
 ```
-medallion-spark/
+medallion-sdp/
 ├── databricks.yml
-├── notebooks/
-│   ├── bronze/ingest.py
-│   ├── silver/transform.py
-│   └── gold/aggregate.py
-└── resources/
-    └── jobs/medallion_job.yml
+├── pyproject.toml
+├── resources/
+│   ├── pipelines/pipeline.yml       # DLT pipeline definition
+│   ├── jobs/job.yml                 # Scheduled pipeline refresh
+│   └── schemas/schemas.yml          # Unity Catalog schema declarations
+└── src/
+    ├── framework/                   # Config, metadata, and DLT helpers
+    └── pipelines/main/               # Bronze/silver/gold transformations
 ```
 
 Open the generated folder:
 
 ```bash
-code medallion-spark
+code medallion-sdp
 ```
 
 ## 5. Review the bundle config
@@ -93,11 +96,11 @@ Open `databricks.yml`. Key variables are pre-filled with sensible defaults:
 ```yaml
 variables:
   bronze_catalog:
-    default: bronze_dev
+    default: dpa_bronze_dev
   silver_catalog:
-    default: silver_dev
+    default: dpa_silver_dev
   gold_catalog:
-    default: gold_dev
+    default: dpa_gold_dev
 ```
 
 Change any defaults before deploying, or override them at deploy time with `--var`.
@@ -105,7 +108,7 @@ Change any defaults before deploying, or override them at deploy time with `--va
 ## 6. Deploy
 
 ```bash
-cd medallion-spark
+cd medallion-sdp
 databricks bundle deploy
 ```
 
@@ -125,7 +128,7 @@ databricks bundle validate
 ## 7. Run the job
 
 ```bash
-databricks bundle run medallion_spark_medallion
+databricks bundle run medallion_sdp_job
 ```
 
 Monitor progress in the Databricks UI under **Workflows → Jobs**.
@@ -136,7 +139,7 @@ Each accelerator ships with `dev` and `prod` targets. Switch with `--target`:
 
 ```bash
 databricks bundle deploy --target prod
-databricks bundle run medallion_spark_medallion --target prod
+databricks bundle run medallion_sdp_job --target prod
 ```
 
 Override variables at deploy time without editing any files:
@@ -161,7 +164,7 @@ dpa init ai-bi --dry-run
 If a project directory already exists:
 
 ```bash
-dpa init medallion-spark --force
+dpa init medallion-sdp --force
 ```
 
 ## Output to a specific directory
