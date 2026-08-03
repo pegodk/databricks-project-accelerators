@@ -19,12 +19,12 @@ from dpa.accelerators.medallion_sdp import MedallionSdpAccelerator
 from dpa.accelerators.mlflow_project import MlflowProjectAccelerator
 
 ACCELERATOR_REGISTRY: dict[str, type[BaseAccelerator]] = {
-    "medallion-sdp": MedallionSdpAccelerator,
-    "medallion-dbt": MedallionDbtAccelerator,
-    "mlflow-project": MlflowProjectAccelerator,
-    "lakebase-streamlit-app": LakebaseStreamlitAppAccelerator,
-    "custom-python-wheel": CustomPythonWheelAccelerator,
     "ai-bi": AiBiAccelerator,
+    "custom-python-wheel": CustomPythonWheelAccelerator,
+    "lakebase-streamlit-app": LakebaseStreamlitAppAccelerator,
+    "medallion-dbt": MedallionDbtAccelerator,
+    "medallion-sdp": MedallionSdpAccelerator,
+    "mlflow-project": MlflowProjectAccelerator,
 }
 
 
