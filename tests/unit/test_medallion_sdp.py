@@ -31,6 +31,8 @@ def test_medallion_sdp_list_files():
     assert "src/pipelines/gold/tpch_dim_supplier.py" in files
     assert "src/pipelines/gold/tpch_fact_order.py" in files
     assert not any("src_example" in f for f in files)
+    assert ".github/workflows/ci.yml" in files
+    assert "azure-pipelines.yml" in files
 
 
 def test_medallion_sdp_scaffold(tmp_path: Path):
@@ -52,6 +54,8 @@ def test_medallion_sdp_scaffold(tmp_path: Path):
     assert (project_dir / "src" / "pipelines" / "gold" / "tpch_dim_supplier.py").exists()
     assert (project_dir / "src" / "pipelines" / "gold" / "tpch_fact_order.py").exists()
     assert not (project_dir / "src_example").exists()
+    assert (project_dir / ".github" / "workflows" / "ci.yml").exists()
+    assert (project_dir / "azure-pipelines.yml").exists()
 
 
 def test_medallion_sdp_scaffold_renders_project_slug(tmp_path: Path):
@@ -142,6 +146,19 @@ def test_medallion_sdp_scaffold_gold_fact_joins_dims(tmp_path: Path):
     assert "customer_id" in fact
     assert "part_id" in fact
     assert "supplier_id" in fact
+
+
+def test_medallion_sdp_scaffold_renders_ci_pipelines(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("medallion-sdp")()
+    acc.scaffold(target=tmp_path / acc.project_slug)
+
+    ci = (tmp_path / acc.project_slug / ".github" / "workflows" / "ci.yml").read_text()
+    assert "databricks bundle validate" in ci
+
+    pipeline = (tmp_path / acc.project_slug / "azure-pipelines.yml").read_text()
+    assert "databricks bundle validate" in pipeline
 
 
 def test_medallion_sdp_scaffold_no_overwrite_without_force(tmp_path: Path):

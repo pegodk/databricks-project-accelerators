@@ -26,6 +26,10 @@ def test_custom_python_wheel_list_files():
     assert "notebooks/verify_imports.py" in files
     assert "src/custom_python_wheel/__init__.py" in files
     assert "src/custom_python_wheel/functions.py" in files
+    assert "tests/__init__.py" in files
+    assert "tests/test_functions.py" in files
+    assert ".github/workflows/ci.yml" in files
+    assert "azure-pipelines.yml" in files
 
 
 def test_custom_python_wheel_scaffold(tmp_path: Path):
@@ -42,6 +46,10 @@ def test_custom_python_wheel_scaffold(tmp_path: Path):
     assert (project_dir / "notebooks" / "verify_imports.py").exists()
     assert (project_dir / "src" / "custom_python_wheel" / "__init__.py").exists()
     assert (project_dir / "src" / "custom_python_wheel" / "functions.py").exists()
+    assert (project_dir / "tests" / "__init__.py").exists()
+    assert (project_dir / "tests" / "test_functions.py").exists()
+    assert (project_dir / ".github" / "workflows" / "ci.yml").exists()
+    assert (project_dir / "azure-pipelines.yml").exists()
 
 
 def test_custom_python_wheel_scaffold_renders_pyproject(tmp_path: Path):
@@ -54,6 +62,7 @@ def test_custom_python_wheel_scaffold_renders_pyproject(tmp_path: Path):
     pyproject = (project_dir / "pyproject.toml").read_text()
     assert 'name = "custom-python-wheel"' in pyproject
     assert 'packages = ["src/custom_python_wheel"]' in pyproject
+    assert 'dev = ["pytest>=8"]' in pyproject
 
 
 def test_custom_python_wheel_scaffold_renders_build_notebook(tmp_path: Path):
@@ -82,3 +91,43 @@ def test_custom_python_wheel_scaffold_renders_verify_notebook(tmp_path: Path):
     assert "from custom_python_wheel import add, greet" in nb
     assert "restartPython" in nb
     assert "Hello, Databricks!" in nb
+
+
+def test_custom_python_wheel_scaffold_renders_test_functions(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("custom-python-wheel")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    tests = (project_dir / "tests" / "test_functions.py").read_text()
+    assert "from custom_python_wheel.functions import add, greet" in tests
+    assert "test_greet_returns_hello_name" in tests
+    assert "test_add_integers" in tests
+    assert "Hello, Databricks!" in tests
+
+
+def test_custom_python_wheel_scaffold_renders_github_ci(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("custom-python-wheel")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    ci = (project_dir / ".github" / "workflows" / "ci.yml").read_text()
+    assert "pytest tests/ -v" in ci
+    assert "databricks bundle validate" in ci
+    assert "needs: test" in ci
+
+
+def test_custom_python_wheel_scaffold_renders_azure_pipelines(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("custom-python-wheel")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    pipeline = (project_dir / "azure-pipelines.yml").read_text()
+    assert "pytest tests/ -v" in pipeline
+    assert "databricks bundle validate" in pipeline
+    assert "dependsOn: test" in pipeline
