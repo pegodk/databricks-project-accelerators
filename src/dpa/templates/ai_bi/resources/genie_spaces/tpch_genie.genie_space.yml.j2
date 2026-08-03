@@ -38,14 +38,14 @@ resources:
                 - "The metric view v_tpch exposes dimensions (order_date, order_month, order_year, order_status [Open/Processing/Fulfilled], order_priority, customer_name, market_segment, customer_nation) and measures (order_count, total_revenue, unique_customers, avg_order_value, revenue_per_customer, open_order_revenue, fulfilled_order_revenue, t7d_customers).\n"
                 - "When asked about revenue without qualification, use total_revenue. For trend questions group by order_month. For geographic questions group by customer_nation. Always round monetary amounts to 2 decimal places."
           example_question_sqls:
-            - id: "01"
+            - id: "02"
               question: ["What is the total revenue by market segment?"]
               sql:
                 - "SELECT market_segment, MEASURE(total_revenue)\n"
                 - "FROM ${var.catalog}.${var.schema}.v_tpch\n"
                 - "GROUP BY market_segment\n"
                 - "ORDER BY MEASURE(total_revenue) DESC"
-            - id: "02"
+            - id: "03"
               question: ["How has monthly revenue trended over time?"]
               sql:
                 - "SELECT order_month, MEASURE(total_revenue), MEASURE(order_count)\n"

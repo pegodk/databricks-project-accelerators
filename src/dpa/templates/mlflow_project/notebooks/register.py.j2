@@ -23,6 +23,12 @@ uc_model        = f"{catalog}.{schema}.{model_name}"
 
 # COMMAND ----------
 
+# Defensive: the schema resource is created by the bundle, but ensure it exists
+# in case of first-run ordering or manual job execution outside a deploy.
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
+
+# COMMAND ----------
+
 import mlflow
 from mlflow.exceptions import MlflowException
 from mlflow.tracking import MlflowClient
