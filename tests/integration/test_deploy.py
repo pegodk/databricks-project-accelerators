@@ -38,7 +38,10 @@ def test_bundle_validates(accelerator_name: str) -> None:
     host = os.getenv("DATABRICKS_HOST", "").strip()
     token = os.getenv("DATABRICKS_TOKEN", "").strip()
     if not host or not token:
-        pytest.skip("$DATABRICKS_HOST / $DATABRICKS_TOKEN not set — skipping bundle validate (scaffold output is in tests/integration/scaffolded/)")
+        pytest.skip(
+            "$DATABRICKS_HOST / $DATABRICKS_TOKEN not set — "
+            "skipping bundle validate (scaffold output is in tests/integration/scaffolded/)"
+        )
 
     patch_databricks_yml(project_dir, acc.project_slug, host)
 
