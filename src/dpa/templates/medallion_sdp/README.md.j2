@@ -59,5 +59,5 @@ databricks bundle deploy \
 
 ## Troubleshooting
 
-- **"Catalog does not exist"** — catalogs must exist before deploying; the bundle only creates schemas within them.
+- **"Metastore storage root URL does not exist"** — your metastore doesn't have default storage configured, so the bundle can't create the target catalogs automatically. Either enable default storage for the metastore (account console → Unity Catalog), or create one catalog manually via the UI first to provision the storage root, then redeploy.
 - **Pipeline fails on first run** — confirm the workspace has access to `samples.tpch` (bundled with every Databricks workspace by default).

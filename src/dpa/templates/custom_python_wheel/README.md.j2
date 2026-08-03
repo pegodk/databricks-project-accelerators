@@ -42,5 +42,5 @@ Add new modules under `src/custom_python_wheel/` and export them from `__init__.
 
 ## Troubleshooting
 
-- **"Catalog does not exist"** — create `{{ cfg.catalog }}` (or your override) before deploying.
+- **"Metastore storage root URL does not exist"** — your metastore doesn't have default storage configured, so the bundle can't create `{{ cfg.catalog }}` automatically. Either enable default storage for the metastore (account console → Unity Catalog), or create one catalog manually via the UI first to provision the storage root, then redeploy.
 - **`verify_imports` fails to find the wheel** — confirm `build_and_upload` ran successfully first; the job is defined with a task dependency, but re-running `verify_imports` alone will fail if no wheel has been uploaded yet.
