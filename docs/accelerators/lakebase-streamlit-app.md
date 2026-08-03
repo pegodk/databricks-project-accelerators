@@ -1,6 +1,6 @@
-# App Streamlit Accelerator
+# Lakebase Streamlit App Accelerator
 
-The **App Streamlit** accelerator scaffolds a [Streamlit](https://streamlit.io/) analytics app hosted directly on Databricks, connected to the TPCH sample dataset via a SQL warehouse and a [Lakebase](https://docs.databricks.com/en/lakebase/index.html) (managed Postgres) instance for master data management. No external hosting or infrastructure needed — the app runs inside your Databricks workspace and inherits workspace authentication automatically.
+The **Lakebase Streamlit App** accelerator scaffolds a [Streamlit](https://streamlit.io/) analytics app hosted directly on Databricks, connected to the TPCH sample dataset via a SQL warehouse and a [Lakebase](https://docs.databricks.com/en/lakebase/index.html) (managed Postgres) instance for master data management. No external hosting or infrastructure needed — the app runs inside your Databricks workspace and inherits workspace authentication automatically.
 
 ## What is a Databricks App?
 
@@ -11,7 +11,7 @@ Streamlit is the Python library used here. It lets you build interactive dashboa
 ## What gets generated
 
 ```
-app-streamlit/
+lakebase-streamlit-app/
 ├── databricks.yml              # Asset Bundle root config
 ├── .gitignore
 ├── app/
@@ -36,8 +36,8 @@ Lakebase resources must exist before the app can connect to them. The first depl
 **Step 1 — provision Lakebase:**
 
 ```bash
-dpa init app-streamlit
-cd app-streamlit
+dpa init lakebase-streamlit-app
+cd lakebase-streamlit-app
 databricks bundle deploy --target dev
 ```
 
@@ -99,7 +99,7 @@ The `DATABRICKS_CLIENT_ID` env var is auto-injected by Databricks Apps as the se
 | Variable | Default | Description |
 |---|---|---|
 | `warehouse_id` | _(auto-resolved)_ | SQL Warehouse for TPCH analytics. Resolved by name ("Serverless Starter Warehouse"). |
-| `lakebase_project_id` | `app-streamlit-lakebase` | Lakebase project ID (lowercase, hyphen-delimited). |
+| `lakebase_project_id` | `lakebase-streamlit-app-lakebase` | Lakebase project ID (lowercase, hyphen-delimited). |
 | `lakebase_min_cu` | `0.5` | Minimum compute units for the Lakebase endpoint. |
 | `lakebase_max_cu` | `0.5` | Maximum compute units for the Lakebase endpoint. |
 | `lakebase_pghost` | _(set after first deploy)_ | Endpoint hostname — copy from Lakebase Connect modal. |

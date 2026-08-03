@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
+
+# Files common to every accelerator (.gitignore, CI pipelines) live here.
+# An accelerator's own template_root takes precedence for any path that
+# exists in both places, so accelerators can still override individual files.
+SHARED_TEMPLATE_ROOT = Path(__file__).parent.parent / "templates" / "_shared"
 
 
 class BaseAccelerator(ABC):
@@ -35,14 +40,14 @@ class BaseAccelerator(ABC):
             target=target,
             context=self._build_context(),
             force=force,
+            shared_root=SHARED_TEMPLATE_ROOT,
         )
 
     def list_files(self) -> list[Path]:
         """Return relative output paths of all files that would be generated."""
         return [
-            strip_j2(src.relative_to(self.template_root))
-            for src in sorted(self.template_root.rglob("*"))
-            if src.is_file()
+            strip_j2(rel)
+            for rel in sorted(_merged_files([self.template_root, SHARED_TEMPLATE_ROOT]))
         ]
 
     def _build_context(self) -> dict[str, Any]:
@@ -57,6 +62,22 @@ class BaseAccelerator(ABC):
 # Shared rendering helpers used by subclasses
 # ---------------------------------------------------------------------------
 
+def _merged_files(roots: Sequence[Path]) -> dict[Path, Path]:
+    """Map relative path -> absolute source file across *roots*.
+
+    Earlier roots take precedence over later ones when the same relative
+    path exists in more than one root.
+    """
+    merged: dict[Path, Path] = {}
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for src in sorted(root.rglob("*")):
+            if src.is_file():
+                merged.setdefault(src.relative_to(root), src)
+    return merged
+
+
 def render_tree(
     template_root: Path,
     target: Path,
@@ -64,21 +85,20 @@ def render_tree(
     force: bool,
     path_transform: Callable[[Path], Path] | None = None,
     exclude_dirs: frozenset[str] | None = None,
+    shared_root: Path | None = None,
 ) -> None:
-    """Walk *template_root* and render / copy each file into *target*."""
+    """Walk *template_root* (plus optional *shared_root*) and render / copy each file into *target*."""
     from jinja2 import Environment, FileSystemLoader
 
+    roots = [template_root, shared_root] if shared_root else [template_root]
     env = Environment(
-        loader=FileSystemLoader(str(template_root)),
+        loader=FileSystemLoader([str(r) for r in roots]),
         keep_trailing_newline=True,
         trim_blocks=True,
         lstrip_blocks=True,
     )
 
-    for src in sorted(template_root.rglob("*")):
-        if not src.is_file():
-            continue
-        rel = src.relative_to(template_root)
+    for rel, src in sorted(_merged_files(roots).items()):
         if exclude_dirs and rel.parts[0] in exclude_dirs:
             continue
         rel_out = path_transform(strip_j2(rel)) if path_transform else strip_j2(rel)

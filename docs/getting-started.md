@@ -48,16 +48,16 @@ dpa list
 ```
 
 ```
-┌──────────────────┬────────────────────────────────────────────────────┐
-│ Name             │ Description                                          │
-├──────────────────┼────────────────────────────────────────────────────┤
-│ medallion-sdp    │ Streaming Delta Pipeline with bronze/silver/gold    │
-│ medallion-dbt    │ Medallion architecture using dbt models over TPCH   │
-│ mlflow-project   │ MLflow training, registration, and batch scoring    │
-│ app-streamlit    │ Databricks App (Streamlit) + Lakebase master data   │
-│ python-wheel     │ Python wheel package with build-and-upload job      │
-│ ai-bi            │ Lakeview dashboard + Genie Space with metric views  │
-└──────────────────┴────────────────────────────────────────────────────┘
+┌──────────────────────────┬───────────────────────────────────────────────────────┐
+│ Name                     │ Description                                             │
+├──────────────────────────┼───────────────────────────────────────────────────────┤
+│ medallion-sdp            │ Streaming Delta Pipeline with bronze/silver/gold       │
+│ medallion-dbt            │ Medallion architecture using dbt models over TPCH      │
+│ mlflow-project           │ MLflow training, registration, and batch scoring       │
+│ lakebase-streamlit-app   │ Databricks App (Streamlit) + Lakebase master data      │
+│ custom-python-wheel      │ Custom Python wheel package with build-and-upload job  │
+│ ai-bi                    │ Lakeview dashboard + Genie Space with metric views     │
+└──────────────────────────┴───────────────────────────────────────────────────────┘
 ```
 
 ## 4. Scaffold a project

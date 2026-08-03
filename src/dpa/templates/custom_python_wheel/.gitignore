@@ -1,7 +1,0 @@
-.databricks/
-.venv/
-__pycache__/
-*.pyc
-.env
-dist/
-*.egg-info/

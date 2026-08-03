@@ -23,12 +23,17 @@ medallion-dbt/
 │   │   ├── lineitem.sql
 │   │   ├── customer.sql
 │   │   ├── nation.sql
-│   │   └── region.sql
+│   │   ├── region.sql
+│   │   ├── part.sql
+│   │   ├── supplier.sql
+│   │   └── partsupp.sql
 │   ├── silver/
 │   │   └── orders_enriched.sql
 │   └── gold/
-│       ├── sales_summary.sql
-│       └── customer_summary.sql
+│       ├── dim_customer.sql
+│       ├── dim_part.sql
+│       ├── dim_supplier.sql
+│       └── fact_order.sql
 └── resources/
     └── jobs/
         └── dbt_job.yml     # Job with dbt_task pointing at this project
@@ -44,12 +49,12 @@ medallion-dbt/
 
 **Bronze** selects directly from `samples.tpch` source tables with no transformation — a thin view layer that decouples downstream models from the raw source path. If the source table name or location changes, only `sources.yml` needs updating.
 
-**Silver** (`orders_enriched`) joins the orders stream with customer, nation, and region dimensions to produce a wide fact table with all descriptive attributes resolved.
+**Silver** (`orders_enriched`) joins orders with customer, nation, and region to resolve descriptive attributes (customer segment, nation, region) onto every order row, so downstream gold models never need to repeat that join.
 
-**Gold** produces two aggregated tables:
+**Gold** implements a small star schema:
 
-- `sales_summary` — revenue, order count, and unique customers grouped by month × market segment × region
-- `customer_summary` — lifetime revenue and first/last order dates per customer
+- `dim_customer`, `dim_part`, `dim_supplier` — descriptive dimension tables built directly from bronze reference data
+- `fact_order` — one row per order line, built from `lineitem` joined against `orders_enriched` (for order/customer attributes) and `partsupp` (for supply cost), with commit/receipt/ship lag calculated in days
 
 ## Usage
 

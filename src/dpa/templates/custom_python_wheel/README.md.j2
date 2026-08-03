@@ -1,0 +1,46 @@
+# {{ project_slug }}
+
+A self-contained Python package with a two-task Databricks job: build the wheel from workspace source and upload it to a Unity Catalog Volume, then install and verify it.
+
+## Prerequisites
+
+- [Databricks CLI](https://docs.databricks.com/dev-tools/cli/install.html) v0.230+, authenticated (`databricks auth login`)
+- Unity Catalog enabled
+- Catalog `{{ cfg.catalog }}` must exist before deploying
+
+## What's here
+
+```
+pyproject.toml                        # Package metadata (hatchling build backend)
+src/custom_python_wheel/
+├── __init__.py                       # Public API exports
+└── functions.py                      # greet() and add() — replace with your own
+notebooks/
+├── build_and_upload.py               # Builds wheel, creates schema+volume, uploads
+└── verify_imports.py                 # Installs wheel, asserts functions work
+resources/jobs/wheel_job.yml          # Two-task job: build → verify
+```
+
+## Deploy
+
+```bash
+databricks bundle validate --target dev
+databricks bundle deploy --target dev
+databricks bundle run {{ project_slug | replace("-", "_") }}_wheel --target dev
+```
+
+## Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `catalog` | `{{ cfg.catalog }}` | Catalog for the wheel volume |
+| `schema` | `{{ cfg.schema }}` | Schema for the wheel volume |
+
+## Extending the package
+
+Add new modules under `src/custom_python_wheel/` and export them from `__init__.py`. Add assertions to `notebooks/verify_imports.py` for each new function. Bump `version` in `pyproject.toml` when you release a new build — the job always picks up the latest wheel matching `custom_python_wheel-*.whl` in the volume, so no separate publish step is needed during development.
+
+## Troubleshooting
+
+- **"Catalog does not exist"** — create `{{ cfg.catalog }}` (or your override) before deploying.
+- **`verify_imports` fails to find the wheel** — confirm `build_and_upload` ran successfully first; the job is defined with a task dependency, but re-running `verify_imports` alone will fail if no wheel has been uploaded yet.

@@ -23,6 +23,6 @@ def test_registry_contains_all_accelerators():
     assert "medallion-sdp" in ACCELERATOR_REGISTRY
     assert "medallion-dbt" in ACCELERATOR_REGISTRY
     assert "mlflow-project" in ACCELERATOR_REGISTRY
-    assert "app-streamlit" in ACCELERATOR_REGISTRY
-    assert "python-wheel" in ACCELERATOR_REGISTRY
+    assert "lakebase-streamlit-app" in ACCELERATOR_REGISTRY
+    assert "custom-python-wheel" in ACCELERATOR_REGISTRY
     assert "ai-bi" in ACCELERATOR_REGISTRY

@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from dpa.accelerators.base import BaseAccelerator, render_tree
+from dpa.accelerators.base import BaseAccelerator, SHARED_TEMPLATE_ROOT, render_tree
 
 _TEMPLATE_ROOT = Path(__file__).parent.parent.parent / "templates" / "medallion_sdp"
 _EXCLUDE = frozenset({"src_example"})
@@ -35,4 +35,5 @@ class MedallionSdpAccelerator(BaseAccelerator):
             context=self._build_context(),
             force=force,
             exclude_dirs=_EXCLUDE,
+            shared_root=SHARED_TEMPLATE_ROOT,
         )

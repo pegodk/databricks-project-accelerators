@@ -107,9 +107,9 @@ Add the page to the `nav` in `mkdocs.yml` under the Accelerators section.
 - Use `{{ cfg.some_key }}` to inject config values. Keep default_config sensible so the scaffold works out-of-the-box.
 
 **Naming**
-- Accelerator slugs use kebab-case: `app-streamlit`, `medallion-sdp`.
+- Accelerator slugs use kebab-case: `lakebase-streamlit-app`, `medallion-sdp`.
 - Jinja2 template slugs for YAML keys use the slug with hyphens replaced by underscores: `{{ project_slug | replace('-', '_') }}`.
-- Template directories use snake_case: `app_streamlit/`, `medallion_sdp/`.
+- Template directories use snake_case: `lakebase_streamlit_app/`, `medallion_sdp/`.
 
 **DAB structure**
 - Always use `include: resources/**/*.yml` in `databricks.yml.j2` so resource files are auto-discovered.
