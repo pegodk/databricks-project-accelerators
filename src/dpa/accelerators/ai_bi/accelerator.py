@@ -17,7 +17,7 @@ class AiBiAccelerator(BaseAccelerator):
     default_config: dict[str, Any] = {
         "dashboard_name": "TPCH Sales Overview",
         "genie_space_name": "TPCH Sales Genie",
-        "catalog": "dpa_gold_dev",
+        "catalog": "dpa_ai_bi_dev",
         "schema": "tpch_metrics",
     }
 

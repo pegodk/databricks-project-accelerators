@@ -61,7 +61,7 @@ Replace the functions in `src/custom_python_wheel/functions.py` with your own lo
 
 | Variable | Default | Description |
 |---|---|---|
-| `catalog` | `dpa_gold_dev` | Unity Catalog catalog for the wheel volume |
+| `catalog` | `dpa_wheel_dev` | Unity Catalog catalog for the wheel volume |
 | `schema` | `python_wheel` | Schema for the wheel volume |
 
 ## Extending the package

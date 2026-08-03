@@ -78,7 +78,7 @@ databricks bundle run mlflow_project_pipeline --target prod
 
 | Variable | Default | Description |
 |---|---|---|
-| `catalog` | `dpa_gold_dev` | Unity Catalog catalog for the model registry |
+| `catalog` | `dpa_mlflow_dev` | Unity Catalog catalog for the model registry |
 | `schema` | `mlflow_demo` | Schema for the registered model |
 | `experiment_name` | `/Shared/tpch-order-value` | Workspace path for the MLflow experiment |
 | `model_name` | `tpch_order_value` | Registered model name within the schema |

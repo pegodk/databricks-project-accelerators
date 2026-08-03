@@ -119,7 +119,7 @@ databricks bundle run ai_bi_setup_views --target prod
 
 | Variable | Default | Description |
 |---|---|---|
-| `catalog` | `dpa_gold_dev` | Unity Catalog catalog for the metric view |
+| `catalog` | `dpa_ai_bi_dev` | Unity Catalog catalog for the metric view |
 | `schema` | `tpch_metrics` | Schema for the metric view |
 | `warehouse_id` | _(required)_ | SQL Warehouse ID for the setup job and Genie Space |
 

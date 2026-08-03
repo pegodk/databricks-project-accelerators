@@ -89,7 +89,7 @@ def test_ai_bi_scaffold_renders_setup_notebook(tmp_path: Path):
 
     nb = (project_dir / "notebooks" / "setup_metric_views.py").read_text()
     # Widget defaults are baked from cfg at scaffold time; runtime values come from job parameters.
-    assert 'dbutils.widgets.text("catalog", "dpa_gold_dev")' in nb
+    assert 'dbutils.widgets.text("catalog", "dpa_ai_bi_dev")' in nb
     assert 'dbutils.widgets.text("schema", "tpch_metrics")' in nb
     assert "CREATE OR REPLACE VIEW" in nb
     assert "WITH METRICS" in nb
@@ -127,7 +127,7 @@ def test_ai_bi_scaffold_renders_dashboard_catalog(tmp_path: Path):
         (project_dir / "resources" / "dashboards" / "tpch_overview.lvdash.json").read_text()
     )
     queries = [ds["query"] for ds in lvdash["datasets"]]
-    assert all("dpa_gold_dev.tpch_metrics" in q for q in queries)
+    assert all("dpa_ai_bi_dev.tpch_metrics" in q for q in queries)
 
 
 def test_ai_bi_scaffold_renders_genie_space_yml(tmp_path: Path):

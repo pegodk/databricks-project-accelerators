@@ -12,7 +12,7 @@ class CustomPythonWheelAccelerator(BaseAccelerator):
     name = "custom-python-wheel"
     description = "Custom Python wheel package with a build-and-upload job and an import verification notebook"
     default_config: dict[str, Any] = {
-        "catalog": "dpa_gold_dev",
+        "catalog": "dpa_wheel_dev",
         "schema": "python_wheel",
     }
 

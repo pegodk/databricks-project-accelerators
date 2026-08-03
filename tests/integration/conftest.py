@@ -45,14 +45,14 @@ def patch_databricks_yml(project_dir: Path, project_slug: str, host: str) -> Non
 def _bundle_vars(accelerator_name: str) -> list[str]:
     if accelerator_name == "medallion-sdp":
         return [
-            "--var", "bronze_catalog=dpa_bronze_dev",
-            "--var", "silver_catalog=dpa_silver_dev",
-            "--var", "gold_catalog=dpa_gold_dev",
+            "--var", "bronze_catalog=dpa_sdp_bronze_dev",
+            "--var", "silver_catalog=dpa_sdp_silver_dev",
+            "--var", "gold_catalog=dpa_sdp_gold_dev",
         ]
     if accelerator_name == "medallion-dbt":
         return [
-            "--var", "bronze_catalog=dpa_bronze_dev",
-            "--var", "gold_catalog=dpa_gold_dev",
+            "--var", "bronze_catalog=dpa_dbt_bronze_dev",
+            "--var", "gold_catalog=dpa_dbt_gold_dev",
             "--var", "schema=tpch_dbt",
         ]
     return []

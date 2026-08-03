@@ -96,11 +96,11 @@ Open `databricks.yml`. Key variables are pre-filled with sensible defaults:
 ```yaml
 variables:
   bronze_catalog:
-    default: dpa_bronze_dev
+    default: dpa_sdp_bronze_dev
   silver_catalog:
-    default: dpa_silver_dev
+    default: dpa_sdp_silver_dev
   gold_catalog:
-    default: dpa_gold_dev
+    default: dpa_sdp_gold_dev
 ```
 
 Change any defaults before deploying, or override them at deploy time with `--var`.

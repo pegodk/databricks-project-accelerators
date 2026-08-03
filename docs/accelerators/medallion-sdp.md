@@ -80,9 +80,9 @@ databricks bundle deploy --target prod
 
 | Variable | Default | Description |
 |---|---|---|
-| `bronze_catalog` | `dpa_bronze_dev` | Catalog for raw ingested data |
-| `silver_catalog` | `dpa_silver_dev` | Catalog for cleansed and validated data |
-| `gold_catalog` | `dpa_gold_dev` | Catalog for business-level aggregates |
+| `bronze_catalog` | `dpa_sdp_bronze_dev` | Catalog for raw ingested data |
+| `silver_catalog` | `dpa_sdp_silver_dev` | Catalog for cleansed and validated data |
+| `gold_catalog` | `dpa_sdp_gold_dev` | Catalog for business-level aggregates |
 
 Override at deploy time:
 
