@@ -14,6 +14,8 @@ dbutils.widgets.text("schema", "{{ cfg.schema }}")
 
 catalog = dbutils.widgets.get("catalog")
 schema = dbutils.widgets.get("schema")
+print(f"catalog: {catalog}")
+print(f"schema: {schema}")
 
 # COMMAND ----------
 spark.sql(f"CREATE SCHEMA IF NOT EXISTS `{catalog}`.`{schema}`")

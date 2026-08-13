@@ -91,6 +91,8 @@ def test_ai_bi_scaffold_renders_setup_notebook(tmp_path: Path):
     # Widget defaults are baked from cfg at scaffold time; runtime values come from job parameters.
     assert 'dbutils.widgets.text("catalog", "dpa_ai_bi_dev")' in nb
     assert 'dbutils.widgets.text("schema", "tpch_metrics")' in nb
+    assert 'print(f"catalog: {catalog}")' in nb
+    assert 'print(f"schema: {schema}")' in nb
     assert "CREATE OR REPLACE VIEW" in nb
     assert "WITH METRICS" in nb
     assert "LANGUAGE YAML" in nb
@@ -138,9 +140,45 @@ def test_ai_bi_scaffold_renders_genie_space_yml(tmp_path: Path):
     acc.scaffold(target=project_dir)
 
     genie_yml = (project_dir / "resources" / "genie_spaces" / "tpch_genie.genie_space.yml").read_text()
-    assert "dpa-ai-bi" in genie_yml
+    assert "AI/BI Demo - TPCH Sales Genie" in genie_yml
     assert "var.warehouse_id" in genie_yml
     assert "serialized_space" in genie_yml
     assert "sample_questions" in genie_yml
     assert "text_instructions" in genie_yml
     assert "${var.catalog}.${var.schema}.v_tpch" in genie_yml
+
+
+def test_ai_bi_scaffold_renders_job_config(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("ai-bi")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    job_yml = (project_dir / "resources" / "jobs" / "setup_views_job.yml").read_text()
+    assert "AI/BI Demo - Setup Metric Views" in job_yml
+    assert "PERFORMANCE_OPTIMIZED" in job_yml
+    assert "schedule:" not in job_yml
+    assert "quartz_cron_expression" not in job_yml
+
+
+def test_ai_bi_scaffold_renders_dashboard_display_name(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("ai-bi")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    dashboard_yml = (project_dir / "resources" / "dashboards" / "dashboard.yml").read_text()
+    assert "AI/BI Demo - TPCH Sales Overview" in dashboard_yml
+
+
+def test_ai_bi_scaffold_renders_warehouse_lookup(tmp_path: Path):
+    from dpa.accelerators import get_accelerator
+
+    acc = get_accelerator("ai-bi")()
+    project_dir = tmp_path / acc.project_slug
+    acc.scaffold(target=project_dir)
+
+    bundle = (project_dir / "databricks.yml").read_text()
+    assert "Starter Serverless Warehouse" in bundle

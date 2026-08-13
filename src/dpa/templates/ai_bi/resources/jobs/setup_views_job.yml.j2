@@ -2,13 +2,10 @@
 resources:
   jobs:
     {{ slug }}_setup_views:
-      name: "dpa-{{ project_slug }}"
+      name: "AI/BI Demo - Setup Metric Views"
       queue:
         enabled: true
-      performance_target: STANDARD
-      schedule:
-        quartz_cron_expression: "0 0 6 * * ?"
-        timezone_id: UTC
+      performance_target: PERFORMANCE_OPTIMIZED
       environments:
         - environment_key: Default
           spec:

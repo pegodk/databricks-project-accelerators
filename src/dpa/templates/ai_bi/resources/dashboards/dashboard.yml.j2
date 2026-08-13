@@ -2,7 +2,7 @@
 resources:
   dashboards:
     {{ slug }}_dashboard:
-      display_name: "dpa-{{ project_slug }}"
+      display_name: "AI/BI Demo - {{ cfg.dashboard_name }}"
       file_path: tpch_overview.lvdash.json
       embed_credentials: false
       warehouse_id: ${var.warehouse_id}

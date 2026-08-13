@@ -2,7 +2,7 @@
 resources:
   genie_spaces:
     {{ slug }}_genie:
-      title: "dpa-{{ project_slug }}"
+      title: "AI/BI Demo - {{ cfg.genie_space_name }}"
       description: "Ask natural-language questions about TPCH sales data. Powered by the v_tpch metric view in ${var.catalog}.${var.schema}."
       warehouse_id: ${var.warehouse_id}
       serialized_space:
