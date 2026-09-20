@@ -15,12 +15,12 @@ and install this project with its development dependencies:
 pip install -e ".[dev]"
 ```
 
-Log in with the Databricks CLI using a user who can use serverless compute and
+Log in to a capable workspace with a user who can use serverless compute and
 create the relevant workspace and Unity Catalog resources. Then copy the local
-configuration:
+configuration and replace the placeholder host if necessary:
 
 ```bash
-databricks auth login --profile dpa-free-edition --host https://dbc-b208d150-24a9.cloud.databricks.com/
+databricks auth login --profile dpa-integration --host https://<your-workspace-url>
 cp .env.example .env
 pytest -m integration -v --tb=short
 ```
