@@ -7,24 +7,9 @@ import pytest
 from dpa.accelerators import ACCELERATOR_REGISTRY
 from tests.integration.conftest import DeployedProject, run_bundle_workload, verify_deployed_app
 
-# Verified against https://dbc-b208d150-24a9.cloud.databricks.com/ on 2026-09-20.
-# Free Edition targets are enabled only after a successful full bundle deployment.
-FREE_EDITION_SUPPORTED_ACCELERATORS: tuple[str, ...] = ("custom-python-wheel",)
-FREE_EDITION_EXCLUDED_ACCELERATORS = {
-    "ai-bi": (
-        "Free Edition Default Storage cannot create the bundle's Unity Catalog catalog; "
-        "the Genie resource also has invalid sample-question IDs."
-    ),
-    "lakebase-streamlit-app": (
-        "The Free Edition workspace has reached its three-app quota, and the static Lakebase PostgreSQL project ID "
-        "already exists."
-    ),
-    "medallion-dbt": "Free Edition Default Storage cannot create the bundle's Unity Catalog catalogs.",
-    "medallion-sdp": "Free Edition Default Storage cannot create the bundle's Unity Catalog catalogs.",
-    "mlflow-project": "Free Edition Default Storage cannot create the bundle's Unity Catalog catalog.",
-}
-
-assert set(FREE_EDITION_SUPPORTED_ACCELERATORS) | set(FREE_EDITION_EXCLUDED_ACCELERATORS) == set(ACCELERATOR_REGISTRY)
+# Every registered accelerator must complete the scaffold → validate → deploy →
+# validate → run (where applicable) → destroy lifecycle on a capable workspace.
+ACCELERATORS: tuple[str, ...] = tuple(sorted(ACCELERATOR_REGISTRY))
 
 
 RUNNABLE_RESOURCES = {
@@ -41,7 +26,7 @@ APP_RESOURCES = {
 
 @pytest.mark.integration
 @pytest.mark.usefixtures("_workspace_env")
-@pytest.mark.parametrize("deployed_project", FREE_EDITION_SUPPORTED_ACCELERATORS, indirect=True)
+@pytest.mark.parametrize("deployed_project", ACCELERATORS, indirect=True)
 def test_bundle_deploys_and_runs(deployed_project: DeployedProject) -> None:
     """A supported bundle deploys and its runnable workload succeeds."""
     assert deployed_project.project_dir.is_dir()

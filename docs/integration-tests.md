@@ -52,30 +52,14 @@ databricks bundle destroy --target dev --auto-approve
 Use the `dpa-test-` prefix to locate any remaining resources. Cleanup failures
 are emitted as warnings so they do not conceal the original deployment failure.
 
-## Free Edition compatibility
+## Full accelerator coverage
 
-Free Edition is serverless-only and quota-limited. Authentication, permissions,
-and available quota are preconditions for a meaningful deployment run; quota
-exhaustion is not treated as a passing test result. The compatibility matrix in
-`tests/integration/test_deploy.py` is deliberately explicit: supported
-accelerators run, while exclusions must name the unavailable platform capability.
-
-The matrix below was exercised against the supplied Free Edition workspace on
-2026-09-20. No accelerator is enabled until it completes a full bundle deployment.
-
-| Accelerator | Status | Observed reason |
-| --- | --- | --- |
-| AI/BI | Excluded | The Free Edition metastore's Default Storage cannot create a Unity Catalog catalog through this bundle; its Genie sample-question IDs are also invalid. |
-| Custom Python Wheel | Excluded | The bundle cannot create its Unity Catalog catalog with the Free Edition metastore's Default Storage configuration. |
-| Lakebase Streamlit App | Excluded | The workspace had reached the Free Edition limit of three apps, and the static Lakebase PostgreSQL project ID already existed. |
-| Medallion DBT | Excluded | The bundle cannot create its Unity Catalog catalogs with the Free Edition metastore's Default Storage configuration. |
-| Medallion SDP | Excluded | The bundle cannot create its Unity Catalog catalogs with the Free Edition metastore's Default Storage configuration. |
-| MLflow Project | Excluded | The bundle cannot create its Unity Catalog catalog with the Free Edition metastore's Default Storage configuration. |
-
-The fixture completed `bundle destroy` without cleanup warnings after every
-authenticated run. Once an accelerator is made compatible, move it into
-`FREE_EDITION_SUPPORTED_ACCELERATORS`; its deployment failures will then remain
-test failures rather than being converted to a skip.
+The integration matrix is derived from `ACCELERATOR_REGISTRY`, so every
+registered accelerator is deployed. Use a workspace that can create Unity
+Catalog catalogs, run jobs and pipelines, create Databricks Apps and Lakebase
+resources, and provision AI/BI resources. Free Edition workspaces may not have
+the required quotas or capabilities; any resulting deployment failure is a test
+failure and must be resolved rather than excluded from the suite.
 
 ## Optional connectivity diagnostic
 
