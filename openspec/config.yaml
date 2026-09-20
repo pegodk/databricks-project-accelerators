@@ -1,0 +1,9 @@
+schema: codebase-first
+
+context: |
+  This support repository lets users quickly scaffold production-ready Databricks
+  solutions that serve as starting points for further development.
+
+  The codebase is the authoritative source of truth for current behavior and
+  implementation. OpenSpec change artifacts are short-lived planning aids; do not
+  create, maintain, or rely on openspec/specs.
