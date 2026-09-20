@@ -1,8 +1,10 @@
 # Live integration tests
 
-The integration suite scaffolds a generated Asset Bundle, validates it, deploys it
-to a real Databricks workspace, validates it again, and destroys it. It does not
-run the generated workload itself.
+The integration suite scaffolds each generated Asset Bundle under
+`tests/integration/bundles/`, validates it, deploys it to a real Databricks
+workspace, validates it again, runs each generated job or pipeline, and destroys
+it. The bundle directory is ignored by Git and remains available for inspection
+after the run.
 
 ## Prerequisites
 
@@ -13,19 +15,24 @@ and install this project with its development dependencies:
 pip install -e ".[dev]"
 ```
 
-Copy the repository example configuration and set a token belonging to a user who
-can use serverless compute and create the relevant workspace and Unity Catalog
-resources:
+Log in with the Databricks CLI using a user who can use serverless compute and
+create the relevant workspace and Unity Catalog resources. Then copy the local
+configuration:
 
 ```bash
+databricks auth login --profile dpa-free-edition --host https://dbc-b208d150-24a9.cloud.databricks.com/
 cp .env.example .env
-# Edit .env and set DATABRICKS_TOKEN.
 pytest -m integration -v --tb=short
 ```
 
-`.env` is ignored by Git. It supplies the Free Edition workspace host by default,
-but exported shell variables and CI secrets take precedence, so another isolated
-workspace can be used without editing the example. Do not commit a token.
+`.env` is ignored by Git. `DATABRICKS_CONFIG_PROFILE` is the Databricks CLI's
+standard profile selector; it is a local profile name, not a token. The test
+fixture reads the authenticated profile's host and invokes every bundle command
+with `--profile`, so it never reads `DATABRICKS_TOKEN`.
+
+GitHub-hosted runners cannot complete interactive OAuth. The integration workflow
+therefore skips until a non-interactive CLI OAuth/OIDC profile is provisioned for
+that runner.
 
 The test suite is intentionally serial. Each deployment is named
 `dpa-test-<accelerator>-<run-id>`, making test resources easy to identify.
@@ -33,9 +40,10 @@ The test suite is intentionally serial. Each deployment is named
 ## Cleanup and recovery
 
 The fixture runs `databricks bundle destroy` during teardown, including when an
-assertion fails. Set `DPA_KEEP_DEPLOYED=1` only when debugging a deployment; the
-warning includes the scaffold directory required for manual cleanup. If a run is
-interrupted or destroy fails, return to that directory and run:
+assertion or workload run fails. Set `DPA_KEEP_DEPLOYED=1` only when debugging a
+deployment; the warning includes the scaffold directory required for manual
+cleanup. If a run is interrupted or destroy fails, return to that directory and
+run:
 
 ```bash
 databricks bundle destroy --target dev --auto-approve

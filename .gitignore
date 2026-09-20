@@ -12,6 +12,7 @@ build/
 .pytest_cache/
 .coverage
 tests/integration/scaffolded/
+tests/integration/bundles/
 
 # MkDocs
 site/

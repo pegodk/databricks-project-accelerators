@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
 import uuid
 import warnings
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Generator
 
@@ -15,6 +17,18 @@ from dotenv import load_dotenv
 
 _BUNDLE_PREFIX = "dpa-test"
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+_BUNDLES_DIRECTORY = Path(__file__).parent / "bundles"
+
+
+@dataclass(frozen=True)
+class DeployedProject:
+    """A deployed bundle and the CLI context required to exercise it."""
+
+    accelerator_name: str
+    cli: str
+    profile: str
+    project_dir: Path
+    variables: list[str]
 
 
 def load_local_dotenv() -> None:
@@ -25,14 +39,14 @@ def load_local_dotenv() -> None:
 load_local_dotenv()
 
 
-def _require_env(name: str) -> str:
-    val = os.getenv(name, "").strip()
-    if not val:
+def _require_profile() -> str:
+    profile = os.getenv("DATABRICKS_CONFIG_PROFILE", "").strip()
+    if not profile:
         pytest.skip(
-            f"${name} is not set. Copy .env.example to .env and set it, "
-            "or export the variable before running pytest -m integration."
+            "$DATABRICKS_CONFIG_PROFILE is not set. Run `databricks auth login`, then copy .env.example to .env "
+            "and set the profile name before running pytest -m integration."
         )
-    return val
+    return profile
 
 
 def _require_databricks_cli() -> str:
@@ -40,6 +54,32 @@ def _require_databricks_cli() -> str:
     if path is None:
         pytest.skip("Databricks CLI not found on PATH — skipping integration tests")
     return path
+
+
+def _cli_environment() -> dict[str, str]:
+    """Prevent environment credentials or hosts from overriding --profile."""
+    env = os.environ.copy()
+    for key in ("DATABRICKS_CONFIG_PROFILE", "DATABRICKS_HOST", "DATABRICKS_TOKEN"):
+        env.pop(key, None)
+    return env
+
+
+def _profile_host(cli: str, profile: str) -> str:
+    """Return the host for a valid local Databricks CLI OAuth profile."""
+    result = subprocess.run(
+        [cli, "auth", "profiles", "--output", "json"], capture_output=True, text=True, env=_cli_environment()
+    )
+    if result.returncode:
+        pytest.skip(f"Unable to read Databricks CLI profiles: {result.stderr.strip()}")
+
+    for configured_profile in json.loads(result.stdout).get("profiles") or []:
+        if configured_profile.get("name") == profile and configured_profile.get("valid"):
+            return configured_profile["host"].rstrip("/")
+
+    pytest.skip(
+        f"Databricks CLI profile {profile!r} is missing or not authenticated. "
+        f"Run `databricks auth login --profile {profile}` before running pytest -m integration."
+    )
 
 
 def patch_databricks_yml(project_dir: Path, project_slug: str, host: str, bundle_name: str) -> None:
@@ -73,28 +113,30 @@ def _bundle_vars(accelerator_name: str) -> list[str]:
     return []
 
 
-def _run_bundle_command(cli: str, project_dir: Path, args: list[str], operation: str) -> None:
+def _run_bundle_command(cli: str, profile: str, project_dir: Path, args: list[str], operation: str) -> None:
     result = subprocess.run(
-        [cli, "bundle", *args],
+        [cli, "--profile", profile, "bundle", *args],
         cwd=project_dir,
         capture_output=True,
         text=True,
+        env=_cli_environment(),
     )
     if result.returncode:
         pytest.fail(
             f"bundle {operation} failed in {project_dir}:\n"
-            f"command: {cli} bundle {' '.join(args)}\n"
+            f"command: {cli} --profile {profile} bundle {' '.join(args)}\n"
             f"stdout:\n{result.stdout}\n"
             f"stderr:\n{result.stderr}"
         )
 
 
-def _destroy_bundle(cli: str, project_dir: Path, vars_: list[str]) -> None:
+def _destroy_bundle(cli: str, profile: str, project_dir: Path, vars_: list[str]) -> None:
     result = subprocess.run(
-        [cli, "bundle", "destroy", "--target", "dev", "--auto-approve", *vars_],
+        [cli, "--profile", profile, "bundle", "destroy", "--target", "dev", "--auto-approve", *vars_],
         cwd=project_dir,
         capture_output=True,
         text=True,
+        env=_cli_environment(),
     )
     if result.returncode:
         warnings.warn(
@@ -104,17 +146,42 @@ def _destroy_bundle(cli: str, project_dir: Path, vars_: list[str]) -> None:
         )
 
 
+def run_bundle_workload(project: DeployedProject, resource: str) -> None:
+    """Run a deployed job or pipeline and fail with its CLI diagnostics."""
+    _run_bundle_command(
+        project.cli,
+        project.profile,
+        project.project_dir,
+        ["run", resource, "--target", "dev", *project.variables],
+        f"workload {resource}",
+    )
+
+
+def verify_deployed_app(project: DeployedProject, app_name: str) -> None:
+    """Confirm a deployed Databricks App remains retrievable before teardown."""
+    result = subprocess.run(
+        [project.cli, "--profile", project.profile, "apps", "get", app_name, "--output", "json"],
+        capture_output=True,
+        text=True,
+        env=_cli_environment(),
+    )
+    if result.returncode:
+        pytest.fail(
+            f"app verification failed for {app_name} in {project.project_dir}:\n"
+            f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+        )
+
+
 
 @pytest.fixture(scope="session")
 def _workspace_env() -> None:
-    """Ensure workspace credentials and CLI are present for deploy tests."""
-    _require_env("DATABRICKS_HOST")
-    _require_env("DATABRICKS_TOKEN")
-    _require_databricks_cli()
+    """Ensure an authenticated Databricks CLI OAuth profile is available."""
+    cli = _require_databricks_cli()
+    _profile_host(cli, _require_profile())
 
 
 @pytest.fixture()
-def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generator[Path, None, None]:
+def deployed_project(request: pytest.FixtureRequest) -> Generator[DeployedProject, None, None]:
     """Own the complete validate → deploy → validate → destroy lifecycle.
 
     Parametrize indirectly with an accelerator name:
@@ -122,7 +189,8 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
     """
     accelerator_name = request.param
     cli = _require_databricks_cli()
-    host = _require_env("DATABRICKS_HOST")
+    profile = _require_profile()
+    host = _profile_host(cli, profile)
 
     from dpa.accelerators import get_accelerator
 
@@ -131,25 +199,28 @@ def deployed_project(tmp_path: Path, request: pytest.FixtureRequest) -> Generato
         pytest.skip(f"Unknown accelerator {accelerator_name!r}")
 
     acc = acc_cls()
-    project_dir = tmp_path / acc.project_slug
+    _BUNDLES_DIRECTORY.mkdir(parents=True, exist_ok=True)
+    run_id = uuid.uuid4().hex[:8]
+    project_dir = _BUNDLES_DIRECTORY / f"{accelerator_name}-{run_id}"
     acc.scaffold(target=project_dir)
 
     vars_ = _bundle_vars(accelerator_name)
-    run_id = uuid.uuid4().hex[:8]
     bundle_name = f"{_BUNDLE_PREFIX}-{accelerator_name}-{run_id}"
     patch_databricks_yml(project_dir, acc.project_slug, host, bundle_name)
 
     try:
-        _run_bundle_command(cli, project_dir, ["validate", "--target", "dev", *vars_], "pre-deploy validation")
+        _run_bundle_command(cli, profile, project_dir, ["validate", "--target", "dev", *vars_], "pre-deploy validation")
         _run_bundle_command(
-            cli, project_dir, ["deploy", "--target", "dev", "--auto-approve", *vars_], "deployment"
+            cli, profile, project_dir, ["deploy", "--target", "dev", "--auto-approve", *vars_], "deployment"
         )
-        _run_bundle_command(cli, project_dir, ["validate", "--target", "dev", *vars_], "post-deploy validation")
-        yield project_dir
+        _run_bundle_command(
+            cli, profile, project_dir, ["validate", "--target", "dev", *vars_], "post-deploy validation"
+        )
+        yield DeployedProject(accelerator_name, cli, profile, project_dir, vars_)
     finally:
         if os.getenv("DPA_KEEP_DEPLOYED", "").strip() == "1":
             warnings.warn(
                 f"retaining {bundle_name} because DPA_KEEP_DEPLOYED=1; project directory: {project_dir}", stacklevel=2
             )
         else:
-            _destroy_bundle(cli, project_dir, vars_)
+            _destroy_bundle(cli, profile, project_dir, vars_)

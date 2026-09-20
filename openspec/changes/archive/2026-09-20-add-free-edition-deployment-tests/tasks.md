@@ -1,7 +1,7 @@
 ## Implementation Tasks
 
-- [x] 1. Add a root `.env.example` with the supplied Free Edition host, blank `DATABRICKS_TOKEN`, the integration retention setting, and copy/use instructions; confirm `.env` remains ignored and no secret-bearing file is added.
-- [x] 2. Add the minimal test/development dependency needed to load `.env`, then update integration-test setup to load it without overwriting explicitly supplied shell or CI variables; add focused tests for precedence and missing-credential skip messages.
+- [x] 1. Add a root `.env.example` with the supplied Free Edition host, `DATABRICKS_CONFIG_PROFILE`, the integration retention setting, and copy/use instructions; confirm `.env` remains ignored and no secret-bearing file is added.
+- [x] 2. Add the minimal test/development dependency needed to load `.env`, then update integration-test setup to load it without overwriting explicitly supplied shell or CI variables; add focused tests for precedence and missing-profile skip messages.
 - [x] 3. Refactor the live deployment fixture so it owns pre-deploy validation, deployment, post-deploy validation, clear test-prefix/run identity, diagnostic output, and default `bundle destroy` teardown; replace the old opt-in destroy control with explicit `DPA_KEEP_DEPLOYED=1` retention.
 - [x] 4. Define and document the Free Edition accelerator compatibility matrix after exercising the supplied workspace; run only supported targets, give every excluded target a named platform reason, and preserve failures for supported targets.
 - [x] 5. Update the integration test module and GitHub Actions workflow as needed so secret-based CI remains compatible, live tests are serialized, and cleanup still executes when a deployment assertion fails.

@@ -30,8 +30,5 @@ jobs:
         run: uv pip install --system -e ".[dev]"
 
       - name: Run integration tests
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         # pytest runs serially by default; do not add xdist for live workspace tests.
         run: pytest -m integration -v --tb=short
