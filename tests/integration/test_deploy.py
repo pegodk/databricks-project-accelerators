@@ -9,13 +9,12 @@ from tests.integration.conftest import DeployedProject, run_bundle_workload, ver
 
 # Verified against https://dbc-b208d150-24a9.cloud.databricks.com/ on 2026-09-20.
 # Free Edition targets are enabled only after a successful full bundle deployment.
-FREE_EDITION_SUPPORTED_ACCELERATORS: tuple[str, ...] = ()
+FREE_EDITION_SUPPORTED_ACCELERATORS: tuple[str, ...] = ("custom-python-wheel",)
 FREE_EDITION_EXCLUDED_ACCELERATORS = {
     "ai-bi": (
         "Free Edition Default Storage cannot create the bundle's Unity Catalog catalog; "
         "the Genie resource also has invalid sample-question IDs."
     ),
-    "custom-python-wheel": "Free Edition Default Storage cannot create the bundle's Unity Catalog catalog.",
     "lakebase-streamlit-app": (
         "The Free Edition workspace has reached its three-app quota, and the static Lakebase PostgreSQL project ID "
         "already exists."

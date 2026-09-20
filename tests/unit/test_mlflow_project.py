@@ -23,7 +23,7 @@ def test_mlflow_project_list_files():
     assert "README.md" in files
     assert "resources/jobs/mlflow_job.yml" in files
     assert "resources/schemas/schema.yml" in files
-    assert "resources/catalogs/catalog.yml" in files
+    assert "resources/catalogs/catalog.yml" not in files
     assert "notebooks/train.py" in files
     assert "notebooks/register.py" in files
     assert "notebooks/score.py" in files
@@ -42,7 +42,7 @@ def test_mlflow_project_scaffold(tmp_path: Path):
     assert (project_dir / "README.md").exists()
     assert (project_dir / "resources" / "jobs" / "mlflow_job.yml").exists()
     assert (project_dir / "resources" / "schemas" / "schema.yml").exists()
-    assert (project_dir / "resources" / "catalogs" / "catalog.yml").exists()
+    assert not (project_dir / "resources" / "catalogs" / "catalog.yml").exists()
     assert (project_dir / "notebooks" / "train.py").exists()
     assert (project_dir / "notebooks" / "register.py").exists()
     assert (project_dir / "notebooks" / "score.py").exists()
@@ -122,17 +122,12 @@ def test_mlflow_project_scaffold_renders_bundle_variables(tmp_path: Path):
     assert "engine: direct" in bundle
 
 
-def test_mlflow_project_scaffold_renders_catalog_resource(tmp_path: Path):
+def test_mlflow_project_scaffold_uses_existing_catalog(tmp_path: Path):
     from dpa.accelerators import get_accelerator
 
     acc = get_accelerator("mlflow-project")()
     project_dir = tmp_path / acc.project_slug
     acc.scaffold(target=project_dir)
 
-    catalog = (project_dir / "resources" / "catalogs" / "catalog.yml").read_text()
-    assert "resources:" in catalog
-    assert "catalogs:" in catalog
-    assert "${var.catalog}" in catalog
-
     schema = (project_dir / "resources" / "schemas" / "schema.yml").read_text()
-    assert "resources.catalogs." in schema
+    assert "${var.catalog}" in schema

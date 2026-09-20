@@ -2,5 +2,5 @@
 resources:
   schemas:
     {{ slug }}_schema:
-      catalog_name: ${resources.catalogs.{{ slug }}_catalog.name}
+      catalog_name: ${var.catalog}
       name: ${var.schema}

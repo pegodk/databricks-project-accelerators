@@ -20,7 +20,7 @@ resources:
         - task_key: train
           environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/train
+            notebook_path: ${workspace.file_path}/notebooks/train.py
             source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
@@ -33,7 +33,7 @@ resources:
             - task_key: train
           environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/register
+            notebook_path: ${workspace.file_path}/notebooks/register.py
             source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
@@ -46,7 +46,7 @@ resources:
             - task_key: register
           environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/score
+            notebook_path: ${workspace.file_path}/notebooks/score.py
             source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}

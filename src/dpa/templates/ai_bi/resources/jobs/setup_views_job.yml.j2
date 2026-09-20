@@ -17,7 +17,7 @@ resources:
         - task_key: create_metric_views
           environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.file_path}/notebooks/setup_metric_views
+            notebook_path: ${workspace.file_path}/notebooks/setup_metric_views.py
             source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
