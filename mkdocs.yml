@@ -38,6 +38,7 @@ plugins:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - Integration Tests: integration-tests.md
   - Accelerators:
       - AI/BI: accelerators/ai-bi.md
       - Custom Python Wheel: accelerators/custom-python-wheel.md
